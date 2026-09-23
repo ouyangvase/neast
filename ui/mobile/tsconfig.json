@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // React 19 types removed the global JSX namespace; the automatic runtime
+    // resolves JSX via react/jsx-runtime instead. Metro handles this fine.
+    "jsx": "react-jsx"
+  },
+  "include": ["src"]
+}

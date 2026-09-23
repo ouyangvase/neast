@@ -1,0 +1,148 @@
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  type StyleProp,
+  type TextStyle,
+  type ViewStyle,
+} from 'react-native';
+
+import { coreColors } from '../tokens/colors';
+import { radii } from '../tokens/layout';
+import { textStyles } from '../tokens/typography';
+
+export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost';
+export type ButtonSize = 'small' | 'medium' | 'large';
+
+export interface ButtonProps {
+  title: string;
+  onPress?: () => void;
+  /** `primary` = action green (Flutter ElevatedButton default). Default: `primary`. */
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  loading?: boolean;
+  disabled?: boolean;
+  /** Stretch to fill the parent width. Default: true. */
+  fullWidth?: boolean;
+  style?: StyleProp<ViewStyle>;
+  textStyle?: StyleProp<TextStyle>;
+}
+
+export function Button({
+  title,
+  onPress,
+  variant = 'primary',
+  size = 'medium',
+  loading = false,
+  disabled = false,
+  fullWidth = true,
+  style,
+  textStyle,
+}: ButtonProps) {
+  const isDisabled = disabled || loading;
+  return (
+    <Pressable
+      accessibilityRole="button"
+      disabled={isDisabled}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.base,
+        styles[`size_${size}`],
+        styles[`variant_${variant}`],
+        fullWidth && styles.fullWidth,
+        pressed && !isDisabled && styles.pressed,
+        isDisabled && styles.disabled,
+        style,
+      ]}
+    >
+      {loading ? (
+        <ActivityIndicator
+          color={
+            variant === 'outline' || variant === 'ghost' ? coreColors.brandBlue : coreColors.white
+          }
+        />
+      ) : (
+        <Text
+          style={[styles.label, styles[`label_${variant}`], styles[`labelSize_${size}`], textStyle]}
+        >
+          {title}
+        </Text>
+      )}
+    </Pressable>
+  );
+}
+
+const styles = StyleSheet.create({
+  base: {
+    borderRadius: radii.button,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+  },
+  fullWidth: {
+    alignSelf: 'stretch',
+  },
+  size_small: {
+    height: 36,
+    paddingHorizontal: 16,
+  },
+  size_medium: {
+    height: 48,
+    paddingHorizontal: 20,
+  },
+  size_large: {
+    height: 56,
+    paddingHorizontal: 24,
+  },
+  variant_primary: {
+    backgroundColor: coreColors.actionGreen,
+  },
+  variant_secondary: {
+    backgroundColor: coreColors.brandBlue,
+  },
+  variant_outline: {
+    backgroundColor: coreColors.white,
+    borderWidth: 1,
+    borderColor: coreColors.brandBlue,
+  },
+  variant_danger: {
+    backgroundColor: coreColors.error,
+  },
+  variant_ghost: {
+    backgroundColor: 'transparent',
+  },
+  pressed: {
+    opacity: 0.85,
+  },
+  disabled: {
+    opacity: 0.5,
+  },
+  label: {
+    ...textStyles.button,
+  },
+  labelSize_small: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  labelSize_medium: {},
+  labelSize_large: {
+    fontSize: 18,
+    lineHeight: 26,
+  },
+  label_primary: {
+    color: coreColors.white,
+  },
+  label_secondary: {
+    color: coreColors.white,
+  },
+  label_outline: {
+    color: coreColors.brandBlue,
+  },
+  label_danger: {
+    color: coreColors.white,
+  },
+  label_ghost: {
+    color: coreColors.brandBlue,
+  },
+});
