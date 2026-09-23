@@ -1,5 +1,6 @@
 import type {
   AgreementDetail,
+  ConfirmGivePointsBody,
   ConfirmGivePointsResponse,
   CreateMerchantTopupBody,
   CreateMerchantTopupResponse,
@@ -67,26 +68,7 @@ export const getGivePointsStats = () => api.get<GivePointsStats>('give-points/st
 export const getGivePointsCustomer = (userId: number) =>
   api.get<GivePointsCustomer>('give-points/customer', { user_id: userId });
 
-/**
- * Request body for POST /merchant/give-points/confirm.
- *
- * NOTE: the Hyperf controller validates `customer` as a string (max 128)
- * resolved against the user's account (phone), and `receipt_path` as REQUIRED
- * — @neast/types' ConfirmGivePointsBody (`customer: number`, optional
- * `receipt_path`) does not match the backend. See PARITY.md.
- */
-export interface ConfirmGivePointsRequest {
-  /** Customer account (phone) — from the QR lookup or manual entry. */
-  customer: string;
-  amount: string;
-  points: number;
-  merchant_id: number;
-  notes?: string;
-  receipt_number?: string;
-  receipt_path: string;
-}
-
-export const confirmGivePoints = (body: ConfirmGivePointsRequest) =>
+export const confirmGivePoints = (body: ConfirmGivePointsBody) =>
   api.post<ConfirmGivePointsResponse>('give-points/confirm', body);
 
 // ---- Points setting ----

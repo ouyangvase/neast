@@ -27,13 +27,13 @@ export default function StoreProfileRoute() {
             <ProfileRow label="Store name" value={info.data.name} />
             <ProfileRow label="Address" value={info.data.address} />
             <ProfileRow label="Registration no." value={info.data.registration_number} />
-            <ProfileRow label="Email" value={info.data.email ?? ''} />
-            <ProfileRow label="Phone" value={info.data.phone ?? ''} />
+            <ProfileRow label="Email" value={info.data.email} />
+            <ProfileRow label="Phone" value={info.data.phone} />
           </Card>
           <Card style={styles.card}>
-            <ProfileRow label="Contact person" value={info.data.contact_name ?? ''} />
-            <ProfileRow label="Contact phone" value={info.data.contact_phone ?? ''} />
-            <ProfileRow label="Contact email" value={info.data.contact_email ?? ''} />
+            <ProfileRow label="Contact person" value={info.data.contact_name} />
+            <ProfileRow label="Contact phone" value={info.data.contact_phone} />
+            <ProfileRow label="Contact email" value={info.data.contact_email} />
           </Card>
         </ScrollView>
       )}

@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { formatRinggit, formatThousands } from '@neast/types';
+import { formatRinggit, formatThousands, type ConfirmGivePointsBody } from '@neast/types';
 import {
   BrandHeader,
   Button,
@@ -22,11 +22,7 @@ import successImage from '../../assets/images/give_points/success.png';
 
 import { apiErrorMessage } from '../../src/lib/api';
 import { getConfirmPointsArgs, openScanner } from '../../src/lib/callbacks';
-import {
-  confirmGivePoints,
-  getGivePointsCustomer,
-  type ConfirmGivePointsRequest,
-} from '../../src/lib/endpoints';
+import { confirmGivePoints, getGivePointsCustomer } from '../../src/lib/endpoints';
 import { useMerchantInfo } from '../../src/hooks/use-merchant';
 import { Screen } from '../../src/components/Screen';
 import { SuccessDialog } from '../../src/components/SuccessDialog';
@@ -52,7 +48,7 @@ export default function ConfirmPointsRoute() {
   });
 
   const confirmMutation = useMutation({
-    mutationFn: (body: ConfirmGivePointsRequest) => confirmGivePoints(body),
+    mutationFn: (body: ConfirmGivePointsBody) => confirmGivePoints(body),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['give-points'] });
       setSuccessVisible(true);

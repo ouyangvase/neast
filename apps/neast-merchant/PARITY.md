@@ -80,22 +80,19 @@ app state, not routes — IndexedStack parity).
   `location_service.dart`, `auth_utils.dart` — dead code, not ported.
 - Cashier line in the scan outlet card — commented out in Flutter.
 
-## Contract discrepancies (found verifying against `services/neast-api` PHP)
+## Contract notes (verified against `services/neast-api` PHP)
 
-1. **`POST give-points/confirm` body** — `@neast/types` `ConfirmGivePointsBody`
-   declares `customer: number` (scanned user id) and optional `receipt_path`. The
-   Hyperf controller validates `customer` as **string ≤128** and resolves it
-   against `t_user.account` (phone); `receipt_path` is **required**. Sending the
-   user id would 100% fail with "Customer not found". The app therefore sends the
-   confirmed shape via a local `ConfirmGivePointsRequest` (`customer: string`,
-   `receipt_path: string`) in `src/lib/endpoints.ts`. End-to-end path: customer QR
-   `{"user_id": n}` → `GET give-points/customer?user_id=` → `data.account` fills
-   the phone field → confirm posts that account string.
-2. **`SettlementOverview.is_paid`** — contract says `boolean`; PHP returns int
-   `0|1`. The app branches on truthiness only, which is correct for both.
-3. **`MerchantLoginResponse.profileCompleted`** — contract field is absent from
-   the PHP login payload (only `accessToken/refreshToken/expiresTime/merchantId`).
-   Unused by the client (no profile-completion flow exists in the Flutter app).
+The `@neast/types` merchant contracts match the Hyperf ground truth. Two
+non-obvious confirmed paths worth keeping visible:
+
+1. **`POST give-points/confirm`** — `customer` is the customer's ACCOUNT string
+   (phone), not the numeric user id, and `receipt_path` is required. End-to-end
+   path: customer QR `{"user_id": n}` → `GET give-points/customer?user_id=` →
+   `data.account` fills the phone field → confirm posts that account string.
+2. **Empty-string semantics** — `MerchantInfo` email/phone/contact fields,
+   `VerifyCouponResponse.expire_at`, and `MerchantTopupItem`
+   `txn_id`/`channel`/`paid_at` arrive as `''` when unset (never null). The UI
+   renders `''` as "—" (store profile) / "No expiry" (redeem preview).
 
 ## Spec ambiguities resolved
 
