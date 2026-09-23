@@ -40,10 +40,10 @@ export default function BankDetailRoute() {
   useEffect(() => {
     const data = info.data;
     if (!data) return;
-    setBankName(data.bank_name ?? '');
-    setBankAccount(data.bank_account ?? '');
-    setHolderName(data.account_holder_name ?? '');
-    setPhotoPath(data.bank_header_photo ?? '');
+    setBankName(data.bank_name);
+    setBankAccount(data.bank_account);
+    setHolderName(data.account_holder_name);
+    setPhotoPath(data.bank_header_photo);
     setPhotoPreview(data.bank_header_photo_url || null);
   }, [info.data]);
 

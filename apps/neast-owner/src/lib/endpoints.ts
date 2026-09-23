@@ -1,11 +1,11 @@
 import type {
+  AckListResponse,
   AgreementDetail,
   AuditBindRequestBody,
   BindRequestListResponse,
   ConfirmAckBody,
   CountryCode,
   CreatePropertyBody,
-  LandlordAckItem,
   LandlordHomeDashboard,
   LandlordInfo,
   LandlordLoginBody,
@@ -56,7 +56,7 @@ export const getHomeDashboard = () => api.get<LandlordHomeDashboard>('home/detai
 // ---- Ack ----
 
 /** Unpaginated — the backend returns the full settled/unconfirmed list. */
-export const getAckList = () => api.get<{ items: LandlordAckItem[] }>('ack/list');
+export const getAckList = () => api.get<AckListResponse>('ack/list');
 
 export const confirmAck = (id: number) =>
   api.post('ack/confirm', { id } satisfies ConfirmAckBody);
