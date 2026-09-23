@@ -59,3 +59,4 @@ services/neast-api/storage/logs/*
 *.tmp
 *.swp
 node_modules/
+.turbo/
