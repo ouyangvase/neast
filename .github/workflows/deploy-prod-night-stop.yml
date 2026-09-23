@@ -1,0 +1,138 @@
+name: Night Stop
+
+# Enable, disable, or change 02:00–07:00 Asia/Kuala_Lumpur stop/start.
+# Does not start or stop resources itself. Disable leaves the 07:00 start on
+# so a fleet already down still comes up; the 02:00 stop is what turns off.
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: enable, disable, or update hours
+        required: true
+        type: choice
+        options:
+          - enable
+          - disable
+          - update
+        default: enable
+      stop_time:
+        description: Stop clock Asia/Kuala_Lumpur (HH:mm). Used by update; enable/disable keep the live value.
+        required: false
+        default: "02:00"
+        type: string
+      start_time:
+        description: Start clock Asia/Kuala_Lumpur (HH:mm). Used by update; enable/disable keep the live value.
+        required: false
+        default: "07:00"
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ap-southeast-1
+  ENVIRONMENT: prod
+  STACK_NAME: Neast-prod-NightStop
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    concurrency:
+      group: deploy-prod-night-stop
+      cancel-in-progress: false
+      queue: max
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: infra/cdk/package-lock.json
+
+      - name: Resolve night-stop config
+        id: cfg
+        env:
+          ACTION: ${{ inputs.action }}
+          INPUT_STOP: ${{ inputs.stop_time }}
+          INPUT_START: ${{ inputs.start_time }}
+        run: |
+          set -euo pipefail
+
+          CURRENT_ENABLED="true"
+          CURRENT_STOP="02:00"
+          CURRENT_START="07:00"
+
+          if aws cloudformation describe-stacks --stack-name "$STACK_NAME" >/dev/null 2>&1; then
+            STATUS=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" \
+              --query 'Stacks[0].StackStatus' --output text)
+            if [ "$STATUS" = "ROLLBACK_COMPLETE" ]; then
+              echo "::notice::Deleting $STACK_NAME in ROLLBACK_COMPLETE so CDK can recreate it"
+              aws cloudformation delete-stack --stack-name "$STACK_NAME"
+              aws cloudformation wait stack-delete-complete --stack-name "$STACK_NAME"
+            else
+              OUTPUTS=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" \
+                --query 'Stacks[0].Outputs' --output json)
+              CURRENT_ENABLED=$(echo "$OUTPUTS" | jq -r '.[] | select(.OutputKey=="NightStopEnabled") | .OutputValue')
+              CURRENT_STOP=$(echo "$OUTPUTS" | jq -r '.[] | select(.OutputKey=="NightStopTime") | .OutputValue')
+              CURRENT_START=$(echo "$OUTPUTS" | jq -r '.[] | select(.OutputKey=="NightStartTime") | .OutputValue')
+            fi
+          fi
+
+          case "$ACTION" in
+            enable)
+              ENABLED="true"
+              STOP="$CURRENT_STOP"
+              START="$CURRENT_START"
+              ;;
+            disable)
+              ENABLED="false"
+              STOP="$CURRENT_STOP"
+              START="$CURRENT_START"
+              ;;
+            update)
+              ENABLED="$CURRENT_ENABLED"
+              STOP="$INPUT_STOP"
+              START="$INPUT_START"
+              ;;
+            *)
+              echo "Unknown action $ACTION"
+              exit 1
+              ;;
+          esac
+
+          if ! echo "$STOP" | grep -Eq '^[0-9]{1,2}:[0-9]{2}$'; then
+            echo "stop_time must be HH:mm (got $STOP)"
+            exit 1
+          fi
+          if ! echo "$START" | grep -Eq '^[0-9]{1,2}:[0-9]{2}$'; then
+            echo "start_time must be HH:mm (got $START)"
+            exit 1
+          fi
+
+          echo "enabled=$ENABLED" >> "$GITHUB_OUTPUT"
+          echo "stop=$STOP" >> "$GITHUB_OUTPUT"
+          echo "start=$START" >> "$GITHUB_OUTPUT"
+          echo "::notice::action=$ACTION enabled=$ENABLED stop=$STOP start=$START Asia/Kuala_Lumpur"
+
+      - name: CDK deploy Data + NightStop
+        working-directory: infra/cdk
+        run: |
+          npm ci
+          npx cdk deploy Neast-prod-Data Neast-prod-NightStop \
+            --require-approval never \
+            --exclusively \
+            -c environment=prod \
+            -c deployMode=full \
+            -c productionReady=true \
+            -c certificateArn=${{ secrets.ACM_CERTIFICATE_ARN }} \
+            -c nightStopEnabled=${{ steps.cfg.outputs.enabled }} \
+            -c nightStopTime=${{ steps.cfg.outputs.stop }} \
+            -c nightStartTime=${{ steps.cfg.outputs.start }}

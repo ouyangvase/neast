@@ -1,0 +1,71 @@
+name: Deploy iOS (TestFlight)
+
+# Manual-only. Private repos on free GitHub plans do not support environment
+# protection rules, so this only runs when you click "Run workflow".
+on:
+  workflow_dispatch:
+    inputs:
+      app:
+        description: "App to deploy"
+        type: choice
+        required: true
+        default: user
+        options:
+          - user
+          - merchant
+          - owner
+      commit_sha:
+        description: "Optional commit SHA (leave blank for the selected branch)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  build-ios:
+    name: Build iOS App (${{ github.event.inputs.app }})
+    runs-on: macos-latest
+    environment: production
+    timeout-minutes: 90
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.commit_sha || github.ref }}
+
+      - uses: ./.github/actions/select-mobile-app
+        id: app
+        with:
+          app: ${{ github.event.inputs.app }}
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Flutter build (no codesign — compiles Dart, installs pods)
+        working-directory: ${{ steps.app.outputs.working_directory }}
+        run: |
+          flutter pub get
+          flutter build ios --release --no-codesign
+
+      - name: Setup Ruby + Fastlane
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+
+      - name: Install Fastlane
+        run: gem install fastlane --no-document
+
+      - name: Build IPA and upload to TestFlight
+        working-directory: ${{ steps.app.outputs.working_directory }}/ios
+        env:
+          IOS_BUNDLE_ID: ${{ steps.app.outputs.ios_bundle_id }}
+          ASC_TEAM_ID: ${{ secrets.ASC_TEAM_ID }}
+          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          ASC_API_KEY_ISSUER_ID: ${{ secrets.ASC_API_KEY_ISSUER_ID }}
+          ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+        run: fastlane ios beta

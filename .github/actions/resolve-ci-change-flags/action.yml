@@ -1,0 +1,101 @@
+name: Resolve CI change flags
+description: >
+  Path-filter the current push/PR, then on push also OR in any component
+  paths changed since the last successful CI on this branch.
+
+inputs:
+  api:
+    description: dorny api filter output (true/false)
+    required: true
+  cdk:
+    description: dorny cdk filter output (true/false)
+    required: true
+  landing:
+    description: dorny landing filter output (true/false)
+    required: true
+  mobile_user:
+    description: dorny mobile_user filter output (true/false)
+    required: true
+  mobile_merchant:
+    description: dorny mobile_merchant filter output (true/false)
+    required: true
+  mobile_owner:
+    description: dorny mobile_owner filter output (true/false)
+    required: true
+
+outputs:
+  api:
+    description: Cumulative api changed flag
+    value: ${{ steps.resolve.outputs.api }}
+  cdk:
+    description: Cumulative cdk changed flag
+    value: ${{ steps.resolve.outputs.cdk }}
+  landing:
+    description: Cumulative landing changed flag
+    value: ${{ steps.resolve.outputs.landing }}
+  mobile_user:
+    description: Cumulative mobile_user changed flag
+    value: ${{ steps.resolve.outputs.mobile_user }}
+  mobile_merchant:
+    description: Cumulative mobile_merchant changed flag
+    value: ${{ steps.resolve.outputs.mobile_merchant }}
+  mobile_owner:
+    description: Cumulative mobile_owner changed flag
+    value: ${{ steps.resolve.outputs.mobile_owner }}
+
+runs:
+  using: composite
+  steps:
+    - name: Resolve cumulative flags
+      id: resolve
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        API: ${{ inputs.api }}
+        CDK: ${{ inputs.cdk }}
+        LANDING: ${{ inputs.landing }}
+        MOBILE_USER: ${{ inputs.mobile_user }}
+        MOBILE_MERCHANT: ${{ inputs.mobile_merchant }}
+        MOBILE_OWNER: ${{ inputs.mobile_owner }}
+        EVENT_NAME: ${{ github.event_name }}
+        REPO: ${{ github.repository }}
+        BRANCH: ${{ github.ref_name }}
+        SHA: ${{ github.sha }}
+        RUN_ID: ${{ github.run_id }}
+      run: |
+        set -euo pipefail
+
+        mark_from_diff() {
+          local diff="$1"
+          if echo "$diff" | grep -qE '^services/neast-api/'; then API=true; fi
+          if echo "$diff" | grep -qE '^infra/cdk/'; then CDK=true; fi
+          if echo "$diff" | grep -qE '^apps/landing/'; then LANDING=true; fi
+          if echo "$diff" | grep -qE '^apps/neast-user/'; then MOBILE_USER=true; fi
+          if echo "$diff" | grep -qE '^apps/neast-merchant/'; then MOBILE_MERCHANT=true; fi
+          if echo "$diff" | grep -qE '^apps/neast-owner/'; then MOBILE_OWNER=true; fi
+        }
+
+        if [ "$EVENT_NAME" = "push" ]; then
+          LAST_GREEN="$(gh api \
+            "repos/${REPO}/actions/workflows/ci.yml/runs?branch=${BRANCH}&status=completed&conclusion=success&per_page=20" \
+            | jq -r --argjson id "$RUN_ID" \
+              '[.workflow_runs[] | select(.id != $id)][0].head_sha // empty' \
+            || true)"
+
+          if [ -n "$LAST_GREEN" ] && git cat-file -e "${LAST_GREEN}^{commit}" 2>/dev/null; then
+            DIFF="$(git diff --name-only "$LAST_GREEN" "$SHA" || true)"
+            mark_from_diff "$DIFF"
+            echo "::notice::Cumulative flags vs last green CI ${LAST_GREEN:0:7}: api=$API cdk=$CDK landing=$LANDING mobile_user=$MOBILE_USER mobile_merchant=$MOBILE_MERCHANT mobile_owner=$MOBILE_OWNER"
+          else
+            echo "::notice::No prior green CI on ${BRANCH}; using push-only path filters"
+          fi
+        fi
+
+        {
+          echo "api=$API"
+          echo "cdk=$CDK"
+          echo "landing=$LANDING"
+          echo "mobile_user=$MOBILE_USER"
+          echo "mobile_merchant=$MOBILE_MERCHANT"
+          echo "mobile_owner=$MOBILE_OWNER"
+        } >> "$GITHUB_OUTPUT"

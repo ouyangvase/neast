@@ -1,0 +1,210 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main, develop]
+    paths-ignore:
+      - "**/*.md"
+      - "plan/**"
+      - ".cursor/**"
+  push:
+    branches: [main, develop]
+    paths-ignore:
+      - "**/*.md"
+      - "plan/**"
+      - ".cursor/**"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      api: ${{ steps.flags.outputs.api }}
+      cdk: ${{ steps.flags.outputs.cdk }}
+      landing: ${{ steps.flags.outputs.landing }}
+      mobile_user: ${{ steps.flags.outputs.mobile_user }}
+      mobile_merchant: ${{ steps.flags.outputs.mobile_merchant }}
+      mobile_owner: ${{ steps.flags.outputs.mobile_owner }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            api:
+              - 'services/neast-api/**'
+            cdk:
+              - 'infra/cdk/**'
+            landing:
+              - 'apps/landing/**'
+            mobile_user:
+              - 'apps/neast-user/**'
+            mobile_merchant:
+              - 'apps/neast-merchant/**'
+            mobile_owner:
+              - 'apps/neast-owner/**'
+
+      - uses: ./.github/actions/resolve-ci-change-flags
+        id: flags
+        with:
+          api: ${{ steps.filter.outputs.api }}
+          cdk: ${{ steps.filter.outputs.cdk }}
+          landing: ${{ steps.filter.outputs.landing }}
+          mobile_user: ${{ steps.filter.outputs.mobile_user }}
+          mobile_merchant: ${{ steps.filter.outputs.mobile_merchant }}
+          mobile_owner: ${{ steps.filter.outputs.mobile_owner }}
+
+      - name: Publish change flags for deploy workflows
+        if: github.event_name == 'push'
+        run: |
+          jq -n \
+            --arg api "${{ steps.flags.outputs.api }}" \
+            --arg cdk "${{ steps.flags.outputs.cdk }}" \
+            --arg landing "${{ steps.flags.outputs.landing }}" \
+            --arg mobile_user "${{ steps.flags.outputs.mobile_user }}" \
+            --arg mobile_merchant "${{ steps.flags.outputs.mobile_merchant }}" \
+            --arg mobile_owner "${{ steps.flags.outputs.mobile_owner }}" \
+            --arg before "${{ github.event.before }}" \
+            --arg after "${{ github.sha }}" \
+            '{api:$api,cdk:$cdk,landing:$landing,mobile_user:$mobile_user,mobile_merchant:$mobile_merchant,mobile_owner:$mobile_owner,before:$before,after:$after}' \
+            > ci-change-flags.json
+
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'push'
+        with:
+          name: ci-change-flags
+          path: ci-change-flags.json
+          retention-days: 7
+
+  api:
+    needs: changes
+    if: needs.changes.outputs.api == 'true'
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: "12345678"
+          MYSQL_DATABASE: neast
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h 127.0.0.1 -uroot -p12345678"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: "3306"
+      DB_DATABASE: neast
+      DB_USERNAME: root
+      DB_PASSWORD: "12345678"
+      REDIS_HOST: 127.0.0.1
+      REDIS_PORT: "6379"
+    defaults:
+      run:
+        working-directory: services/neast-api
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.1"
+          extensions: swoole
+          coverage: none
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+      - name: PHPStan
+        run: composer analyse
+      - name: Tests
+        run: composer test
+
+  landing:
+    needs: changes
+    if: needs.changes.outputs.landing == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/landing
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: apps/landing/package-lock.json
+      - run: npm ci
+      - run: npm run build
+
+  mobile:
+    needs: changes
+    if: needs.changes.outputs[matrix.flag] == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { key: user, dir: apps/neast-user, flag: mobile_user }
+          - { key: merchant, dir: apps/neast-merchant, flag: mobile_merchant }
+          - { key: owner, dir: apps/neast-owner, flag: mobile_owner }
+    defaults:
+      run:
+        working-directory: ${{ matrix.dir }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - name: Tests (when present)
+        run: |
+          if [ -d test ] && [ -n "$(find test -name '*_test.dart' -print -quit)" ]; then
+            flutter test
+          else
+            echo "No tests in ${{ matrix.dir }}, skipping."
+          fi
+
+  cdk:
+    needs: changes
+    if: needs.changes.outputs.cdk == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra/cdk
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: infra/cdk/package-lock.json
+      - run: npm ci
+      - run: |
+          npx cdk synth \
+            -c environment=prod \
+            -c deployMode=full \
+            -c productionReady=true \
+            -c certificateArn=arn:aws:acm:ap-southeast-1:000000000000:certificate/00000000-0000-0000-0000-000000000000
+      - name: Checkov
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: infra/cdk/cdk.out
+          framework: cloudformation
+          config_file: infra/cdk/.checkov.yaml
+          soft_fail: false

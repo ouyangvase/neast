@@ -1,0 +1,123 @@
+name: Deploy Prod API
+
+# Runs after CI succeeds on main. Manual deploy: workflow_dispatch.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+  actions: read
+
+env:
+  AWS_REGION: ap-southeast-1
+  ENVIRONMENT: prod
+
+jobs:
+  changes:
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    outputs:
+      api: ${{ steps.flags.outputs.changed }}
+      sha: ${{ steps.flags.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/load-ci-change-flags
+        id: flags
+        with:
+          component: api,cdk
+          force: ${{ github.event_name == 'workflow_dispatch' }}
+          path_regex: '^(services/neast-api/|infra/cdk/)'
+          deploy_job: deploy-api
+
+  deploy-api:
+    needs: changes
+    if: needs.changes.outputs.api == 'true'
+    runs-on: ubuntu-latest
+    environment: production
+    concurrency:
+      group: deploy-prod-api
+      cancel-in-progress: false
+      queue: max
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.changes.outputs.sha }}
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: aws-actions/amazon-ecr-login@v2
+        id: ecr
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: infra/cdk/package-lock.json
+
+      - name: Ensure network, data, and ECR exist
+        working-directory: infra/cdk
+        run: |
+          npm ci
+          npx cdk deploy Neast-prod-Network Neast-prod-Data \
+            --require-approval never \
+            -c environment=prod \
+            -c deployMode=full \
+            -c productionReady=true \
+            -c certificateArn=${{ secrets.ACM_CERTIFICATE_ARN }} \
+            -c imageTag=${{ needs.changes.outputs.sha }}
+
+      - name: Preflight API env secret
+        run: |
+          if ! aws secretsmanager get-secret-value --secret-id /neast/prod/api/env --query SecretString --output text 2>/dev/null | jq -e 'length > 0' >/dev/null 2>&1; then
+            echo "::error::Secret /neast/prod/api/env is empty. Fill it (see .github/DEPLOYMENT_SECRETS.md section 2.4) and re-run this workflow."
+            exit 1
+          fi
+
+      - name: Build and push API image
+        env:
+          ECR_REGISTRY: ${{ steps.ecr.outputs.registry }}
+          ECR_REPOSITORY: neast-api-prod
+          IMAGE_TAG: ${{ needs.changes.outputs.sha }}
+        run: |
+          docker buildx build --platform linux/amd64 --provenance=false --sbom=false \
+            -f services/neast-api/Dockerfile \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
+            --push services/neast-api
+
+      - name: CDK deploy API service
+        working-directory: infra/cdk
+        run: |
+          npx cdk deploy Neast-prod-Api --exclusively \
+            --require-approval never \
+            -c environment=prod \
+            -c deployMode=full \
+            -c productionReady=true \
+            -c certificateArn=${{ secrets.ACM_CERTIFICATE_ARN }} \
+            -c imageTag=${{ needs.changes.outputs.sha }}
+
+      - name: Resolve prod API health URL
+        id: prod-api
+        run: |
+          API_URL=$(aws ssm get-parameter --name /neast/prod/api/url --query Parameter.Value --output text)
+          ALB=$(aws ssm get-parameter --name /neast/prod/alb/dns-name --query Parameter.Value --output text)
+          echo "health_url=${API_URL%/}/health" >> "$GITHUB_OUTPUT"
+          echo "connect_to=api.neast.my:443:${ALB}:443" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for prod API health
+        uses: ./.github/actions/wait-for-api-health
+        with:
+          url: ${{ steps.prod-api.outputs.health_url }}
+          connect_to: ${{ steps.prod-api.outputs.connect_to }}

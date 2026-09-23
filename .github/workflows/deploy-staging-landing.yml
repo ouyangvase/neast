@@ -1,0 +1,54 @@
+name: Deploy Staging Landing
+
+# DISABLED: first phase has no staging environment. See deploy-staging-api.yml.
+on:
+  workflow_dispatch:
+  # workflow_run:
+  #   workflows: [CI]
+  #   types: [completed]
+  #   branches: [develop]
+
+permissions:
+  id-token: write
+  contents: read
+  actions: read
+
+concurrency:
+  group: deploy-staging-landing
+  cancel-in-progress: true
+
+env:
+  AWS_REGION: ap-southeast-1
+  ENVIRONMENT: staging
+
+jobs:
+  changes:
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    outputs:
+      landing: ${{ steps.flags.outputs.changed }}
+      sha: ${{ steps.flags.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/load-ci-change-flags
+        id: flags
+        with:
+          component: landing,cdk
+          force: ${{ github.event_name == 'workflow_dispatch' }}
+          path_regex: '^(apps/landing/|infra/cdk/)'
+          deploy_job: deploy-landing
+
+  deploy-landing:
+    needs: changes
+    if: needs.changes.outputs.landing == 'true'
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Staging is not provisioned
+        run: |
+          echo "Staging AWS is not enabled in phase 1."
+          exit 1

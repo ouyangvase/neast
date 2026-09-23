@@ -1,0 +1,46 @@
+name: Select mobile app
+description: Map workflow app input to directory and store identifiers.
+
+inputs:
+  app:
+    description: user, merchant, or owner
+    required: true
+    default: user
+
+outputs:
+  working_directory:
+    description: App directory under the monorepo
+    value: ${{ steps.select.outputs.working_directory }}
+  ios_bundle_id:
+    description: Production iOS bundle identifier
+    value: ${{ steps.select.outputs.ios_bundle_id }}
+  android_package:
+    description: Production Android application id
+    value: ${{ steps.select.outputs.android_package }}
+
+runs:
+  using: composite
+  steps:
+    - name: Resolve app paths
+      id: select
+      shell: bash
+      env:
+        APP: ${{ inputs.app }}
+      run: |
+        case "$APP" in
+          merchant)
+            echo "working_directory=apps/neast-merchant" >> "$GITHUB_OUTPUT"
+            echo "ios_bundle_id=com.neastMerchant.flutter" >> "$GITHUB_OUTPUT"
+            echo "android_package=com.neastMerchant.flutter" >> "$GITHUB_OUTPUT"
+            ;;
+          owner)
+            echo "working_directory=apps/neast-owner" >> "$GITHUB_OUTPUT"
+            echo "ios_bundle_id=com.neastLandlords.flutter" >> "$GITHUB_OUTPUT"
+            echo "android_package=com.neastLandlords.flutter" >> "$GITHUB_OUTPUT"
+            ;;
+          *)
+            echo "working_directory=apps/neast-user" >> "$GITHUB_OUTPUT"
+            echo "ios_bundle_id=com.neastusers.flutter" >> "$GITHUB_OUTPUT"
+            echo "android_package=com.neastusers.flutter" >> "$GITHUB_OUTPUT"
+            ;;
+        esac

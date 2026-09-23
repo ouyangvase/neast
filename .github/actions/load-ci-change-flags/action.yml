@@ -1,0 +1,165 @@
+name: Load CI change flags
+description: >
+  Downloads the ci-change-flags artifact published by the CI workflow and
+  exposes the requested component's changed flag plus the deploy SHA.
+  If the artifact says unchanged, also checks git paths since the last
+  in-flight or successful deploy job on this workflow. On workflow_dispatch,
+  force-deploys.
+
+inputs:
+  component:
+    description: Which flag(s) to check — comma-separated for OR logic (e.g. "api,cdk")
+    required: true
+  force:
+    description: Set to 'true' on workflow_dispatch to always deploy
+    required: false
+    default: "false"
+  path_regex:
+    description: grep -E pattern for pending paths since last in-flight or successful deploy job
+    required: false
+    default: ""
+  deploy_job:
+    description: Job name that indicates a real deploy succeeded
+    required: false
+    default: deploy
+
+outputs:
+  changed:
+    description: Whether the component changed (true/false)
+    value: ${{ steps.resolve.outputs.changed }}
+  sha:
+    description: Commit SHA to deploy
+    value: ${{ steps.resolve.outputs.sha }}
+
+runs:
+  using: composite
+  steps:
+    - name: Download CI change flags artifact
+      if: inputs.force != 'true'
+      id: download
+      uses: actions/download-artifact@v4
+      continue-on-error: true
+      with:
+        name: ci-change-flags
+        run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ github.token }}
+
+    - name: Resolve change flag
+      id: resolve
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        FORCE: ${{ inputs.force }}
+        COMPONENT: ${{ inputs.component }}
+        PATH_REGEX: ${{ inputs.path_regex }}
+        DEPLOY_JOB: ${{ inputs.deploy_job }}
+        DOWNLOAD_OUTCOME: ${{ steps.download.outcome }}
+        HEAD_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+        WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id || '' }}
+        CURRENT_RUN_ID: ${{ github.run_id }}
+        REPO: ${{ github.repository }}
+        BRANCH: ${{ github.event.workflow_run.head_branch || github.ref_name }}
+        WORKFLOW_REF: ${{ github.workflow_ref }}
+      run: |
+        set -euo pipefail
+
+        if [ "$FORCE" = "true" ]; then
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "sha=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          echo "::notice::Manual dispatch — forcing deploy"
+          exit 0
+        fi
+
+        CHANGED="false"
+        if [ "$DOWNLOAD_OUTCOME" = "success" ]; then
+          IFS=',' read -ra COMPONENTS <<< "$COMPONENT"
+          for comp in "${COMPONENTS[@]}"; do
+            VAL=$(jq -r --arg c "$comp" '.[$c] // "false"' ci-change-flags.json)
+            if [ "$VAL" = "true" ]; then
+              CHANGED="true"
+              break
+            fi
+          done
+          echo "::notice::Component(s) ${COMPONENT} changed=${CHANGED} (from CI run ${WORKFLOW_RUN_ID})"
+        else
+          echo "::warning::ci-change-flags artifact not found (CI run predates this change?)."
+        fi
+
+        if [ "$CHANGED" != "true" ] && [ -n "$PATH_REGEX" ]; then
+          WF_FILE="$(basename "${WORKFLOW_REF%%@*}")"
+          LAST_DEPLOYED=""
+          LAST_SOURCE=""
+
+          # A run still owns pending paths if its deploy job has not skipped/failed.
+          # Missing job = changes still running, so treat the SHA as in-flight.
+          run_covers_paths() {
+            local run_id="$1"
+            local jobs_json
+            [ -n "$run_id" ] || return 1
+            [ "$run_id" = "$CURRENT_RUN_ID" ] && return 1
+            jobs_json="$(gh api "repos/${REPO}/actions/runs/${run_id}/jobs")" || return 1
+            echo "$jobs_json" | jq -e --arg job "$DEPLOY_JOB" '
+              [.jobs[] | select(.name == $job)] | first |
+              if . == null then
+                true
+              else
+                (.conclusion // "") as $c |
+                ($c != "skipped" and $c != "cancelled" and $c != "failure")
+              end
+            ' >/dev/null || return 1
+          }
+
+          take_run() {
+            local run_id="$1"
+            local source="$2"
+            if run_covers_paths "$run_id"; then
+              LAST_DEPLOYED="$(gh api "repos/${REPO}/actions/runs/${run_id}" --jq '.head_sha')"
+              LAST_SOURCE="$source"
+              return 0
+            fi
+            return 1
+          }
+
+          for STATUS in in_progress queued waiting; do
+            while IFS= read -r run_id; do
+              if take_run "$run_id" "in-flight"; then
+                echo "::notice::In-flight ${DEPLOY_JOB} on run ${run_id}; using as last deployed"
+                break 2
+              fi
+            done < <(gh api \
+              "repos/${REPO}/actions/workflows/${WF_FILE}/runs?branch=${BRANCH}&status=${STATUS}&per_page=20" \
+              --jq '.workflow_runs[].id')
+            [ -n "$LAST_DEPLOYED" ] && break
+          done
+
+          if [ -z "$LAST_DEPLOYED" ]; then
+            while IFS= read -r run_id; do
+              [ -z "$run_id" ] && continue
+              HAS_JOB="$(gh api "repos/${REPO}/actions/runs/${run_id}/jobs" \
+                | jq -r --arg job "$DEPLOY_JOB" \
+                  '[.jobs[] | select(.name == $job and .conclusion == "success")] | length')"
+              if [ "${HAS_JOB:-0}" -gt 0 ]; then
+                LAST_DEPLOYED="$(gh api "repos/${REPO}/actions/runs/${run_id}" --jq '.head_sha')"
+                LAST_SOURCE="completed"
+                break
+              fi
+            done < <(gh api \
+              "repos/${REPO}/actions/workflows/${WF_FILE}/runs?branch=${BRANCH}&status=completed&conclusion=success&per_page=20" \
+              --jq '.workflow_runs[].id')
+          fi
+
+          if [ -n "$LAST_DEPLOYED" ] && git cat-file -e "${LAST_DEPLOYED}^{commit}" 2>/dev/null; then
+            DIFF="$(git diff --name-only "$LAST_DEPLOYED" "$HEAD_SHA" || true)"
+            if echo "$DIFF" | grep -qE "$PATH_REGEX"; then
+              CHANGED="true"
+              echo "::notice::Pending deploy paths since ${LAST_DEPLOYED:0:7} (${LAST_SOURCE} ${DEPLOY_JOB}); forcing changed=true"
+            else
+              echo "::notice::No pending paths since last deploy ${LAST_DEPLOYED:0:7} (${LAST_SOURCE})"
+            fi
+          else
+            echo "::notice::No prior successful ${DEPLOY_JOB} on ${BRANCH}; leaving changed=${CHANGED}"
+          fi
+        fi
+
+        echo "changed=$CHANGED" >> "$GITHUB_OUTPUT"
+        echo "sha=${HEAD_SHA}" >> "$GITHUB_OUTPUT"

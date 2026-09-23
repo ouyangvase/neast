@@ -1,0 +1,62 @@
+name: Deploy Staging API
+
+# DISABLED: first phase has no staging environment.
+# Staging AWS (Neast-staging-*) is not provisioned. This workflow is
+# workflow_dispatch only so the files exist without auto-deploy.
+#
+# To enable later:
+#   1. Uncomment the workflow_run trigger.
+#   2. Create GitHub Environment "staging" with AWS_ROLE_ARN + ACM_CERTIFICATE_ARN.
+#   3. Deploy CDK with -c environment=staging.
+on:
+  workflow_dispatch:
+  # workflow_run:
+  #   workflows: [CI]
+  #   types: [completed]
+  #   branches: [develop]
+
+permissions:
+  id-token: write
+  contents: read
+  actions: read
+
+concurrency:
+  group: deploy-staging-api
+  cancel-in-progress: true
+
+env:
+  AWS_REGION: ap-southeast-1
+  ENVIRONMENT: staging
+
+jobs:
+  changes:
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    outputs:
+      api: ${{ steps.flags.outputs.changed }}
+      sha: ${{ steps.flags.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/load-ci-change-flags
+        id: flags
+        with:
+          component: api,cdk
+          force: ${{ github.event_name == 'workflow_dispatch' }}
+          path_regex: '^(services/neast-api/|infra/cdk/)'
+          deploy_job: deploy-api
+
+  deploy-api:
+    needs: changes
+    if: needs.changes.outputs.api == 'true'
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Staging is not provisioned
+        run: |
+          echo "Staging AWS is not enabled in phase 1."
+          echo "Provision Neast-staging-* stacks and GitHub Environment secrets first."
+          exit 1

@@ -1,0 +1,164 @@
+name: Deploy iOS (App Store)
+
+on:
+  workflow_dispatch:
+    inputs:
+      app:
+        description: "App to deploy"
+        type: choice
+        required: true
+        default: user
+        options:
+          - user
+          - merchant
+          - owner
+      commit_sha:
+        description: "Optional commit SHA (leave blank for the selected branch)"
+        required: false
+        default: ""
+      release_notes:
+        description: "What's New text for this App Store update"
+        required: true
+      automatic_release:
+        description: "Release to users immediately after Apple approves"
+        required: true
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-submit:
+    name: Build & Submit for App Review (${{ github.event.inputs.app }})
+    runs-on: macos-latest
+    environment: production
+    timeout-minutes: 120
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.commit_sha || github.ref }}
+
+      - uses: ./.github/actions/select-mobile-app
+        id: app
+        with:
+          app: ${{ github.event.inputs.app }}
+
+      - name: Resolve App Store Connect App ID
+        env:
+          APP: ${{ github.event.inputs.app }}
+          ASC_APP_ID_USER: ${{ secrets.ASC_APP_ID_USER }}
+          ASC_APP_ID_MERCHANT: ${{ secrets.ASC_APP_ID_MERCHANT }}
+          ASC_APP_ID_OWNER: ${{ secrets.ASC_APP_ID_OWNER }}
+        run: |
+          case "$APP" in
+            merchant) echo "ASC_APP_ID=$ASC_APP_ID_MERCHANT" >> "$GITHUB_ENV" ;;
+            owner)    echo "ASC_APP_ID=$ASC_APP_ID_OWNER" >> "$GITHUB_ENV" ;;
+            *)        echo "ASC_APP_ID=$ASC_APP_ID_USER" >> "$GITHUB_ENV" ;;
+          esac
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Flutter build (no codesign — compiles Dart, installs pods)
+        working-directory: ${{ steps.app.outputs.working_directory }}
+        run: |
+          flutter pub get
+          flutter build ios --release --no-codesign
+
+      - name: Setup Ruby + Fastlane
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+
+      - name: Install Fastlane
+        run: gem install fastlane --no-document
+
+      - name: Build IPA and upload to App Store Connect
+        working-directory: ${{ steps.app.outputs.working_directory }}/ios
+        env:
+          IOS_BUNDLE_ID: ${{ steps.app.outputs.ios_bundle_id }}
+          ASC_TEAM_ID: ${{ secrets.ASC_TEAM_ID }}
+          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          ASC_API_KEY_ISSUER_ID: ${{ secrets.ASC_API_KEY_ISSUER_ID }}
+          ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+        run: fastlane ios build_upload
+
+      - name: Wait for build to reach VALID status
+        env:
+          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          ASC_API_KEY_ISSUER_ID: ${{ secrets.ASC_API_KEY_ISSUER_ID }}
+          ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+        run: |
+          echo "Waiting for Apple to finish processing the build..."
+
+          generate_jwt() {
+            local header=$(printf '{"alg":"ES256","kid":"%s","typ":"JWT"}' "$ASC_API_KEY_ID" | base64 | tr -d '=' | tr '/+' '_-' | tr -d '\n')
+            local now=$(date +%s)
+            local exp=$((now + 1200))
+            local payload=$(printf '{"iss":"%s","iat":%d,"exp":%d,"aud":"appstoreconnect-v1"}' "$ASC_API_KEY_ISSUER_ID" "$now" "$exp" | base64 | tr -d '=' | tr '/+' '_-' | tr -d '\n')
+            local unsigned="${header}.${payload}"
+
+            echo "$ASC_API_KEY_P8" > /tmp/asc_key.p8
+            local signature=$(printf '%s' "$unsigned" | openssl dgst -sha256 -sign /tmp/asc_key.p8 | base64 | tr -d '=' | tr '/+' '_-' | tr -d '\n')
+            rm -f /tmp/asc_key.p8
+
+            echo "${unsigned}.${signature}"
+          }
+
+          MAX_ATTEMPTS=45
+          SLEEP_SECONDS=60
+
+          for attempt in $(seq 1 $MAX_ATTEMPTS); do
+            JWT=$(generate_jwt)
+
+            RESPONSE=$(curl -s -H "Authorization: Bearer $JWT" \
+              "https://api.appstoreconnect.apple.com/v1/builds?filter[app]=${ASC_APP_ID}&sort=-uploadedDate&limit=1&fields[builds]=processingState,version,uploadedDate")
+
+            STATE=$(echo "$RESPONSE" | jq -r '.data[0].attributes.processingState // "UNKNOWN"')
+            VERSION=$(echo "$RESPONSE" | jq -r '.data[0].attributes.version // "?"')
+            echo "Attempt $attempt/$MAX_ATTEMPTS — Build $VERSION processing state: $STATE"
+
+            if [ "$STATE" = "VALID" ]; then
+              echo "Build is VALID and ready for review submission."
+              exit 0
+            elif [ "$STATE" = "FAILED" ] || [ "$STATE" = "INVALID" ]; then
+              echo "::error::Build processing failed with state: $STATE"
+              exit 1
+            fi
+
+            sleep $SLEEP_SECONDS
+          done
+
+          echo "::error::Timed out waiting for build to reach VALID state after $MAX_ATTEMPTS attempts"
+          exit 1
+
+      - name: Extract marketing version from pubspec
+        id: ver
+        working-directory: ${{ steps.app.outputs.working_directory }}
+        run: |
+          APP_VERSION=$(grep -m1 '^version:' pubspec.yaml | sed -E 's/version: ([0-9.]+).*/\1/')
+          echo "app_version=$APP_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Submit for App Review
+        working-directory: ${{ steps.app.outputs.working_directory }}/ios
+        env:
+          IOS_BUNDLE_ID: ${{ steps.app.outputs.ios_bundle_id }}
+          ASC_TEAM_ID: ${{ secrets.ASC_TEAM_ID }}
+          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          ASC_API_KEY_ISSUER_ID: ${{ secrets.ASC_API_KEY_ISSUER_ID }}
+          ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+          APP_VERSION: ${{ steps.ver.outputs.app_version }}
+          RELEASE_NOTES: ${{ github.event.inputs.release_notes }}
+          AUTOMATIC_RELEASE: ${{ github.event.inputs.automatic_release }}
+        run: fastlane ios submit_review
+
+      - name: Print App Store Connect link
+        run: |
+          echo "Submitted for App Review."
+          echo "Track status: https://appstoreconnect.apple.com/apps/${ASC_APP_ID}/appstore"
