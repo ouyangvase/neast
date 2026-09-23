@@ -21,11 +21,17 @@ export interface LandlordLoginBody {
   code: string;
 }
 
-/** POST /landlord/auth/login response. */
+/**
+ * POST /landlord/auth/login response (`LandlordAuthService::issueTokens`).
+ * Exactly `{accessToken, refreshToken, expiresTime, landlordId}` — there is no
+ * `profileCompleted` on the landlord audience.
+ */
 export interface LandlordLoginResponse extends AuthTokens {
-  profileCompleted: boolean;
   landlordId: string;
 }
+
+/** POST /landlord/auth/register response — same payload as login. */
+export type LandlordRegisterResponse = LandlordLoginResponse;
 
 /** POST /landlord/auth/register body. */
 export interface LandlordRegisterBody {
@@ -39,26 +45,30 @@ export interface LandlordRegisterBody {
 // Info / bank
 // ---------------------------------------------------------------------------
 
-/** GET /landlord/info response (model + resolved bank header photo URL). */
+/**
+ * GET /landlord/info response (model `toArray()` + resolved bank header photo
+ * URL). All varchar columns are `NOT NULL DEFAULT ''`, so unset values arrive
+ * as empty strings, never null.
+ */
 export interface LandlordInfo {
   id: number;
   name: string;
   first_name: string;
   last_name: string;
   phone: string;
-  email: string | null;
-  bank_name: string | null;
-  bank_account: string | null;
-  account_holder_name: string | null;
-  bank_header_photo: string | null;
-  /** Absolute URL to the uploaded bank header photo. */
-  bank_header_photo_url: string | null;
+  email: string;
+  bank_name: string;
+  bank_account: string;
+  account_holder_name: string;
+  bank_header_photo: string;
+  /** Absolute URL to the uploaded bank header photo (`''` when unset). */
+  bank_header_photo_url: string;
   status: number;
   created_at: string;
   updated_at: string;
 }
 
-/** POST /landlord/info/bank-detail body. */
+/** POST /landlord/bank-detail body. */
 export interface UpdateBankDetailBody {
   bank_name: string;
   bank_account: string;
@@ -111,12 +121,13 @@ export interface LandlordBindRequestItem {
   file_url: string;
 }
 
-/** GET /landlord/home/dashboard response. */
+/** GET /landlord/home/detail response. */
 export interface LandlordHomeDashboard {
   has_unread_message: boolean;
   header: {
     collected: string;
-    collection_rate: string;
+    /** Integer percent (0–100) — arrives as a JSON number. */
+    collection_rate: number;
     overdue_amount: string;
   };
   need_action: {
@@ -139,6 +150,11 @@ export interface LandlordHomeDashboard {
 // ---------------------------------------------------------------------------
 // Ack / bind requests
 // ---------------------------------------------------------------------------
+
+/** GET /landlord/ack/list response — full list, NOT paginated. */
+export interface AckListResponse {
+  items: LandlordAckItem[];
+}
 
 /** POST /landlord/ack/confirm body. */
 export interface ConfirmAckBody {
@@ -203,7 +219,7 @@ export interface LandlordRecordListResponse extends PaginatedList<LandlordRecord
   amount_sum: string;
 }
 
-/** GET /landlord/portfolio response. */
+/** GET /landlord/portfolio/detail response. */
 export interface LandlordPortfolio {
   rent_roll: string;
   tenant_count: number;
@@ -216,7 +232,7 @@ export interface LandlordPortfolio {
   }>;
 }
 
-/** GET /landlord/rent/detail?id= response. */
+/** GET /landlord/rent/id/{id} response. */
 export interface LandlordRentDetail {
   id: number;
   tenant_name: string;
@@ -225,7 +241,8 @@ export interface LandlordRentDetail {
   property_name: string;
   property_address: string;
   amount: string;
-  paid_at: string;
+  /** Rent payday as an integer day-of-month (1–31) — a JSON number, not a date. */
+  paid_at: number;
   first_pay_month: string;
   lease_months: number;
   expire_date: string;
