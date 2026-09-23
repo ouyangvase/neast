@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="80px" height="80px" viewBox="0 0 80 80" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>对 (7)</title>
+    <g id="UI" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="支付状态-支付成功" transform="translate(-149.000000, -148.000000)" fill="#039414" fill-rule="nonzero">
+            <g id="对-(7)" transform="translate(149.000000, 148.000000)">
+                <path d="M40,0 C17.9088889,0 0,17.9088889 0,40 C0,62.0911111 17.9088889,80 40,80 C62.0911111,80 80,62.0911111 80,40 C80,17.9088889 62.0911111,0 40,0 Z M31.9755555,56.2244445 L17.4688889,41.9722222 L20.0311111,38.22 L31.9755555,46.8311111 L60.0311111,23.7755555 L62.5311111,25.72 L31.9755555,56.2244445 L31.9755555,56.2244445 Z" id="形状"></path>
+            </g>
+        </g>
+    </g>
+</svg>
