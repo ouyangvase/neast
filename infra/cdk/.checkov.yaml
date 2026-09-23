@@ -1,0 +1,19 @@
+# Intentional exceptions. Cheap controls are implemented in CDK (ALB header
+# drop, access-log bucket versioning). The rest matches first-phase cost/ops.
+skip-check:
+  - CKV_AWS_65   # Container Insights cost
+  - CKV_AWS_260  # ALB HTTP listener only redirects to HTTPS
+  - CKV_AWS_18   # Access-log bucket does not log itself
+  - CKV_AWS_51   # ECR tags are mutable so deploys can also push :latest
+  - CKV_AWS_136  # ECR uses AES-256; CMK skipped for first phase
+  - CKV_AWS_149  # Secrets Manager default encryption; CMK skipped for first phase
+  - CKV_AWS_158  # CloudWatch Logs default encryption; CMK skipped for first phase
+  - CKV_AWS_161  # Hyperf uses password auth, not RDS IAM
+  - CKV_AWS_118  # RDS enhanced monitoring cost
+  - CKV_AWS_157  # Single-AZ RDS for first phase
+  - CKV_AWS_29   # Redis at-rest encryption skipped; isolated subnets + SG only
+  - CKV_AWS_30   # Redis transit encryption skipped; Hyperf redis client has no TLS scheme
+  - CKV_AWS_31   # Redis auth token requires transit encryption; see above
+  - CKV_AWS_116  # Night-stop Lambda DLQ omitted; schedule retries instead
+  - CKV_AWS_117  # Night-stop Lambda calls AWS APIs, not the VPC
+  - CKV_AWS_173  # Lambda env default encryption; CMK skipped for first phase

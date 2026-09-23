@@ -1,0 +1,32 @@
+{
+  "app": "npx ts-node --prefer-ts-exts bin/app.ts",
+  "watch": {
+    "include": ["**"],
+    "exclude": [
+      "README.md",
+      "cdk*.json",
+      "**/*.d.ts",
+      "**/*.js",
+      "tsconfig.json",
+      "package*.json",
+      "node_modules",
+      "cdk.out"
+    ]
+  },
+  "context": {
+    "environment": "prod",
+    "deployMode": "full",
+    "productionReady": true,
+    "githubOrg": "ouyangvase",
+    "githubRepo": "neast",
+    "domainName": "neast.my",
+    "certificateArn": "REPLACE_WITH_ACM_CERTIFICATE_ARN",
+    "apiSubdomain": "api",
+    "nightStopEnabled": true,
+    "nightStopTime": "02:00",
+    "nightStartTime": "07:00",
+    "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
+    "@aws-cdk/core:checkSecretUsage": true,
+    "@aws-cdk/core:target-partitions": ["aws", "aws-cn"]
+  }
+}
