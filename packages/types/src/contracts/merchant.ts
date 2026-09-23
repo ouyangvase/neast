@@ -14,9 +14,12 @@ export interface MerchantLoginBody {
   password: string;
 }
 
-/** POST /merchant/auth/login response. */
+/**
+ * POST /merchant/auth/login response (`MerchantAuthService::issueTokens`).
+ * Exactly `{accessToken, refreshToken, expiresTime, merchantId}` — there is no
+ * `profileCompleted` on the merchant audience.
+ */
 export interface MerchantLoginResponse extends AuthTokens {
-  profileCompleted: boolean;
   merchantId: string;
 }
 
@@ -24,7 +27,11 @@ export interface MerchantLoginResponse extends AuthTokens {
 // Info
 // ---------------------------------------------------------------------------
 
-/** GET /merchant/info response (image is an absolute URL). */
+/**
+ * GET /merchant/info response (model `toArray()`, image rewritten to an
+ * absolute URL). The email/phone/contact varchar columns are
+ * `NOT NULL DEFAULT ''`, so unset values arrive as empty strings, never null.
+ */
 export interface MerchantInfo {
   id: number;
   latitude: string | null;
@@ -36,11 +43,11 @@ export interface MerchantInfo {
   registration_number: string;
   registration_no: string | null;
   points_per_rm: number;
-  email: string | null;
-  phone: string | null;
-  contact_name: string | null;
-  contact_phone: string | null;
-  contact_email: string | null;
+  email: string;
+  phone: string;
+  contact_name: string;
+  contact_phone: string;
+  contact_email: string;
   /** Decimal string — wallet balance. */
   balance: string;
   status: number;
@@ -66,7 +73,8 @@ export interface VerifyCouponResponse {
   name: string;
   discount_amount: string;
   used_points: number;
-  expire_at: string | null;
+  /** `(string)`-cast by the backend — `''` when the coupon has no expiry. */
+  expire_at: string;
   merchant_names: string[];
   customer_name: string;
   /** Masked phone/email for display. */
@@ -105,17 +113,27 @@ export interface GivePointsCustomer {
   account: string;
 }
 
-/** POST /merchant/give-points/confirm body. */
+/**
+ * POST /merchant/give-points/confirm body — mirrors the PHP validation rules
+ * (`GivePoints.php`): customer is the customer's ACCOUNT string (phone, from
+ * `GET /merchant/give-points/customer?user_id=` — NOT the numeric user id),
+ * and `receipt_path` is REQUIRED.
+ */
 export interface ConfirmGivePointsBody {
-  /** Scanned user id (from the customer's QR JSON payload). */
-  customer: number;
+  /** Customer account/phone (string, max 128); resolved via the user `account` column. */
+  customer: string;
+  /** Receipt amount (numeric, min 0.01) — send a decimal string. */
   amount: string;
+  /** Integer, min 1. */
   points: number;
+  /** Integer, min 1 — must equal the authenticated merchant's id. */
   merchant_id: number;
+  /** Optional, max 500 chars. */
   notes?: string;
+  /** Optional, max 64 chars. */
   receipt_number?: string;
-  /** Uploaded receipt path from /merchant/upload/*. */
-  receipt_path?: string;
+  /** REQUIRED — uploaded receipt path from /merchant/upload/* (max 255 chars). */
+  receipt_path: string;
 }
 
 /** POST /merchant/give-points/confirm response. */
@@ -151,7 +169,8 @@ export interface SettlementOverview {
   merchant_id: number;
   amount: string;
   points: number;
-  is_paid: boolean;
+  /** Paid flag as a JSON integer (`(int) $bill->is_paid`), not a boolean. */
+  is_paid: 0 | 1;
   redeemed: number;
   show_pay_now: boolean;
 }
@@ -203,7 +222,11 @@ export type DailyClosingTransactionListResponse = PaginatedList<DailyClosingTran
 // Wallet topup
 // ---------------------------------------------------------------------------
 
-/** GET /merchant/wallet/topup/list item. */
+/**
+ * GET /merchant/wallet/topup/list item. `txn_id`/`channel` are
+ * `NOT NULL DEFAULT ''` columns and `paid_at` falls back to `''` — all three
+ * arrive as strings (empty when unset), never null.
+ */
 export interface MerchantTopupItem {
   id: number;
   merchant_id: number;
@@ -211,9 +234,9 @@ export interface MerchantTopupItem {
   payment_method: string;
   order_id: string;
   status: TopupStatus;
-  txn_id: string | null;
-  channel: string | null;
-  paid_at: string | null;
+  txn_id: string;
+  channel: string;
+  paid_at: string;
   created_at: string;
 }
 export type MerchantTopupListResponse = PaginatedList<MerchantTopupItem>;
