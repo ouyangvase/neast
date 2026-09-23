@@ -1,0 +1,12 @@
+node_modules
+dist
+build
+.next
+.expo
+coverage
+pnpm-lock.yaml
+package-lock.json
+services
+**/assets/**
+**/mock-api/**
+*.md
