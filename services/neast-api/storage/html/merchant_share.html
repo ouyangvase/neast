@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>__MERCHANT_NAME__ · neast</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #F6F9F6;
+      color: #0F172A;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .page {
+      max-width: 420px;
+      margin: 0 auto;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hero {
+      position: relative;
+      padding: 32px 24px 48px;
+      background: linear-gradient(165deg, #0851AA 0%, #234FA5 55%, #0D2567 100%);
+      border-radius: 0 0 28px 28px;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -40px;
+      top: -20px;
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .brand {
+      position: relative;
+      z-index: 1;
+      color: #fff;
+    }
+
+    .brand-name {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      opacity: 0.88;
+    }
+
+    .merchant-name {
+      margin-top: 8px;
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      line-height: 1.15;
+    }
+
+    .merchant-address {
+      margin-top: 10px;
+      font-size: 14px;
+      line-height: 1.5;
+      color: rgba(255, 255, 255, 0.88);
+    }
+
+    .content {
+      flex: 1;
+      padding: 24px 16px 32px;
+    }
+
+    .merchant-image-wrap {
+      margin: -40px 0 16px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .merchant-image {
+      width: 96px;
+      height: 96px;
+      border-radius: 16px;
+      object-fit: cover;
+      border: 4px solid #fff;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+      background: #E8EDF3;
+    }
+
+    .merchant-image--hidden {
+      display: none;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 20px 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .card-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: #0851AA;
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    .card-desc {
+      margin-top: 8px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: rgba(8, 81, 170, 0.65);
+      text-align: center;
+    }
+
+    .actions {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .store-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: none;
+      border: none;
+      width: 100%;
+      cursor: pointer;
+      transition: opacity 0.15s ease;
+    }
+
+    .store-btn--open-app {
+      background: #3EBF7A;
+      color: #fff;
+    }
+
+    .store-btn--apple {
+      background: #0F172A;
+      color: #fff;
+    }
+
+    .store-btn--google {
+      background: #0851AA;
+      color: #fff;
+    }
+
+    .store-btn--disabled {
+      background: #E8EDF3;
+      color: rgba(15, 23, 42, 0.45);
+      cursor: not-allowed;
+    }
+
+    .store-btn:not(.store-btn--disabled):active {
+      opacity: 0.88;
+    }
+
+    .hint {
+      margin-top: 16px;
+      font-size: 11px;
+      line-height: 1.5;
+      text-align: center;
+      color: rgba(8, 81, 170, 0.45);
+    }
+
+    .accent {
+      color: #3EBF7A;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <div class="brand">
+        <div class="brand-name">neast merchant</div>
+        <h1 class="merchant-name">__MERCHANT_NAME__</h1>
+        <p class="merchant-address">__MERCHANT_ADDRESS__</p>
+      </div>
+    </header>
+
+    <main class="content">
+      <div class="merchant-image-wrap">
+        <img
+          id="merchant-image"
+          class="merchant-image merchant-image--hidden"
+          src="__MERCHANT_IMAGE__"
+          alt="__MERCHANT_NAME__"
+        >
+      </div>
+
+      <section class="card">
+        <h2 class="card-title">View this merchant in neast</h2>
+        <p class="card-desc">Earn points and redeem rewards when you visit partner merchants.</p>
+
+        <div class="actions">
+          __OPEN_APP_BUTTON__
+          __APP_STORE_BUTTON__
+          __GOOGLE_PLAY_BUTTON__
+        </div>
+
+        <p class="hint">Opening the <span class="accent">neast</span> app to view merchant details.</p>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      var deepLink = '__DEEP_LINK__';
+      var imageEl = document.getElementById('merchant-image');
+      var imageUrl = '__MERCHANT_IMAGE__';
+
+      if (imageEl && imageUrl) {
+        imageEl.onload = function () {
+          imageEl.classList.remove('merchant-image--hidden');
+        };
+        imageEl.onerror = function () {
+          imageEl.classList.add('merchant-image--hidden');
+        };
+        if (imageEl.complete && imageEl.naturalWidth > 0) {
+          imageEl.classList.remove('merchant-image--hidden');
+        }
+      }
+
+      if (!deepLink) {
+        return;
+      }
+
+      var openedAt = Date.now();
+      window.location.href = deepLink;
+
+      window.setTimeout(function () {
+        if (Date.now() - openedAt < 2500) {
+          return;
+        }
+      }, 2000);
+    })();
+  </script>
+</body>
+</html>

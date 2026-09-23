@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<meta charset="utf-8">
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
+
+		body {
+			width: 100vw;
+			height: 100vh;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			background: #F6F9F6;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+			overflow: hidden;
+		}
+
+		.loading-container {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			text-align: center;
+			padding: 20px;
+		}
+
+		.loader {
+			width: 64px;
+			height: 64px;
+			border: 4px solid rgba(8, 81, 170, 0.15);
+			border-top-color: #0851AA;
+			border-radius: 50%;
+			animation: spin 1s linear infinite;
+			margin-bottom: 24px;
+		}
+
+		.loading-text {
+			color: #0851AA;
+			font-size: 18px;
+			font-weight: 500;
+			margin-bottom: 8px;
+		}
+
+		.loading-subtext {
+			color: #666;
+			font-size: 14px;
+		}
+
+		@keyframes spin {
+			to {
+				transform: rotate(360deg);
+			}
+		}
+	</style>
+	<title>Processing Payment</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+	<script src="https://www.onlinepayment.com.my/MOLPay/API/seamless/3.28/js/MOLPay_seamless.deco.js"></script>
+</head>
+
+<body>
+	<div class="loading-container">
+		<div class="loader"></div>
+		<div class="loading-text">Processing Payment</div>
+		<div class="loading-subtext">Please wait, do not close this page</div>
+	</div>
+
+	<form id="myForm" method="POST" action="https://api.neast.my/payOrder" role="molpayseamless"
+		style="display: none;">
+		<input value="" id="order_no" name="order_no" />
+		<input value="" id="payment_options" name="payment_options" />
+	</form>
+</body>
+<script type="text/javascript">
+	function getQueryString(name) {
+		var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+		var r = window.location.search.substr(1).match(reg);
+		if (r != null) {
+			return decodeURIComponent(r[2]);
+		}
+		return null;
+	}
+
+	$(document).ready(function () {
+		$("#payment_options").val(getQueryString('code'));
+		$("#order_no").val(getQueryString('order_sn'));
+		setTimeout(function () {
+			$('#myForm').trigger("submit");
+		}, 2000);
+	});
+</script>
+
+</html>

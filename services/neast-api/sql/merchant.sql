@@ -1,0 +1,29 @@
+-- 商家管理
+
+CREATE TABLE `t_merchant` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `latitude` decimal(10, 7) DEFAULT NULL COMMENT '纬度',
+  `longitude` decimal(10, 7) DEFAULT NULL COMMENT '经度',
+  `name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '商家名称',
+  `address` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '地址',
+  `image` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '图片URL',
+  `registration_number` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '注册号文件URL',
+  `registration_no` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '注册号',
+  `points_per_rm` int unsigned NOT NULL DEFAULT '100' COMMENT '赠送多少积分需支付1RM佣金',
+  `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '密码哈希',
+  `email` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '邮箱',
+  `phone` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '电话号码',
+  `contact_name` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '负责人名称',
+  `contact_phone` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '负责人电话',
+  `contact_email` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '负责人邮箱',
+  `balance` decimal(12, 2) NOT NULL DEFAULT '0.00' COMMENT '余额',
+  `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态 0停用 1启用',
+  `is_recommended` tinyint NOT NULL DEFAULT '0' COMMENT '是否推荐 0否 1是',
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  `deleted_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_email` (`email`) USING BTREE,
+  KEY `idx_status` (`status`),
+  KEY `idx_is_recommended` (`is_recommended`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='商家表';

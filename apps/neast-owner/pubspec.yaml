@@ -1,0 +1,93 @@
+name: neast_landlords
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.6+14
+
+environment:
+  sdk: ^3.9.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  flutter_riverpod: ^3.3.1
+  shared_preferences: ^2.5.5
+  logger: ^2.7.0
+  intl: ^0.20.2
+  flutter_easyloading: ^3.0.5
+  go_router: ^17.2.3
+  freezed_annotation: ^3.1.0
+  json_annotation: ^4.9.0
+  flutter_svg: ^2.3.0
+  flutter_localizations:
+    sdk: flutter
+  flutter_smart_dialog: ^5.1.0
+  dio: ^5.9.2
+  easy_refresh: ^3.5.0
+  fluttertoast: ^9.0.0
+  pinput: ^6.0.2
+  geolocator: ^13.0.2
+  cached_network_image: ^3.4.1
+  image_picker: ^1.1.2
+  file_picker: ^8.1.7
+  url_launcher: ^6.3.1
+  flutter_html: ^3.0.0
+  flutter_native_splash: 2.4.6
+  qr_flutter: ^4.1.0
+  firebase_core: ^4.12.1
+  firebase_messaging: ^16.4.3
+  flutter_local_notifications: ^18.0.1
+  app_badge_plus: ^1.2.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_launcher_icons: ^0.13.1
+  flutter_lints: ^5.0.0
+  freezed: ^3.2.3
+  build_runner: ^2.7.1
+  json_serializable: ^6.11.2
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/app_icon.png"
+  adaptive_icon_background: "#ffffff"
+  adaptive_icon_foreground: "assets/icon/app_icon.png"
+
+flutter_native_splash:
+  color_android: "#FFFFFF"
+  image_android: assets/images/launch_android.png
+  android_gravity: center
+
+  color_ios: "#0C1C3E"
+  image_ios: assets/images/launch_ios.png
+  ios_content_mode: scaleAspectFill
+
+  fullscreen: false
+
+  android_12:
+    color: "#FFFFFF"
+    image: assets/images/launch_android.png
+    icon_background_color: "#FFFFFF"
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/images/main/
+    - assets/images/home/
+    - assets/images/home/quick_actions/
+    - assets/images/account/
+    - assets/images/property/
+
+  fonts:
+    - family: FD
+      fonts:
+        - asset: assets/fonts/FunnelDisplay-VariableFont_wght.ttf
+    - family: HG
+      fonts:
+        - asset: assets/fonts/HostGrotesk-VariableFont_wght.ttf

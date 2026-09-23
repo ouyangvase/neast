@@ -1,0 +1,30 @@
+-- 租金记录
+
+CREATE TABLE `t_rent` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int unsigned NOT NULL COMMENT '用户ID',
+  `amount` decimal(12, 2) NOT NULL DEFAULT '0.00' COMMENT '还款金额',
+  `file` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '凭证文件URL',
+  `paid_at` tinyint unsigned NOT NULL DEFAULT '1' COMMENT '交租日(每月几号 1-31)',
+  `first_pay_month` date DEFAULT NULL COMMENT '首次交租月份(存当月1号)',
+  `lease_months` int unsigned NOT NULL DEFAULT '0' COMMENT '租期月份数',
+  `expire_date` date DEFAULT NULL COMMENT '房租到期时间',
+  `property_id` int unsigned DEFAULT NULL COMMENT '房产ID',
+  `property_name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '房产名称(未绑定时用户填写)',
+  `landlord_id` int unsigned DEFAULT NULL COMMENT '房东ID(冗余)',
+  `owner_name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '房东名称(未绑物业时用户填写)',
+  `status` tinyint NOT NULL DEFAULT '0' COMMENT '状态 0待审核 1审核通过 2驳回 3待绑定',
+  `landlord_bank` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '房东银行',
+  `landlord_bank_account` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '房东银行账号',
+  `landlord_account_name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '房东账号名称',
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  `deleted_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_landlord_id` (`landlord_id`),
+  KEY `idx_property_id` (`property_id`),
+  KEY `idx_status` (`status`),
+  KEY `idx_paid_at` (`paid_at`),
+  KEY `idx_expire_date` (`expire_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='租金记录表';

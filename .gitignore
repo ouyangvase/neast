@@ -1,0 +1,48 @@
+# ---------- OS ----------
+.DS_Store
+Thumbs.db
+
+# ---------- IDE ----------
+.idea/
+.vscode/
+*.iml
+
+# ---------- Flutter / Dart (apps/) ----------
+**/build/
+**/.dart_tool/
+**/.packages
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.flutter-plugins-dependencies*
+**/flutter_export_environment.sh
+**/local.properties
+**/.gradle/
+**/android/key.properties
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Flutter/ephemeral/
+**/android/app/debug
+**/android/app/profile
+**/android/app/release
+*.keystore
+*.jks
+
+# ---------- PHP / Hyperf (services/neast-api) ----------
+vendor/
+composer.phar
+.env
+.env.*
+!.env.example
+services/neast-api/runtime/*
+!services/neast-api/runtime/.gitkeep
+services/neast-api/uploads/*
+!services/neast-api/uploads/.gitkeep
+services/neast-api/storage/logs/*
+*.log
+
+# ---------- Misc ----------
+*.tmp
+*.swp
+node_modules/
