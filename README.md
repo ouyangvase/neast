@@ -11,10 +11,10 @@ neast-monorepo/
 │   ├── neast-merchant/   # Expo RN app — merchants
 │   ├── neast-owner/      # Expo RN app — property owners / landlords
 │   └── landing/          # Next.js landing page (placeholder)
+│   └── ui/
+│       └── mobile/       # @neast/ui-mobile — shared RN components/theme
 ├── packages/
 │   └── types/            # @neast/types — shared API contracts + typed client
-├── ui/
-│   └── mobile/           # @neast/ui-mobile — shared RN components/theme
 ├── services/
 │   └── neast-api/        # PHP (Hyperf) backend API
 └── docs/

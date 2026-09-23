@@ -112,7 +112,7 @@ sharedAssets.coin; // owner coin.png == merchant account/coin.png
 ```
 
 Values are Metro asset references for `<Image source={…} />`. If your app configures
-react-native-svg-transformer, import SVG files directly from `ui/mobile/assets/images/` instead.
+react-native-svg-transformer, import SVG files directly from `apps/ui/mobile/assets/images/` instead.
 
 ## Scripts
 

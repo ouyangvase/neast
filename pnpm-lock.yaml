@@ -65,7 +65,7 @@ importers:
         version: link:../../packages/types
       '@neast/ui-mobile':
         specifier: workspace:*
-        version: link:../../ui/mobile
+        version: link:../ui/mobile
       '@tanstack/react-query':
         specifier: ^5.62.0
         version: 5.103.2(react@19.2.3)
@@ -156,7 +156,7 @@ importers:
         version: link:../../packages/types
       '@neast/ui-mobile':
         specifier: workspace:*
-        version: link:../../ui/mobile
+        version: link:../ui/mobile
       '@tanstack/react-query':
         specifier: ^5.62.0
         version: 5.103.2(react@19.2.3)
@@ -244,7 +244,7 @@ importers:
         version: link:../../packages/types
       '@neast/ui-mobile':
         specifier: workspace:*
-        version: link:../../ui/mobile
+        version: link:../ui/mobile
       '@react-native-community/datetimepicker':
         specifier: 9.1.0
         version: 9.1.0(expo@56.0.22)(react-native@0.85.3(@babel/core@7.29.7)(@react-native/metro-config@0.87.1(@babel/core@7.29.7))(@types/react@19.2.2)(react@19.2.3))(react@19.2.3)
@@ -346,32 +346,7 @@ importers:
         specifier: ^5.6.0
         version: 5.9.3
 
-  packages/types:
-    dependencies:
-      expo-secure-store:
-        specifier: ~56.0.4
-        version: 56.0.4(expo@56.0.22)
-      zustand:
-        specifier: 5.0.15
-        version: 5.0.15(@types/react@19.2.2)(react@19.2.3)
-    devDependencies:
-      '@types/node':
-        specifier: ^20.0.0
-        version: 20.19.43
-      '@types/react':
-        specifier: 19.2.2
-        version: 19.2.2
-      eslint:
-        specifier: ^9.0.0
-        version: 9.39.5
-      react:
-        specifier: 19.2.3
-        version: 19.2.3
-      typescript:
-        specifier: ^5.6.0
-        version: 5.9.3
-
-  ui/mobile:
+  apps/ui/mobile:
     devDependencies:
       '@types/react':
         specifier: ^19.1.1
@@ -406,6 +381,31 @@ importers:
       react-native-webview:
         specifier: 13.16.1
         version: 13.16.1(react-native@0.85.3(@babel/core@7.29.7)(@react-native/metro-config@0.87.1(@babel/core@7.29.7))(@types/react@19.2.2)(react@19.2.3))(react@19.2.3)
+
+  packages/types:
+    dependencies:
+      expo-secure-store:
+        specifier: ~56.0.4
+        version: 56.0.4(expo@56.0.22)
+      zustand:
+        specifier: 5.0.15
+        version: 5.0.15(@types/react@19.2.2)(react@19.2.3)
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.43
+      '@types/react':
+        specifier: 19.2.2
+        version: 19.2.2
+      eslint:
+        specifier: ^9.0.0
+        version: 9.39.5
+      react:
+        specifier: 19.2.3
+        version: 19.2.3
+      typescript:
+        specifier: ^5.6.0
+        version: 5.9.3
 
 packages:
 
