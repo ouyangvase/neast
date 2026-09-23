@@ -1,3 +1,0 @@
-app_identifier(ENV["IOS_BUNDLE_ID"])
-team_id(ENV["ASC_TEAM_ID"])
-itc_team_id(ENV["ASC_TEAM_ID"])

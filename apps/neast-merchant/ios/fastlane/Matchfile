@@ -1,4 +1,0 @@
-git_url("https://github.com/ouyangvase/neast-ios-certs.git")
-storage_mode("git")
-type("appstore")
-app_identifier("com.neastMerchant.flutter")

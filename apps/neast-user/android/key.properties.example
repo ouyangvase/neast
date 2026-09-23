@@ -1,4 +1,0 @@
-storePassword=你的密钥库密码（生成 keystore 时设置的）
-keyPassword=你的密钥密码（通常与 storePassword 相同）
-keyAlias=upload
-storeFile=../upload-keystore.jks

@@ -1,1 +1,0 @@
-# Release build ProGuard rules
