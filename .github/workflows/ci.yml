@@ -158,27 +158,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { key: user, dir: apps/neast-user, flag: mobile_user }
-          - { key: merchant, dir: apps/neast-merchant, flag: mobile_merchant }
-          - { key: owner, dir: apps/neast-owner, flag: mobile_owner }
-    defaults:
-      run:
-        working-directory: ${{ matrix.dir }}
+          - { key: user, pkg: neast-user, flag: mobile_user }
+          - { key: merchant, pkg: neast-merchant, flag: mobile_merchant }
+          - { key: owner, pkg: neast-owner, flag: mobile_owner }
     steps:
       - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
+      - uses: pnpm/action-setup@v4
         with:
-          channel: stable
-          cache: true
-      - run: flutter pub get
-      - run: flutter analyze
-      - name: Tests (when present)
-        run: |
-          if [ -d test ] && [ -n "$(find test -name '*_test.dart' -print -quit)" ]; then
-            flutter test
-          else
-            echo "No tests in ${{ matrix.dir }}, skipping."
-          fi
+          version: 9.15.9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec turbo run typecheck lint --filter=${{ matrix.pkg }}
 
   cdk:
     needs: changes

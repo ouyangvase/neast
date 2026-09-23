@@ -31,7 +31,7 @@ permissions:
 jobs:
   build-and-submit:
     name: Build & Submit for App Review (${{ github.event.inputs.app }})
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     environment: production
     timeout-minutes: 120
 
@@ -44,6 +44,13 @@ jobs:
         id: app
         with:
           app: ${{ github.event.inputs.app }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install EAS CLI
+        run: npm install -g eas-cli
 
       - name: Resolve App Store Connect App ID
         env:
@@ -58,36 +65,33 @@ jobs:
             *)        echo "ASC_APP_ID=$ASC_APP_ID_USER" >> "$GITHUB_ENV" ;;
           esac
 
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
-
-      - name: Flutter build (no codesign — compiles Dart, installs pods)
+      - name: Configure EAS Submit credentials
         working-directory: ${{ steps.app.outputs.working_directory }}
-        run: |
-          flutter pub get
-          flutter build ios --release --no-codesign
-
-      - name: Setup Ruby + Fastlane
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: "3.2"
-
-      - name: Install Fastlane
-        run: gem install fastlane --no-document
-
-      - name: Build IPA and upload to App Store Connect
-        working-directory: ${{ steps.app.outputs.working_directory }}/ios
         env:
-          IOS_BUNDLE_ID: ${{ steps.app.outputs.ios_bundle_id }}
-          ASC_TEAM_ID: ${{ secrets.ASC_TEAM_ID }}
           ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
           ASC_API_KEY_ISSUER_ID: ${{ secrets.ASC_API_KEY_ISSUER_ID }}
           ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
-          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
-        run: fastlane ios build_upload
+        run: |
+          set -euo pipefail
+          printf '%s' "$ASC_API_KEY_P8" > "$RUNNER_TEMP/asc-key.p8"
+          jq --arg appId "$ASC_APP_ID" \
+             --arg keyId "$ASC_API_KEY_ID" \
+             --arg issuerId "$ASC_API_KEY_ISSUER_ID" \
+             --arg keyPath "$RUNNER_TEMP/asc-key.p8" \
+            '.submit.production.ios = {ascAppId: $appId, ascApiKeyId: $keyId, ascApiKeyIssuerId: $issuerId, ascApiKeyPath: $keyPath}' \
+            eas.json > eas.json.tmp && mv eas.json.tmp eas.json
+
+      - name: EAS Build (iOS, production)
+        working-directory: ${{ steps.app.outputs.working_directory }}
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: eas build --platform ios --profile production --non-interactive
+
+      - name: Upload to App Store Connect
+        working-directory: ${{ steps.app.outputs.working_directory }}
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: eas submit --platform ios --profile production --latest --non-interactive
 
       - name: Wait for build to reach VALID status
         env:
@@ -138,25 +142,92 @@ jobs:
           echo "::error::Timed out waiting for build to reach VALID state after $MAX_ATTEMPTS attempts"
           exit 1
 
-      - name: Extract marketing version from pubspec
+      - name: Extract marketing version from app.json
         id: ver
         working-directory: ${{ steps.app.outputs.working_directory }}
-        run: |
-          APP_VERSION=$(grep -m1 '^version:' pubspec.yaml | sed -E 's/version: ([0-9.]+).*/\1/')
-          echo "app_version=$APP_VERSION" >> "$GITHUB_OUTPUT"
+        run: echo "app_version=$(jq -r '.expo.version' app.json)" >> "$GITHUB_OUTPUT"
 
       - name: Submit for App Review
-        working-directory: ${{ steps.app.outputs.working_directory }}/ios
         env:
-          IOS_BUNDLE_ID: ${{ steps.app.outputs.ios_bundle_id }}
-          ASC_TEAM_ID: ${{ secrets.ASC_TEAM_ID }}
           ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
           ASC_API_KEY_ISSUER_ID: ${{ secrets.ASC_API_KEY_ISSUER_ID }}
           ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
           APP_VERSION: ${{ steps.ver.outputs.app_version }}
           RELEASE_NOTES: ${{ github.event.inputs.release_notes }}
           AUTOMATIC_RELEASE: ${{ github.event.inputs.automatic_release }}
-        run: fastlane ios submit_review
+        run: |
+          set -euo pipefail
+
+          if [ "$AUTOMATIC_RELEASE" != "true" ]; then
+            echo "::warning::The App Store Connect review-submission API always releases automatically on approval. Switch to manual release in App Store Connect after submission if needed."
+          fi
+
+          generate_jwt() {
+            local header=$(printf '{"alg":"ES256","kid":"%s","typ":"JWT"}' "$ASC_API_KEY_ID" | base64 | tr -d '=' | tr '/+' '_-' | tr -d '\n')
+            local now=$(date +%s)
+            local exp=$((now + 1200))
+            local payload=$(printf '{"iss":"%s","iat":%d,"exp":%d,"aud":"appstoreconnect-v1"}' "$ASC_API_KEY_ISSUER_ID" "$now" "$exp" | base64 | tr -d '=' | tr '/+' '_-' | tr -d '\n')
+            local unsigned="${header}.${payload}"
+
+            echo "$ASC_API_KEY_P8" > /tmp/asc_key.p8
+            local signature=$(printf '%s' "$unsigned" | openssl dgst -sha256 -sign /tmp/asc_key.p8 | base64 | tr -d '=' | tr '/+' '_-' | tr -d '\n')
+            rm -f /tmp/asc_key.p8
+
+            echo "${unsigned}.${signature}"
+          }
+
+          asc() { # asc <METHOD> <PATH> [JSON_BODY]
+            local method="$1" path="$2" body="${3:-}"
+            local jwt; jwt=$(generate_jwt)
+            if [ -n "$body" ]; then
+              curl -s -X "$method" -H "Authorization: Bearer $jwt" -H "Content-Type: application/json" -d "$body" "https://api.appstoreconnect.apple.com${path}"
+            else
+              curl -s -X "$method" -H "Authorization: Bearer $jwt" "https://api.appstoreconnect.apple.com${path}"
+            fi
+          }
+
+          # 1. Latest uploaded build for this app (the one eas submit just uploaded)
+          BUILD_ID=$(asc GET "/v1/builds?filter[app]=${ASC_APP_ID}&sort=-uploadedDate&limit=1" | jq -r '.data[0].id // empty')
+          [ -n "$BUILD_ID" ] || { echo "::error::No build found for app ${ASC_APP_ID}"; exit 1; }
+          echo "Using build $BUILD_ID"
+
+          # 2. Find or create the appStoreVersion for this marketing version
+          VERSION_ID=$(asc GET "/v1/appStoreVersions?filter[app]=${ASC_APP_ID}&filter[platform]=IOS&filter[versionString]=${APP_VERSION}" | jq -r '.data[0].id // empty')
+          if [ -z "$VERSION_ID" ]; then
+            BODY=$(jq -n --arg v "$APP_VERSION" --arg app "$ASC_APP_ID" \
+              '{data:{type:"appStoreVersions",attributes:{platform:"IOS",versionString:$v},relationships:{app:{data:{type:"apps",id:$app}}}}}')
+            VERSION_ID=$(asc POST "/v1/appStoreVersions" "$BODY" | jq -r '.data.id // empty')
+          fi
+          [ -n "$VERSION_ID" ] || { echo "::error::Could not resolve appStoreVersion for $APP_VERSION"; exit 1; }
+          echo "Using appStoreVersion $VERSION_ID ($APP_VERSION)"
+
+          # 3. Attach the build to the version
+          BODY=$(jq -n --arg b "$BUILD_ID" '{data:{type:"builds",id:$b}}')
+          asc PATCH "/v1/appStoreVersions/${VERSION_ID}/relationships/build" "$BODY" > /dev/null
+
+          # 4. Set What's New on the en-US localization (create it if missing)
+          LOC_ID=$(asc GET "/v1/appStoreVersions/${VERSION_ID}/appStoreVersionLocalizations" | jq -r '[.data[] | select(.attributes.locale=="en-US")][0].id // empty')
+          if [ -z "$LOC_ID" ]; then
+            BODY=$(jq -n --arg notes "$RELEASE_NOTES" --arg v "$VERSION_ID" \
+              '{data:{type:"appStoreVersionLocalizations",attributes:{locale:"en-US",whatsNew:$notes},relationships:{appStoreVersion:{data:{type:"appStoreVersions",id:$v}}}}}')
+            asc POST "/v1/appStoreVersionLocalizations" "$BODY" > /dev/null
+          else
+            BODY=$(jq -n --arg notes "$RELEASE_NOTES" --arg id "$LOC_ID" \
+              '{data:{type:"appStoreVersionLocalizations",id:$id,attributes:{whatsNew:$notes}}}')
+            asc PATCH "/v1/appStoreVersionLocalizations/${LOC_ID}" "$BODY" > /dev/null
+          fi
+
+          # 5. Create the review submission and attach the build
+          BODY=$(jq -n --arg app "$ASC_APP_ID" \
+            '{data:{type:"reviewSubmissions",attributes:{platform:"IOS"},relationships:{app:{data:{type:"apps",id:$app}}}}}')
+          SUB_ID=$(asc POST "/v1/reviewSubmissions" "$BODY" | jq -r '.data.id // empty')
+          [ -n "$SUB_ID" ] || { echo "::error::Could not create review submission"; exit 1; }
+
+          BODY=$(jq -n --arg b "$BUILD_ID" --arg s "$SUB_ID" \
+            '{data:{type:"reviewSubmissionItems",relationships:{build:{data:{type:"builds",id:$b}},reviewSubmission:{data:{type:"reviewSubmissions",id:$s}}}}}')
+          asc POST "/v1/reviewSubmissionItems" "$BODY" > /dev/null
+
+          echo "Submitted build $BUILD_ID (version $APP_VERSION) for App Review via submission $SUB_ID."
 
       - name: Print App Store Connect link
         run: |

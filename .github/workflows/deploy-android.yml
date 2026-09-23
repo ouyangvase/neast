@@ -17,7 +17,7 @@ on:
         required: false
         default: ""
       submit_only:
-        description: "Skip build — upload the AAB artifact from the last successful run"
+        description: "Skip build — submit the latest completed EAS build"
         required: false
         type: boolean
         default: false
@@ -41,106 +41,34 @@ jobs:
         with:
           app: ${{ github.event.inputs.app }}
 
-      - uses: actions/setup-java@v4
-        if: ${{ github.event.inputs.submit_only != 'true' }}
+      - uses: actions/setup-node@v4
         with:
-          distribution: temurin
-          java-version: "17"
+          node-version: "20"
 
-      - uses: subosito/flutter-action@v2
-        if: ${{ github.event.inputs.submit_only != 'true' }}
-        with:
-          channel: stable
-          cache: true
+      - name: Install EAS CLI
+        run: npm install -g eas-cli
 
-      - name: Decode upload keystore
-        if: ${{ github.event.inputs.submit_only != 'true' }}
-        working-directory: ${{ steps.app.outputs.working_directory }}
-        env:
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: |
-          set -euo pipefail
-          if [ -z "$ANDROID_KEYSTORE_BASE64" ]; then
-            echo "::error::ANDROID_KEYSTORE_BASE64 secret is empty."
-            exit 1
-          fi
-          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/app/upload.keystore
-          cat > android/key.properties <<EOF
-          storePassword=$KEYSTORE_PASSWORD
-          keyPassword=$KEY_PASSWORD
-          keyAlias=$KEY_ALIAS
-          storeFile=upload.keystore
-          EOF
-
-      - name: Build Android App Bundle
-        if: ${{ github.event.inputs.submit_only != 'true' }}
-        working-directory: ${{ steps.app.outputs.working_directory }}
-        run: |
-          flutter pub get
-          flutter build appbundle --release
-
-      - name: Upload AAB artifact
-        if: ${{ github.event.inputs.submit_only != 'true' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: aab-${{ github.event.inputs.app }}
-          path: ${{ steps.app.outputs.working_directory }}/build/app/outputs/bundle/release/app-release.aab
-          retention-days: 30
-
-      - name: Fetch AAB from last successful run
-        if: ${{ github.event.inputs.submit_only == 'true' }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPO: ${{ github.repository }}
-          APP: ${{ github.event.inputs.app }}
-          WF_FILE: ${{ github.workflow_ref }}
-        working-directory: ${{ steps.app.outputs.working_directory }}
-        run: |
-          set -euo pipefail
-          WF="$(basename "${WF_FILE%%@*}")"
-          FOUND=""
-          for RUN_ID in $(gh api "repos/$REPO/actions/workflows/$WF/runs?status=completed&conclusion=success&per_page=20" --jq '.workflow_runs[].id'); do
-            if gh run download "$RUN_ID" -n "aab-$APP" -D aab-dl 2>/dev/null; then
-              FOUND="$RUN_ID"
-              break
-            fi
-          done
-          if [ -z "$FOUND" ]; then
-            echo "::error::No previous successful run has an aab-$APP artifact. Run a full build first."
-            exit 1
-          fi
-          mkdir -p build/app/outputs/bundle/release
-          cp aab-dl/app-release.aab build/app/outputs/bundle/release/app-release.aab
-          echo "Using AAB artifact from run $FOUND"
-
-      - name: Setup Ruby + Fastlane
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: "3.2"
-
-      - name: Install Fastlane
-        run: gem install fastlane --no-document
-
-      - name: Upload AAB to Play Internal
+      - name: Decode Play service account key
         working-directory: ${{ steps.app.outputs.working_directory }}
         env:
           GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
-          PACKAGE_NAME: ${{ steps.app.outputs.android_package }}
         run: |
           set -euo pipefail
           if [ -z "$GOOGLE_PLAY_SERVICE_ACCOUNT_JSON" ]; then
             echo "::error::GOOGLE_PLAY_SERVICE_ACCOUNT_JSON secret is empty."
             exit 1
           fi
-          printf '%s' "$GOOGLE_PLAY_SERVICE_ACCOUNT_JSON" > /tmp/play-service-account.json
-          fastlane supply \
-            --aab build/app/outputs/bundle/release/app-release.aab \
-            --package_name "$PACKAGE_NAME" \
-            --track internal \
-            --json_key /tmp/play-service-account.json \
-            --skip_upload_metadata \
-            --skip_upload_images \
-            --skip_upload_screenshots
+          printf '%s' "$GOOGLE_PLAY_SERVICE_ACCOUNT_JSON" > play-service-account.json
+
+      - name: EAS Build (Android, production)
+        if: ${{ github.event.inputs.submit_only != 'true' }}
+        working-directory: ${{ steps.app.outputs.working_directory }}
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: eas build --platform android --profile production --non-interactive
+
+      - name: Submit to Play Internal
+        working-directory: ${{ steps.app.outputs.working_directory }}
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: eas submit --platform android --profile production --latest --non-interactive
