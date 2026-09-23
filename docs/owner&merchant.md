@@ -1,5 +1,7 @@
 # Flutter → React Native Rebuild Inventory
 
+> **⚠️ Flutter-era inventory (historical reference).** This was the spec for the rebuild and is kept for traceability. Both apps are now Expo / React Native: routes in `apps/<app>/app/`, features in `apps/<app>/src/features/`, API wiring in `apps/<app>/src/lib/endpoints.ts`. Route-by-route parity status: `apps/neast-owner/PARITY.md` and `apps/neast-merchant/PARITY.md`. Omissions/deviations: `docs/rn-migration-notes.md`.
+
 Base paths used below:
 - `OWNER` = `/Users/hanxiangwong/Desktop/Neast/neast-monorepo/apps/neast-owner`
 - `MERCHANT` = `/Users/hanxiangwong/Desktop/Neast/neast-monorepo/apps/neast-merchant`

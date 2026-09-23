@@ -1,5 +1,7 @@
 # NEAST User App (`apps/neast-user`) — Full Inventory for RN Rebuild
 
+> **⚠️ Flutter-era inventory (historical reference).** This was the spec for the rebuild and is kept for traceability. The app is now Expo / React Native: routes in `apps/neast-user/app/`, features in `apps/neast-user/src/features/`, API wiring in `apps/neast-user/src/lib/endpoints.ts`. Route-by-route parity status: `apps/neast-user/PARITY.md`. Omissions/deviations: `docs/rn-migration-notes.md`.
+
 Flutter app, package `neast`, Riverpod 3 + go_router 17 + dio 5. All paths below are relative to `/Users/hanxiangwong/Desktop/Neast/neast-monorepo/apps/neast-user`.
 
 ---

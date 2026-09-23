@@ -1,5 +1,7 @@
 # NEAST Apps & API — How Everything Works Together
 
+> **⚠️ Flutter-era inventory (historical reference).** The mobile apps have been rebuilt in Expo / React Native. Mobile-side paths below (`apps/*/lib`, Riverpod/go_router/dio) describe the retired Flutter apps. For the current structure see `apps/<app>/app/` (Expo Router routes), `apps/<app>/src/features/`, `apps/<app>/src/lib/endpoints.ts`, and `apps/<app>/PARITY.md`. Omissions and known deviations from Flutter parity: `docs/rn-migration-notes.md`. The API-side (`services/neast-api`) content remains accurate.
+
 **Scope:** `neast-monorepo/` — 3 Flutter mobile apps, 1 Next.js landing page, 1 PHP (Hyperf) backend API.
 **Audience:** new engineers, PMs, and anyone tracing a flow across apps.
 **Sources:** verified against `apps/*/lib`, `services/neast-api/app`, and `.cursor/skills/feature-map/*`. For the money-routing caveats see `docs/flows-and-issues.md`.
