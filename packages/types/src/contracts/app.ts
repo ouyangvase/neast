@@ -483,7 +483,7 @@ export interface MerchantCategoryListResponse {
 // Refer
 // ---------------------------------------------------------------------------
 
-/** GET /app/refer/info response. */
+/** GET /app/refer/dashboard response. */
 export interface ReferInfo {
   total_earned_points: number;
   invited_count: number;
@@ -499,7 +499,7 @@ export interface ReferInfo {
 // Tent score
 // ---------------------------------------------------------------------------
 
-/** GET /app/tent-score response. */
+/** GET /app/user/tent-score response. */
 export interface TentScore {
   score: number;
   maxScore: number;

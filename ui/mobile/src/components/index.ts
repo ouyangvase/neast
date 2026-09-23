@@ -26,3 +26,4 @@ export * from './TabBar';
 export * from './BetaTag';
 export * from './UploadProgressDialog';
 export * from './ImagePreview';
+export * from './Chevron';
