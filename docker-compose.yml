@@ -1,0 +1,82 @@
+services:
+  api:
+    build:
+      context: ./services/neast-api
+      args:
+        timezone: Asia/Kuala_Lumpur
+        app_env: dev
+    env_file:
+      - ./services/neast-api/.env
+    environment:
+      DB_HOST: mysql
+      REDIS_HOST: redis
+      REDIS_DB: "0"
+    ports:
+      - "9512:9512"
+    volumes:
+      # dev live code (restart the container to pick up changes)
+      - ./services/neast-api/app:/opt/www/app
+      - ./services/neast-api/config:/opt/www/config
+      - ./services/neast-api/bin:/opt/www/bin
+      # uploads + firebase credentials persist on the host
+      - ./services/neast-api/public/uploads:/opt/www/public/uploads
+      - ./services/neast-api/storage:/opt/www/storage
+      # swoole/hyperf runtime (pid, logs, container cache)
+      - neast-api-runtime:/opt/www/runtime
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - neast
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: "12345678"
+      MYSQL_DATABASE: neast
+    ports:
+      - "3306:3306"
+    volumes:
+      - neast-mysql-data:/var/lib/mysql
+      # schema seed, runs on first boot only (empty volume)
+      - ./services/neast-api/sql:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p12345678"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks:
+      - neast
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - neast-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks:
+      - neast
+
+  landing:
+    build: ./apps/landing
+    ports:
+      - "3000:3000"
+    networks:
+      - neast
+
+volumes:
+  neast-api-runtime:
+  neast-mysql-data:
+  neast-redis-data:
+
+networks:
+  neast:
+    driver: bridge

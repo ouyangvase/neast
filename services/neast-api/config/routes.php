@@ -17,6 +17,11 @@ Router::get('/favicon.ico', function () {
     return '';
 });
 
+// ALB / CI health check
+Router::get('/health', function () {
+    return ['code' => 200, 'message' => 'ok'];
+});
+
 // WebSocket 路由
 Router::addServer('ws', function () {
     Router::get('/admin', 'App\Controller\WebSocket\AdminController');

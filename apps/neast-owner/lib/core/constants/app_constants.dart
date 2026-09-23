@@ -5,7 +5,8 @@ class AppConstants {
   AppConstants._();
   
   // API相关
-  static const String apiBaseUrl = 'https://localhost:8080';
+  // Android emulator loopback to the host. localhost is the emulator itself.
+  static const String apiBaseUrl = 'http://10.0.2.2:9512';
   static const int apiConnectTimeout = 15000; // 15秒
   static const int apiReceiveTimeout = 15000; // 15秒
   

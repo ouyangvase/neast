@@ -42,6 +42,19 @@ services/neast-api/uploads/*
 services/neast-api/storage/logs/*
 *.log
 
+# ---------- Next.js (apps/landing) ----------
+**/.next/
+**/out/
+**/next-env.d.ts
+
+# ---------- CI/CD signing & store artifacts ----------
+**/play-service-account.json
+**/fastlane/report.xml
+**/fastlane/README.md
+**/*.p8
+**/*.mobileprovision
+**/*.cer
+
 # ---------- Misc ----------
 *.tmp
 *.swp
