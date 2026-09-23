@@ -1,0 +1,70 @@
+{
+  "expo": {
+    "name": "NEAST Merchant",
+    "slug": "neast-merchant",
+    "version": "1.0.6",
+    "orientation": "portrait",
+    "scheme": "neastmerchant",
+    "userInterfaceStyle": "light",
+    "icon": "./assets/icon/app_icon.png",
+    "ios": {
+      "bundleIdentifier": "com.neastMerchant.flutter",
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "supportsTablet": false,
+      "infoPlist": {
+        "UIBackgroundModes": ["remote-notification"],
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.neastMerchant.flutter",
+      "googleServicesFile": "./google-services.json",
+      "permissions": ["CAMERA"],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": false,
+          "data": [{ "scheme": "neastmerchant" }],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/launch_android.png",
+          "backgroundColor": "#FFFFFF",
+          "imageWidth": 220,
+          "ios": {
+            "image": "./assets/images/launch_ios.png",
+            "backgroundColor": "#4A78BD"
+          }
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#0851AA"
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow NEAST Merchant to access your camera to scan QR codes and receipts."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow NEAST Merchant to access your photos to upload receipts."
+        }
+      ]
+    ],
+    "extra": {
+      "router": {}
+    }
+  }
+}
