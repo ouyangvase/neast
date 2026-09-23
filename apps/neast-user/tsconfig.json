@@ -1,0 +1,10 @@
+{
+  "extends": ["../../tsconfig.base.json", "expo/tsconfig.base"],
+  "compilerOptions": {
+    // React 19 types removed the global JSX namespace; use the automatic runtime.
+    "jsx": "react-jsx",
+    "types": ["node"]
+  },
+  "include": ["app", "src", "expo-env.d.ts"],
+  "exclude": ["node_modules", "dist", ".expo", "mock-api"]
+}
