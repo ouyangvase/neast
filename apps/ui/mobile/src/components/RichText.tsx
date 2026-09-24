@@ -5,7 +5,6 @@ import RenderHTML, {
 } from 'react-native-render-html';
 
 import { coreColors } from '../tokens/colors';
-import { fontFamilies } from '../tokens/typography';
 
 export interface RichTextProps {
   /** Agreement / legal HTML (from the agreement detail endpoint). */
@@ -25,14 +24,13 @@ export function RichText({ html, contentPadding = 0, baseStyle, tagsStyles }: Ri
       contentWidth={width - contentPadding * 2}
       baseStyle={{
         color: coreColors.blackText,
-        fontFamily: fontFamilies.body,
         fontSize: 14,
         lineHeight: 22,
         ...baseStyle,
       }}
       tagsStyles={{
-        h1: { fontFamily: fontFamilies.display, fontSize: 22, lineHeight: 30 },
-        h2: { fontFamily: fontFamilies.display, fontSize: 18, lineHeight: 26 },
+        h1: { fontSize: 22, lineHeight: 30 },
+        h2: { fontSize: 18, lineHeight: 26 },
         a: { color: coreColors.brandBlue },
         ...tagsStyles,
       }}

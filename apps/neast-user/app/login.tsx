@@ -26,7 +26,7 @@ import { Screen } from '../src/components/Screen';
 export default function LoginRoute() {
   const theme = useUiTheme();
   const [dialCode, setDialCode] = useState('+60');
-  const [phone, setPhone] = useState('');
+  const [phone, setPhone] = useState(__DEV__ ? '123456789' : '');
   const [pickerVisible, setPickerVisible] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
 

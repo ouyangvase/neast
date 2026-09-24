@@ -11,7 +11,6 @@ import {
 
 import { coreColors } from '../tokens/colors';
 import { radii } from '../tokens/layout';
-import { fontFamilies } from '../tokens/typography';
 
 export interface OtpInputProps {
   /** Current code (digits only). */
@@ -107,7 +106,6 @@ const styles = StyleSheet.create({
     borderColor: coreColors.error,
   },
   digit: {
-    fontFamily: fontFamilies.display,
     fontSize: 22,
     fontWeight: '600',
     color: coreColors.blackText,

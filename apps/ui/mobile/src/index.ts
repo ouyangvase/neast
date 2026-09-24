@@ -4,6 +4,5 @@
  */
 export * from './tokens';
 export * from './theme';
-export * from './fonts/useBrandFonts';
 export * from './assets/registry';
 export * from './components';

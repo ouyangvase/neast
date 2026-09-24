@@ -6,7 +6,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { sessionStore, useIsLoggedIn, useSessionStatus } from '@neast/types';
-import { ToastHost, UiThemeProvider, useBrandFonts } from '@neast/ui-mobile';
+import { ToastHost, UiThemeProvider } from '@neast/ui-mobile';
 
 import '../src/lib/auth'; // registers the session-expired logout handler
 import { isMerchantDetailPath } from '../src/lib/deep-links';
@@ -33,14 +33,17 @@ const GUEST_PATHS = new Set([
 ]);
 
 export default function RootLayout() {
-  const { loaded: fontsLoaded } = useBrandFonts();
   const pathname = usePathname();
   const sessionStatus = useSessionStatus();
   const isLoggedIn = useIsLoggedIn();
 
-  // Splash gate: hydrate the session once at app start.
+  // Splash gate: hydrate the session once at app start, and release the
+  // native splash here. The splash route is not always the first screen
+  // (dev-client launch opens `/`), and leaving preventAutoHide set blocks
+  // every frame — the window stays black.
   useEffect(() => {
     void sessionStore.getState().hydrate();
+    void SplashScreen.hideAsync();
   }, []);
 
   // Guest-mode guard.
@@ -56,10 +59,6 @@ export default function RootLayout() {
     }
     router.replace('/login');
   }, [pathname, sessionStatus, isLoggedIn]);
-
-  if (!fontsLoaded) {
-    return null;
-  }
 
   return (
     <SafeAreaProvider>

@@ -25,7 +25,7 @@ export default function VerifyRoute() {
   const { contact } = useLocalSearchParams<{ contact: string }>();
   const account = contact ?? '';
 
-  const [code, setCode] = useState('');
+  const [code, setCode] = useState(__DEV__ && account === '60123456789' ? '123456' : '');
   const [hasError, setHasError] = useState(false);
   const countdown = useCountdown(60);
 
