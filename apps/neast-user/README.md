@@ -14,23 +14,10 @@ pnpm --filter neast-user start
 
 ### Backend URL
 
-The base URL comes from `EXPO_PUBLIC_API_URL` and defaults to `http://10.0.2.2:9512`
-(Android emulator → host machine). Create `.env` in this folder to override:
-
-```bash
-# Bundled mock backend (recommended for dev):
-EXPO_PUBLIC_API_URL=http://10.0.2.2:8000
-```
-
-Start the mock backend with:
-
-```bash
-pnpm --filter neast-user mock     # serves on http://localhost:8000
-```
-
-Mock demo login: phone `123456789` (country code `+60`), OTP `123456`.
-
-On a physical device use your machine's LAN IP, e.g. `EXPO_PUBLIC_API_URL=http://192.168.1.10:8000`.
+Local runs call the Docker API (MySQL + Redis) at `http://127.0.0.1:9512`.
+Start it from the monorepo root with `docker compose up`. An Android emulator
+needs `EXPO_PUBLIC_API_URL=http://10.0.2.2:9512`. On a physical device use your
+machine's LAN IP, e.g. `EXPO_PUBLIC_API_URL=http://192.168.1.10:9512`.
 
 ## Scripts
 
@@ -38,7 +25,6 @@ On a physical device use your machine's LAN IP, e.g. `EXPO_PUBLIC_API_URL=http:/
 | ------------------------- | ------------------------------------ |
 | `start`                   | Expo dev server                      |
 | `android` / `ios` / `web` | Run on a platform                    |
-| `mock`                    | Start the mock API on port 8000      |
 | `typecheck`               | `tsc -p tsconfig.json`               |
 | `lint`                    | `eslint .`                           |
 | `export`                  | `expo export` (bundle compile check) |
@@ -51,7 +37,6 @@ On a physical device use your machine's LAN IP, e.g. `EXPO_PUBLIC_API_URL=http:/
 - `src/hooks/` — pagination, countdown, chunked upload, profile/config queries.
 - `src/features/` — tab screens + feature widgets (home, pay-rent, reward, account, merchant, coupon).
 - `assets/` — recovered Flutter image/SVG assets (SVGs load via `react-native-svg-transformer`).
-- `mock-api/` — dev backend (port 8000).
 
 ## Notes
 

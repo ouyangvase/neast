@@ -1,12 +1,12 @@
-import { StyleSheet, Text, View } from 'react-native';
-import { router } from 'expo-router';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import Svg, { Circle, G } from 'react-native-svg';
 
-import { BrandHeader, Card, coreColors, spacing, textStyles } from '@neast/ui-mobile';
+import { userHomeColors } from '@neast/ui-mobile';
 
 import { getTentScore } from '../../src/lib/endpoints';
 import { ErrorState, LoadingState } from '../../src/components/StateViews';
+import { PageHeader } from '../../src/components/PageHeader';
 import { Screen } from '../../src/components/Screen';
 
 const GAUGE_SIZE = 220;
@@ -27,7 +27,7 @@ function ScoreGauge({ score, maxScore }: { score: number; maxScore: number }) {
             cx={center}
             cy={center}
             r={radius}
-            stroke={coreColors.divider}
+            stroke={userHomeColors.textOnNavyMuted}
             strokeWidth={STROKE}
             strokeDasharray={`${arcLength} ${arcLength}`}
             strokeLinecap="round"
@@ -37,7 +37,7 @@ function ScoreGauge({ score, maxScore }: { score: number; maxScore: number }) {
             cx={center}
             cy={center}
             r={radius}
-            stroke={coreColors.brandBlue}
+            stroke={userHomeColors.gold}
             strokeWidth={STROKE}
             strokeDasharray={`${arcLength * fraction} ${arcLength}`}
             strokeLinecap="round"
@@ -53,65 +53,66 @@ function ScoreGauge({ score, maxScore }: { score: number; maxScore: number }) {
   );
 }
 
-/** Tent score (tent_score_screen parity). totalPaid is server-formatted — display as-is. */
+function StatTile({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.tile}>
+      <Text style={styles.tileValue}>{value}</Text>
+      <Text style={styles.tileLabel}>{label}</Text>
+    </View>
+  );
+}
+
+/** Tenant score: current streak plus payment summary. totalPaid is server-formatted. */
 export default function TentScoreRoute() {
   const tentScore = useQuery({ queryKey: ['tent-score'], queryFn: getTentScore });
   const data = tentScore.data;
 
   return (
-    <Screen>
-      <BrandHeader title="TENT Score" onBack={() => router.back()} />
+    <Screen edges={[]}>
+      <PageHeader title="TENT Score" />
       {tentScore.isLoading ? (
         <LoadingState />
       ) : !data ? (
         <ErrorState onRetry={() => tentScore.refetch()} />
       ) : (
-        <View style={styles.body}>
-          <Card style={styles.gaugeCard}>
+        <ScrollView style={styles.scroll} contentContainerStyle={styles.body}>
+          <View style={styles.hero}>
             <ScoreGauge score={data.score} maxScore={data.maxScore} />
-            <Text style={styles.level}>{data.ratingLabel}</Text>
-            <Text style={styles.since}>Member since {data.since}</Text>
-          </Card>
+            <Text style={styles.rating}>{data.ratingLabel}</Text>
+            <View style={styles.streakStrip}>
+              <Text style={styles.streakText}>{data.streakLabel}</Text>
+            </View>
+          </View>
 
-          <Card style={styles.statsCard}>
-            <View style={styles.statRow}>
-              <Text style={styles.statLabel}>Total paid</Text>
-              <Text style={styles.statValue}>{data.totalPaid}</Text>
-            </View>
-            <View style={styles.statRow}>
-              <Text style={styles.statLabel}>Payment streak</Text>
-              <Text style={styles.statValue}>
-                {data.maxStreakMonths} months{data.streakLabel ? ` · ${data.streakLabel}` : ''}
-              </Text>
-            </View>
-            <View style={styles.statRow}>
-              <Text style={styles.statLabel}>On-time payments</Text>
-              <Text style={styles.statValue}>{data.onTimePayments}</Text>
-            </View>
-            <View style={styles.statRow}>
-              <Text style={styles.statLabel}>Late payments</Text>
-              <Text style={styles.statValue}>{data.latePayments}</Text>
-            </View>
-            <View style={styles.statRow}>
-              <Text style={styles.statLabel}>Verified leases</Text>
-              <Text style={styles.statValue}>{data.verifiedLeases}</Text>
-            </View>
-          </Card>
-
-          <Text style={styles.footer}>
-            Your TENT score reflects your payment reliability as a NEAST tenant.
-          </Text>
-        </View>
+          <View style={styles.grid}>
+            <StatTile label="On-time payments" value={String(data.onTimePayments)} />
+            <StatTile label="Late payments" value={String(data.latePayments)} />
+            <StatTile label="Total paid" value={data.totalPaid} />
+            <StatTile label="Verified tenancies" value={String(data.verifiedLeases)} />
+          </View>
+        </ScrollView>
       )}
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  body: {
+  scroll: {
     flex: 1,
-    padding: spacing.lg,
-    gap: spacing.lg,
+    backgroundColor: userHomeColors.background,
+  },
+  body: {
+    padding: 14,
+    gap: 14,
+    paddingBottom: 28,
+  },
+  hero: {
+    backgroundColor: userHomeColors.navy,
+    borderRadius: 20,
+    paddingTop: 20,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    alignItems: 'center',
   },
   gaugeWrap: {
     alignItems: 'center',
@@ -122,42 +123,56 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   gaugeScore: {
-    ...textStyles.heading1,
+    color: userHomeColors.surface,
     fontSize: 40,
+    fontWeight: '700',
   },
   gaugeMax: {
-    ...textStyles.caption,
+    color: userHomeColors.textOnNavyMuted,
+    fontSize: 13,
   },
-  gaugeCard: {
-    alignItems: 'center',
-    paddingVertical: spacing.xl,
+  rating: {
+    color: userHomeColors.gold,
+    fontSize: 18,
+    fontWeight: '700',
+    marginTop: 8,
   },
-  level: {
-    ...textStyles.heading3,
-    marginTop: spacing.md,
+  streakStrip: {
+    alignSelf: 'stretch',
+    marginTop: 16,
+    backgroundColor: userHomeColors.cream,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
   },
-  since: {
-    ...textStyles.caption,
-    marginTop: spacing.xs,
-  },
-  statsCard: {
-    gap: spacing.md,
-  },
-  statRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  statLabel: {
-    ...textStyles.body,
-    color: coreColors.textSecondary,
-  },
-  statValue: {
-    ...textStyles.body,
+  streakText: {
+    color: userHomeColors.textPrimary,
+    fontSize: 15,
     fontWeight: '600',
-  },
-  footer: {
-    ...textStyles.caption,
     textAlign: 'center',
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  tile: {
+    width: '47%',
+    flexGrow: 1,
+    backgroundColor: userHomeColors.surface,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: userHomeColors.border,
+    padding: 16,
+    gap: 6,
+  },
+  tileValue: {
+    color: userHomeColors.royalBlue,
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  tileLabel: {
+    color: userHomeColors.textSecondary,
+    fontSize: 13,
   },
 });

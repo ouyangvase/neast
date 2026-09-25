@@ -3,12 +3,13 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 
 import type { UserCouponItem, VoucherStatus } from '@neast/types';
-import { BrandHeader, coreColors, RefreshList, spacing, textStyles } from '@neast/ui-mobile';
+import { coreColors, RefreshList, spacing, textStyles } from '@neast/ui-mobile';
 
 import { getMyCoupons } from '../../src/lib/endpoints';
 import { usePaginatedList } from '../../src/hooks/use-paginated';
 import { useSelectionStore } from '../../src/stores/selection';
 import { CouponCard, CouponQrDialog, useCouponActions } from '../../src/features/coupon/components';
+import { PageHeader } from '../../src/components/PageHeader';
 import { Screen } from '../../src/components/Screen';
 
 const STATUS_TABS: { key: VoucherStatus; label: string }[] = [
@@ -38,8 +39,8 @@ export default function MyVouchersRoute() {
   };
 
   return (
-    <Screen>
-      <BrandHeader title="My Vouchers" onBack={() => router.back()} />
+    <Screen edges={[]}>
+      <PageHeader title="My Vouchers" />
       <View style={styles.tabs}>
         {STATUS_TABS.map((tab) => (
           <Pressable

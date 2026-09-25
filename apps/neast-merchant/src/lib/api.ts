@@ -2,7 +2,8 @@ import { ApiError, createApiClient, type LogoutReason } from '@neast/types';
 
 /**
  * The app's API client (`/merchant` prefix). Base URL comes from
- * `EXPO_PUBLIC_API_URL`, defaulting to `http://10.0.2.2:9512`.
+ * `EXPO_PUBLIC_API_URL`, defaulting to `http://127.0.0.1:9512`
+ * (the local Docker API). Android emulator: `http://10.0.2.2:9512`.
  *
  * Envelope/refresh quirks (raw token header, business-400 refresh with the
  * refresh token as a query param, 200ms GET delay) live in @neast/types.

@@ -20,7 +20,7 @@ import { createApiClient } from '@neast/types';
 
 const api = createApiClient({
   prefix: '/app', // '/app' | '/landlord' | '/merchant'
-  // baseUrl defaults to process.env.EXPO_PUBLIC_API_URL ?? 'http://10.0.2.2:9512'
+  // baseUrl defaults to process.env.EXPO_PUBLIC_API_URL ?? 'http://127.0.0.1:9512'
   onLogout: (reason) => router.replace('/login'), // 'refresh_failed' | 'session_expired' | 'unauthorized'
 });
 

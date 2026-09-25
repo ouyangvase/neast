@@ -1,6 +1,7 @@
 import {
   FlatList,
   Image,
+  ImageBackground,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -9,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 
 import { formatThousands, useIsLoggedIn, type CouponListItem, type RewardTier } from '@neast/types';
@@ -21,8 +23,10 @@ import {
   spacing,
   textStyles,
   userAccentColors,
+  userHomeColors,
 } from '@neast/ui-mobile';
 
+import metallicBackground from '../../../assets/images/home/neast-metallic-background.png';
 import myPointsIcon from '../../../assets/images/reward/my-points-icon.png';
 
 import { useDeviceLocation } from '../../lib/location';
@@ -33,6 +37,7 @@ import { tierIcon } from './tier-icons';
 
 /** Reward tab (reward_screen parity): points, tier progress, featured + nearby rewards. */
 export function RewardTab() {
+  const insets = useSafeAreaInsets();
   const isLoggedIn = useIsLoggedIn();
   const { coords } = useDeviceLocation();
 
@@ -44,13 +49,15 @@ export function RewardTab() {
 
   if (!isLoggedIn) {
     return (
-      <View style={styles.guestContainer}>
-        <Text style={styles.title}>Rewards</Text>
-        <GuestLoginPlaceholder
-          title="Log in to view rewards"
-          message="Earn points on rent and spending, then redeem vouchers."
-          onLoginPress={() => router.push('/login')}
-        />
+      <View style={styles.container}>
+        <TabBackdrop title="Rewards" paddingTop={insets.top + 8} />
+        <View style={styles.sheet}>
+          <GuestLoginPlaceholder
+            title="Log in to view rewards"
+            message="Earn points on rent and spending, then redeem vouchers."
+            onLoginPress={() => router.push('/login')}
+          />
+        </View>
       </View>
     );
   }
@@ -68,8 +75,8 @@ export function RewardTab() {
         }
         contentContainerStyle={styles.scrollContent}
       >
-        <Text style={styles.title}>Rewards</Text>
-
+        <TabBackdrop title="Rewards" paddingTop={insets.top + 8} />
+        <View style={styles.sheet}>
         <Card style={styles.pointsCard} onPress={() => router.push('/points')}>
           <View style={styles.pointsRow}>
             <Image source={myPointsIcon} style={styles.pointsIcon} resizeMode="contain" />
@@ -122,8 +129,21 @@ export function RewardTab() {
             />
           </View>
         ) : null}
+        </View>
       </ScrollView>
     </View>
+  );
+}
+
+function TabBackdrop({ title, paddingTop }: { title: string; paddingTop: number }) {
+  return (
+    <ImageBackground
+      source={metallicBackground}
+      resizeMode="cover"
+      style={[styles.backdrop, { paddingTop }]}
+    >
+      <Text style={styles.title}>{title}</Text>
+    </ImageBackground>
   );
 }
 
@@ -185,23 +205,34 @@ function FeaturedRewardCard({ coupon }: { coupon: CouponListItem }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: coreColors.white,
-  },
-  guestContainer: {
-    flex: 1,
-    backgroundColor: coreColors.white,
-    padding: spacing.lg,
-    gap: spacing.lg,
+    backgroundColor: userHomeColors.surface,
   },
   scrollContent: {
-    paddingBottom: spacing.xl,
-    gap: spacing.md,
+    flexGrow: 1,
+  },
+  backdrop: {
+    backgroundColor: userHomeColors.navy,
+    overflow: 'hidden',
+    paddingHorizontal: 20,
+    paddingBottom: 44,
   },
   title: {
-    ...textStyles.heading1,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.sm,
+    color: userHomeColors.surface,
+    fontSize: 18,
+    lineHeight: 24,
+    fontWeight: '700',
+    letterSpacing: -0.4,
+  },
+  sheet: {
+    flex: 1,
+    marginTop: -36,
+    paddingTop: 14,
+    paddingBottom: spacing.xl,
+    gap: spacing.md,
+    overflow: 'hidden',
+    backgroundColor: userHomeColors.surface,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
   },
   pointsCard: {
     marginHorizontal: spacing.lg,

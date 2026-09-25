@@ -1,16 +1,16 @@
 import { ScrollView, StyleSheet } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 
-import { GradientHeader, RichText, spacing, useUiTheme } from '@neast/ui-mobile';
+import { RichText, spacing } from '@neast/ui-mobile';
 
 import { getAgreement } from '../src/lib/endpoints';
 import { ErrorState, LoadingState } from '../src/components/StateViews';
+import { PageHeader } from '../src/components/PageHeader';
 import { Screen } from '../src/components/Screen';
 
 /** Agreement HTML page (rich_text_screen parity) — Privacy Policy / Terms. */
 export default function RichTextRoute() {
-  const theme = useUiTheme();
   const { title } = useLocalSearchParams<{ title: string }>();
   const pageTitle = title ?? '';
 
@@ -22,11 +22,7 @@ export default function RichTextRoute() {
 
   return (
     <Screen edges={[]}>
-      <GradientHeader
-        colors={theme.gradients.header}
-        title={pageTitle}
-        onBack={() => router.back()}
-      />
+      <PageHeader title={pageTitle} />
       {agreement.isLoading ? (
         <LoadingState />
       ) : agreement.isError ? (

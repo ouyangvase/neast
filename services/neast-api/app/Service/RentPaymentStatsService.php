@@ -25,7 +25,7 @@ class RentPaymentStatsService
 
         return [
             'maxStreakMonths' => $maxStreakMonths,
-            'streakLabel' => $maxStreakMonths > 0 ? "{$maxStreakMonths} Month Streak" : '0 Month Streak',
+            'streakLabel' => $this->streakLabel($maxStreakMonths),
             'streakStatus' => $this->resolveStreakStatus($maxStreakMonths),
         ];
     }
@@ -46,21 +46,36 @@ class RentPaymentStatsService
         $latePayments = 0;
         $totalPaid = 0.0;
         $firstPaidAt = null;
-        $onTimeMonthKeys = [];
+        /** @var array<string, array{onTime: int, late: int, upcoming: int}> $months */
+        $months = [];
 
         foreach ($histories as $history) {
+            $status = (int) $history->status;
+            if ($status === RentHistoryModel::STATUS_CANCELLED) {
+                continue;
+            }
+
             $row = $history->toArray();
             $payStatus = $this->rentHistoryService->resolvePayStatus($row);
-            $status = (int) $history->status;
 
             if ($payStatus === 'on_time') {
                 ++$onTimePayments;
-                $monthKey = $this->monthKeyFromDate((string) $history->last_paid_date);
-                if ($monthKey !== '') {
-                    $onTimeMonthKeys[$monthKey] = true;
-                }
             } elseif ($payStatus === 'late') {
                 ++$latePayments;
+            }
+
+            $monthKey = $this->monthKeyFromDate((string) $history->last_paid_date);
+            if ($monthKey !== '') {
+                if (!isset($months[$monthKey])) {
+                    $months[$monthKey] = ['onTime' => 0, 'late' => 0, 'upcoming' => 0];
+                }
+                if ($payStatus === 'on_time') {
+                    ++$months[$monthKey]['onTime'];
+                } elseif ($payStatus === 'late') {
+                    ++$months[$monthKey]['late'];
+                } else {
+                    ++$months[$monthKey]['upcoming'];
+                }
             }
 
             if ($status === RentHistoryModel::STATUS_PAID || $status === RentHistoryModel::STATUS_SETTLED) {
@@ -80,55 +95,60 @@ class RentPaymentStatsService
             'latePayments' => $latePayments,
             'totalPaid' => $totalPaid,
             'firstPaidAt' => $firstPaidAt,
-            'maxStreakMonths' => $this->calcMaxConsecutiveMonths(array_keys($onTimeMonthKeys)),
+            'maxStreakMonths' => $this->calcCurrentStreakMonths($months),
         ];
     }
 
-    public function resolveStreakStatus(int $maxStreakMonths): string
+    public function streakLabel(int $months): string
     {
-        if ($maxStreakMonths <= 0) {
-            return 'Start your journey';
+        if ($months <= 0) {
+            return 'Pay on time and your streak starts here.';
         }
 
-        if ($maxStreakMonths < 6) {
-            return 'Keep going';
-        }
+        return "{$months} Month Streak, don't stop!";
+    }
 
-        if ($maxStreakMonths < 12) {
-            return 'Great progress';
-        }
-
-        return 'Perfect Record';
+    public function resolveStreakStatus(int $months): string
+    {
+        return $months > 0 ? "Don't stop" : 'Pay on time';
     }
 
     /**
-     * @param array<int, string> $monthKeys Y-m 格式，可无序
+     * Current run of fully on-time due months, ending at the latest closed month.
+     *
+     * @param array<string, array{onTime: int, late: int, upcoming: int}> $months
      */
-    private function calcMaxConsecutiveMonths(array $monthKeys): int
+    private function calcCurrentStreakMonths(array $months): int
     {
-        if ($monthKeys === []) {
+        $closed = [];
+        foreach ($months as $monthKey => $counts) {
+            if ($counts['late'] > 0) {
+                $closed[$monthKey] = 'late';
+                continue;
+            }
+            if ($counts['onTime'] > 0 && $counts['upcoming'] === 0) {
+                $closed[$monthKey] = 'on_time';
+            }
+        }
+
+        if ($closed === []) {
             return 0;
         }
 
-        sort($monthKeys);
-
-        $maxStreak = 1;
-        $currentStreak = 1;
-
-        for ($i = 1, $count = count($monthKeys); $i < $count; ++$i) {
-            $prev = Carbon::parse($monthKeys[$i - 1] . '-01')->startOfMonth();
-            $current = Carbon::parse($monthKeys[$i] . '-01')->startOfMonth();
-
-            if ($prev->copy()->addMonth()->format('Y-m') === $current->format('Y-m')) {
-                ++$currentStreak;
-            } else {
-                $currentStreak = 1;
-            }
-
-            $maxStreak = max($maxStreak, $currentStreak);
+        krsort($closed);
+        $latestKey = (string) array_key_first($closed);
+        if ($closed[$latestKey] !== 'on_time') {
+            return 0;
         }
 
-        return $maxStreak;
+        $streak = 0;
+        $cursor = Carbon::parse($latestKey . '-01')->startOfMonth();
+        while (isset($closed[$cursor->format('Y-m')]) && $closed[$cursor->format('Y-m')] === 'on_time') {
+            ++$streak;
+            $cursor->subMonth();
+        }
+
+        return $streak;
     }
 
     private function monthKeyFromDate(string $date): string

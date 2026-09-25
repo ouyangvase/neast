@@ -24,6 +24,7 @@ import {
   Toast,
 } from '@neast/ui-mobile';
 
+import { Screen } from '../../components/Screen';
 import bankIcon from '../../../assets/images/coin.png';
 import aboutIcon from '../../../assets/images/account/about_us.png';
 import termsIcon from '../../../assets/images/account/terms_and_conditions.png';
@@ -113,7 +114,8 @@ export function AccountTab() {
   const initial = (info.data?.first_name ?? '').charAt(0).toUpperCase() || 'N';
 
   return (
-    <View style={styles.container}>
+    <Screen>
+      <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <ImageBackground
           source={sharedAssets.accountHeader}
@@ -163,7 +165,8 @@ export function AccountTab() {
           deleteMutation.mutate();
         }}
       />
-    </View>
+      </View>
+    </Screen>
   );
 }
 
@@ -177,7 +180,6 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    paddingTop: spacing.xxl,
     paddingBottom: spacing.xl,
     paddingHorizontal: spacing.lg,
   },

@@ -1,110 +1,95 @@
-import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { ImageBackground, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 
 import { useIsLoggedIn } from '@neast/types';
-import {
-  coreColors,
-  GuestLoginPlaceholder,
-  SectionHeader,
-  spacing,
-  textStyles,
-} from '@neast/ui-mobile';
+import { ComingSoonDialog, GuestLoginPlaceholder, userHomeColors } from '@neast/ui-mobile';
 
+import metallicBackground from '../../../assets/images/home/neast-metallic-background.png';
 import unloginImage from '../../../assets/images/pay_rent/unlogin.png';
 
-import { getRentHistory, getRentList } from '../../lib/endpoints';
-import { useSelectionStore } from '../../stores/selection';
+import { getRentList } from '../../lib/endpoints';
 import { ListSkeleton } from '../../components/StateViews';
-import { AddTenancyTile, HistoryRow, TenancyCard } from './components';
+import { ComingSoonTenancyCard, TenancyCard } from './components';
 
-/** Pay Rent tab (pay_rent_screen parity): tenancies + recent history (≤5). */
+/** Pay Rent tab: tenancy stack and add tenancy. */
 export function PayRentTab() {
+  const insets = useSafeAreaInsets();
   const isLoggedIn = useIsLoggedIn();
-  const setHistory = useSelectionStore((state) => state.setHistory);
 
+  const [limitVisible, setLimitVisible] = useState(false);
   const rents = useQuery({
     queryKey: ['rent-list'],
     queryFn: getRentList,
     enabled: isLoggedIn,
   });
-
-  const recentHistory = useQuery({
-    queryKey: ['rent-history-recent'],
-    queryFn: () => getRentHistory({ page: 1, limit: 5 }),
-    enabled: isLoggedIn,
-  });
-
-  if (!isLoggedIn) {
-    return (
-      <View style={styles.guestContainer}>
-        <Text style={styles.title}>Pay Rent</Text>
-        <GuestLoginPlaceholder
-          image={unloginImage}
-          title="Log in to pay rent"
-          message="Connect your tenancy and pay rent in a few taps."
-          onLoginPress={() => router.push('/login')}
-        />
-      </View>
-    );
-  }
-
-  const refreshing = rents.isRefetching || recentHistory.isRefetching;
-  const onRefresh = () => {
-    void rents.refetch();
-    void recentHistory.refetch();
-  };
-
-  const items = rents.data?.items ?? [];
-  const history = recentHistory.data?.items ?? [];
-  const multiplier = Number(rents.data?.rent_points_multiplier ?? 1);
+  const hasTenancy = (rents.data?.items.length ?? 0) > 0;
 
   return (
     <View style={styles.container}>
       <ScrollView
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        refreshControl={
+          isLoggedIn ? (
+            <RefreshControl refreshing={rents.isRefetching} onRefresh={() => void rents.refetch()} />
+          ) : undefined
+        }
         contentContainerStyle={styles.scrollContent}
       >
-        <Text style={styles.title}>Pay Rent</Text>
-        {multiplier > 1 ? (
-          <Text style={styles.multiplier}>Earn {multiplier}x points on every rent payment</Text>
-        ) : null}
+        <ImageBackground
+          source={metallicBackground}
+          resizeMode="cover"
+          style={[styles.backdrop, { paddingTop: insets.top + 8 }]}
+        >
+          <Text style={styles.title}>Pay Rent</Text>
+        </ImageBackground>
 
-        {rents.isLoading ? (
-          <ListSkeleton rows={2} />
-        ) : (
-          <>
-            {items.map((rent) => (
-              <TenancyCard key={rent.id} rent={rent} />
-            ))}
-            <AddTenancyTile />
-          </>
-        )}
-
-        <View style={styles.historySection}>
-          <SectionHeader
-            title="Recent Payments"
-            actionLabel="View all"
-            onActionPress={() => router.push('/pay-rent/history')}
-          />
-          {recentHistory.isLoading ? (
+        <View style={styles.sheet}>
+          {!isLoggedIn ? (
+            <GuestLoginPlaceholder
+              image={unloginImage}
+              title="Log in to pay rent"
+              message="Connect your tenancy and pay rent in a few taps."
+              onLoginPress={() => router.push('/login')}
+            />
+          ) : rents.isLoading ? (
             <ListSkeleton rows={2} />
-          ) : history.length === 0 ? (
-            <Text style={styles.emptyHistory}>No payments yet</Text>
           ) : (
-            history.map((entry) => (
-              <HistoryRow
-                key={entry.id}
-                entry={entry}
-                onPress={() => {
-                  setHistory(entry);
-                  router.push('/pay-rent/history/detail');
-                }}
-              />
-            ))
+            <>
+              {(rents.data?.items ?? []).map((rent) => (
+                <TenancyCard key={rent.id} rent={rent} />
+              ))}
+              {hasTenancy ? (
+                <>
+                  <ComingSoonTenancyCard />
+                  <ComingSoonTenancyCard />
+                </>
+              ) : null}
+            </>
           )}
         </View>
       </ScrollView>
+      {isLoggedIn ? (
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => {
+            if (hasTenancy) {
+              setLimitVisible(true);
+              return;
+            }
+            router.push('/pay-rent/create');
+          }}
+          style={({ pressed }) => [styles.addButton, pressed && styles.pressed]}
+        >
+          <Text style={styles.addButtonText}>Add tenancy</Text>
+        </Pressable>
+      ) : null}
+      <ComingSoonDialog
+        visible={limitVisible}
+        message="You already have a tenancy. Adding another home is coming soon."
+        onClose={() => setLimitVisible(false)}
+      />
     </View>
   );
 }
@@ -112,36 +97,53 @@ export function PayRentTab() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: coreColors.white,
-  },
-  guestContainer: {
-    flex: 1,
-    backgroundColor: coreColors.white,
-    padding: spacing.lg,
-    gap: spacing.lg,
+    backgroundColor: userHomeColors.surface,
   },
   scrollContent: {
-    paddingBottom: spacing.xl,
+    flexGrow: 1,
+  },
+  backdrop: {
+    backgroundColor: userHomeColors.navy,
+    overflow: 'hidden',
+    paddingHorizontal: 20,
+    paddingBottom: 44,
   },
   title: {
-    ...textStyles.heading1,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.md,
+    color: userHomeColors.surface,
+    fontSize: 18,
+    lineHeight: 24,
+    fontWeight: '700',
+    letterSpacing: -0.4,
   },
-  multiplier: {
-    ...textStyles.bodySmall,
-    color: coreColors.darkGreen,
-    paddingHorizontal: spacing.lg,
-    marginBottom: spacing.sm,
+  sheet: {
+    flex: 1,
+    marginTop: -36,
+    padding: 14,
+    paddingBottom: 78,
+    gap: 8,
+    overflow: 'hidden',
+    backgroundColor: userHomeColors.surface,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
   },
-  historySection: {
-    marginTop: spacing.md,
+  addButton: {
+    position: 'absolute',
+    left: 14,
+    right: 14,
+    bottom: 16,
+    minHeight: 46,
+    borderRadius: 11,
+    backgroundColor: userHomeColors.navy,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
   },
-  emptyHistory: {
-    ...textStyles.bodySmall,
-    color: coreColors.textHint,
-    textAlign: 'center',
-    paddingVertical: spacing.lg,
+  addButtonText: {
+    color: userHomeColors.surface,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  pressed: {
+    opacity: 0.7,
   },
 });

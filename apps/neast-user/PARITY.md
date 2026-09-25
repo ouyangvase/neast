@@ -8,12 +8,14 @@ Spec source: `docs/users.md` (30 routes, 49 endpoints, 4 tabs).
 | #   | Route (go_router)          | File                                                                     | Status / notes                                                                                                   |
 | --- | -------------------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
 | 1   | `/splash`                  | `app/splash.tsx`                                                         | ✅ 1500ms → `navigateAfterSplash`                                                                                |
-| 2   | `/` (tab shell)            | `app/index.tsx` + `src/features/{home,pay-rent,reward,account}/*Tab.tsx` | ✅ 4 tabs; state-based tab switch (IndexedStack parity); double-back-to-exit                                     |
+| 2   | `/` (tab shell)            | `app/index.tsx` + `src/features/{home,pay-rent,reward,account}/*Tab.tsx` | ✅ 4 tabs; state-based tab switch (IndexedStack parity); double-back-to-exit; home tab rebuilt to web-parity sections (see "Home tab" below) |
 | 3   | `/login`                   | `app/login.tsx`                                                          | ✅ phone + country-code picker                                                                                   |
 | 4   | `/verify`                  | `app/verify.tsx`                                                         | ✅ OtpInput, 60s resend countdown                                                                                |
 | 5   | `/full-data`               | `app/full-data.tsx`                                                      | ✅ first-profile form (snake_case wire body)                                                                     |
 | 6   | `/pay-rent/payment`        | `app/pay-rent/payment.tsx`                                               | ✅ wallet/H5, owner-bank fields when unbound, polls history 5×@1s → replace to history/detail                    |
-| 7   | `/pay-rent/create`         | `app/pay-rent/create.tsx`                                                | ✅ scan-SN connect, connect-options picker (mock-only, tolerated), agreement upload w/ progress dialog           |
+| 7   | `/pay-rent/create`         | `app/pay-rent/create/index.tsx`                                          | ✅ choice screen; connect and manual are separate pages                                                          |
+| 7a  | `/pay-rent/create/connect` | `app/pay-rent/create/connect.tsx`                                        | ✅ scan owner QR, agreement upload w/ progress dialog                                                            |
+| 7b  | `/pay-rent/create/manual`  | `app/pay-rent/create/manual.tsx`                                         | ✅ typed property and owner, agreement upload w/ progress dialog                                                 |
 | 8   | `/pay-rent/detail`         | `app/pay-rent/detail.tsx`                                                | ✅ info + Property Journey grid + agreement view (image preview / external) + terminate (5s countdown)           |
 | 9   | `/pay-rent/history`        | `app/pay-rent/history/index.tsx`                                         | ✅ year chips (current − 0..9)                                                                                   |
 | 10  | `/pay-rent/history/detail` | `app/pay-rent/history/detail.tsx`                                        | ✅ status screen + owner-invite entry when payout held (mock-only field)                                         |
@@ -36,13 +38,46 @@ Spec source: `docs/users.md` (30 routes, 49 endpoints, 4 tabs).
 | 27  | `/personal-data`           | `app/personal-data/index.tsx`                                            | ✅ read-only field list → edit                                                                                   |
 | 28  | `/personal-data/edit`      | `app/personal-data/edit.tsx`                                             | ✅ `?field=` single-field edit incl. ID valid-until date wheel                                                   |
 | 29  | `/account/my-qr`           | `app/account/my-qr.tsx`                                                  | ✅ `qrCode` payload + view-shot → MediaLibrary save                                                              |
-| 30  | `/account/tent-score`      | `app/account/tent-score.tsx`                                             | ✅ SVG semicircle gauge, `totalPaid` displayed as-is                                                             |
+| 30  | `/account/tent-score`      | `app/account/tent-score.tsx`                                             | ✅ Navy/gold gauge; score is `clamp(500 + onTime×10 − late×20, 0, 1000)`; current on-time month streak; `totalPaid` as-is |
+| —   | `/properties`              | `app/properties.tsx`                                                     | ✅ Shared `ComingSoon` (navy header, no photo); guest-allowed; entry from home property promo |
 | —   | `/rich-text`               | `app/rich-text.tsx`                                                      | ✅ `?title=` → agreement/detail → RichText                                                                       |
 | —   | 404                        | `app/+not-found.tsx`                                                     | ✅                                                                                                               |
 
 Cross-cutting in `app/_layout.tsx`: font gate, session hydrate, guest-mode allowlist
 (`/login /splash /verify /full-data / /rich-text /merchants/map /merchants /coupon` — exact
-doc parity), merchant deep-link stash + post-auth replay, ToastHost.
+doc parity — plus `/properties`, added with the web-parity home), merchant deep-link stash +
+post-auth replay, ToastHost.
+
+## Home tab (web-parity redesign)
+
+`src/features/home/HomeTab.tsx` mirrors the tenant web home (`NEAST-source/apps/neast`) as a
+thin composition of `src/features/home/components/`, top → bottom:
+
+1. **Header** (deepBlue `#031B58` + metallic background art): NEAST text wordmark,
+   one-line `Hello, {firstName}` greeting, then bell and scan (both `#0851AA` circles).
+   Guests tap either icon to go to `/login`. Logged in: bell (unread badge) → `/notification`,
+   scan looks up `getRentPropertyBySn` and opens
+   `/pay-rent/create/connect` with that property filled in (otherwise “Property not found”).
+2. **AmountCard** — guest: "Rent, made simple." / "Sign in to pay rent" → `/login`; logged in
+   with `nextRent`: "Next Rent" / "Pay Rent Now" → `/pay-rent/detail`; logged in without
+   `nextRent`: "Payment schedule pending" → payRent tab.
+3. **CampaignCarousel** — full-bleed photos from `dashboard.banners` (admin `t_banner`:
+   image, required `https://` link, sort, status, optional `starts_at`/`ends_at`).
+   Auto-advances about every 4s. When no banner is active, three local samples slide
+   instead (YOYO×LUCKIN plus two generated photos).
+4. **NearbyDealsGrid** — "Nearby Deals" + "View all" → `/merchants` (replaces "View map" →
+   `/merchants/map`); 3-tile grid from `dashboard.nearbyDeals` (guests:
+   `getNearbyMerchantList`).
+5. **JourneyPromo** — navy card: tier badge, streak sentence on top
+   (`14 Month Streak, don't stop!`, or `Pay on time and your streak starts here.` at 0),
+   then "Check out your tenant score", and a chevron → `/account/tent-score`
+   (guests: "Review payment history" / "Sign in to check this out" → `/login`).
+6. **PropertyPromo** — "Find a home" / "View properties" → `/properties`
+   (shared `ComingSoon`: navy header, cream “Coming soon” label, message; no photo).
+
+Removed from home: Today's Reward card, My Vouchers card, old `PromoCarousel`,
+`GuestLoginPlaceholder` (guest sign-in now lives in AmountCard). Home renders
+`dashboard.banners` again.
 
 ## Endpoints (49)
 
@@ -62,12 +97,11 @@ App-level wrappers live in `src/lib/endpoints.ts`; upload/push/refresh are insid
 | 9   | `GET /app/config`                 | `getAppConfig`                                      | `useAppConfig` (fee fallback, alpha notice)                    |
 | 10  | `GET /app/home/dashboard`         | `getHomeDashboard`                                  | `HomeTab`                                                      |
 | 11  | `GET /app/rent/list`              | `getRentList`                                       | `PayRentTab`                       |
-| 12  | `GET /app/rent/property`          | `getRentPropertyBySn`                               | `pay-rent/create` (scan-SN connect)                            |
-| 13  | `POST /app/rent/create`           | `createRent`                                        | `pay-rent/create`                                              |
+| 12  | `GET /app/rent/property`          | `getRentPropertyBySn`                               | `pay-rent/create/connect` (scan owner QR)                      |
+| 13  | `POST /app/rent/create`           | `createRent`                                        | `pay-rent/create/connect`, `pay-rent/create/manual`            |
 | 14  | `GET /app/rent/history/list`      | `getRentHistory`                                    | `PayRentTab`, history screens, payment polling                 |
-| 15  | `GET /app/rent/connect-options`   | `getRentConnectOptions`                             | `pay-rent/create` — **mock-only**, failure tolerated           |
-| 16  | `POST /app/rent/invite`           | `sendRentInvite`                                    | `pay-rent/invite-owner` — **mock-only**, failure tolerated     |
-| 17  | `POST /app/rent/pay/wallet`       | `payRentByWallet`                                   | `pay-rent/payment`                                             |
+| 15  | `POST /app/rent/invite`           | `sendRentInvite`                                    | `pay-rent/invite-owner` — **mock-only**, failure tolerated     |
+| 16  | `POST /app/rent/pay/wallet`       | `payRentByWallet`                                   | `pay-rent/payment`                                             |
 | 18  | `POST /app/rent/pay/create`       | `createRentPayment`                                 | `pay-rent/payment`                                             |
 | 19  | `PUT /app/rent/id/{id}/terminate` | `terminateRent`                                     | `pay-rent/detail`                                              |
 | 20  | `GET /app/wallet/balance`         | `getWalletBalance`                                  | `wallet`, `pay-rent/payment`, `AccountTab`                     |
@@ -80,7 +114,7 @@ App-level wrappers live in `src/lib/endpoints.ts`; upload/push/refresh are insid
 | 27  | `GET /app/coupon/categories`      | `getCouponCategories`                               | `coupon`                                                       |
 | 28  | `GET /app/coupon/list`            | `getCouponList`                                     | `coupon`                             |
 | 29  | `GET /app/coupon/merchant-list`   | `getMerchantCoupons`                                | `merchant/[id]` coupon sheet                                   |
-| 30  | `GET /app/coupon/my-count`        | `getMyCouponCount`                                  | `HomeTab` voucher card                                         |
+| 30  | `GET /app/coupon/my-count`        | `getMyCouponCount`                                  | wrapped; unused (dropped from home with the My Vouchers card)  |
 | 31  | `GET /app/coupon/my-list`         | `getMyCoupons`                                      | `coupon/my-vouchers`                                           |
 | 32  | `GET /app/coupon/latest`          | `getLatestCoupon`                                   | wrapped; unused (home dashboard carries `todayReward`)         |
 | 33  | `POST /app/coupon/redeem`         | `redeemCoupon`                                      | `useCouponActions` (confirm → redeem → QR)                     |
@@ -103,8 +137,8 @@ App-level wrappers live in `src/lib/endpoints.ts`; upload/push/refresh are insid
 
 ## Known stubs / deviations
 
-- `rent/connect-options` + `rent/invite` are **mock-only** (Agent T contract note): UI is
-  implemented per spec; failures against the real API are tolerated and never block flows.
+- `rent/invite` is **mock-only** (Agent T contract note): UI is implemented per spec;
+  failures against the real API are tolerated and never block flows.
 - Mock-only fields rendered when present, absent tolerated: rent list
   `landlord_bank_name/landlord_bank_last4/payout_status/invite_sent`; merchant list
   `latitude/longitude/special_deal/min_spend`; history `user_paid_at/payout_status`.

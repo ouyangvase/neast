@@ -5,7 +5,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { formatRinggit, type FpxBank, type PaymentQuote } from '@neast/types';
 import {
-  BrandHeader,
   Button,
   Card,
   coreColors,
@@ -31,6 +30,7 @@ import { isPaidHistory, type RentHistoryEntry } from '../../src/lib/types';
 import { useAppConfig } from '../../src/hooks/use-profile';
 import { buildPaymentMethodOptions, fiuuChannelFor } from '../../src/lib/payment-methods';
 import { useSelectionStore } from '../../src/stores/selection';
+import { PageHeader } from '../../src/components/PageHeader';
 import { Screen } from '../../src/components/Screen';
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -165,8 +165,8 @@ export default function PayRentPaymentRoute() {
     method === 'wallet' ? rent.amount : totalForMethod(effectiveQuote, method, rent.amount);
 
   return (
-    <Screen>
-      <BrandHeader title="Pay Rent" onBack={() => router.back()} />
+    <Screen edges={[]}>
+      <PageHeader title="Pay Rent" />
       <View style={styles.body}>
         <Card style={styles.summaryCard}>
           <Text style={styles.property} numberOfLines={1}>

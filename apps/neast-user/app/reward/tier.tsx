@@ -1,26 +1,23 @@
 import { Image, StyleSheet, Text, View } from 'react-native';
-import { router } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 
 import { formatThousands, type RewardTier } from '@neast/types';
 import {
   Card,
   coreColors,
-  GradientHeader,
   spacing,
   textStyles,
-  useUiTheme,
 } from '@neast/ui-mobile';
 
 import { getRewardDashboard } from '../../src/lib/endpoints';
 import { useDeviceLocation } from '../../src/lib/location';
 import { tierIcon } from '../../src/features/reward/tier-icons';
 import { ErrorState, LoadingState } from '../../src/components/StateViews';
+import { PageHeader } from '../../src/components/PageHeader';
 import { Screen } from '../../src/components/Screen';
 
 /** Reward tiers (reward_tier_screen parity): current progress + full tier list. */
 export default function RewardTierRoute() {
-  const theme = useUiTheme();
   const { coords } = useDeviceLocation();
   const dashboard = useQuery({
     queryKey: ['reward-dashboard', coords?.latitude ?? null, coords?.longitude ?? null],
@@ -30,11 +27,7 @@ export default function RewardTierRoute() {
 
   return (
     <Screen edges={[]}>
-      <GradientHeader
-        colors={theme.gradients.header}
-        title="Reward Tiers"
-        onBack={() => router.back()}
-      />
+      <PageHeader title="Reward Tiers" />
       {dashboard.isLoading ? (
         <LoadingState />
       ) : !data ? (

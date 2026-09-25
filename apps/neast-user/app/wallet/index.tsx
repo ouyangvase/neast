@@ -8,7 +8,6 @@ import {
   Button,
   Card,
   coreColors,
-  GradientHeader,
   MonthPicker,
   type MonthValue,
   formatMonthLabel,
@@ -17,19 +16,18 @@ import {
   StatusTag,
   TextField,
   textStyles,
-  useUiTheme,
 } from '@neast/ui-mobile';
 
 import { getWalletBalance, getWalletTopups } from '../../src/lib/endpoints';
 import { topupStatusMeta } from '../../src/lib/format';
 import { usePaginatedList } from '../../src/hooks/use-paginated';
+import { PageHeader } from '../../src/components/PageHeader';
 import { Screen } from '../../src/components/Screen';
 
 const PRESET_AMOUNTS = [500, 1000, 1500, 2000];
 
 /** Wallet (wallet_screen parity): balance, preset/custom top-up, monthly records. */
 export default function WalletRoute() {
-  const theme = useUiTheme();
   const [amount, setAmount] = useState('');
   const [month, setMonth] = useState<MonthValue | null>(null);
   const [monthPickerVisible, setMonthPickerVisible] = useState(false);
@@ -58,7 +56,7 @@ export default function WalletRoute() {
 
   return (
     <Screen edges={[]}>
-      <GradientHeader colors={theme.gradients.header} title="Wallet" onBack={() => router.back()} />
+      <PageHeader title="Wallet" />
       <RefreshList<WalletTopupItem>
         data={topups.items}
         keyExtractor={(item) => String(item.id)}

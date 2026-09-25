@@ -1,11 +1,11 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { router } from 'expo-router';
 
 import { formatThousands, type PointsLogItem } from '@neast/types';
-import { BrandHeader, coreColors, RefreshList, spacing, textStyles } from '@neast/ui-mobile';
+import { coreColors, RefreshList, spacing, textStyles } from '@neast/ui-mobile';
 
 import { getPointsLogs } from '../../src/lib/endpoints';
 import { usePaginatedList } from '../../src/hooks/use-paginated';
+import { PageHeader } from '../../src/components/PageHeader';
 import { Screen } from '../../src/components/Screen';
 
 /** Points history (points_history_screen parity): paginated earn/spend log. */
@@ -13,8 +13,8 @@ export default function PointsHistoryRoute() {
   const list = usePaginatedList(['points-logs'], (page, limit) => getPointsLogs(page, limit), 15);
 
   return (
-    <Screen>
-      <BrandHeader title="Points History" onBack={() => router.back()} />
+    <Screen edges={[]}>
+      <PageHeader title="Points History" />
       <RefreshList
         data={list.items}
         keyExtractor={(item) => String(item.id)}

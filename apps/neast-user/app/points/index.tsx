@@ -7,25 +7,23 @@ import {
   Card,
   Chevron,
   coreColors,
-  GradientHeader,
   spacing,
   textStyles,
-  useUiTheme,
 } from '@neast/ui-mobile';
 
 import { getPointsDashboard } from '../../src/lib/endpoints';
 import { ErrorState, LoadingState } from '../../src/components/StateViews';
+import { PageHeader } from '../../src/components/PageHeader';
 import { Screen } from '../../src/components/Screen';
 
 /** Points dashboard (points_screen parity). */
 export default function PointsRoute() {
-  const theme = useUiTheme();
   const dashboard = useQuery({ queryKey: ['points-dashboard'], queryFn: getPointsDashboard });
   const data = dashboard.data;
 
   return (
     <Screen edges={[]}>
-      <GradientHeader colors={theme.gradients.header} title="Points" onBack={() => router.back()} />
+      <PageHeader title="Points" />
       {dashboard.isLoading ? (
         <LoadingState />
       ) : !data ? (

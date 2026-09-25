@@ -1,6 +1,7 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useEffect, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { coreColors } from '../tokens/colors';
 import { radii, spacing } from '../tokens/layout';
@@ -25,6 +26,7 @@ export function QrScannerScreen({
   onClose,
   title = 'Scan QR Code',
 }: QrScannerScreenProps) {
+  const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const scannedRef = useRef(false);
   const scanLine = useRef(new Animated.Value(0)).current;
@@ -88,7 +90,7 @@ export function QrScannerScreen({
           />
         </View>
       </View>
-      <View style={styles.header}>
+      <View style={[styles.header, { top: insets.top + spacing.md }]}>
         {onClose ? (
           <Pressable
             onPress={onClose}
@@ -147,7 +149,6 @@ const styles = StyleSheet.create({
   },
   header: {
     position: 'absolute',
-    top: 56,
     left: 0,
     right: 0,
     flexDirection: 'row',

@@ -17,6 +17,7 @@ import stat1Icon from '../../../assets/images/settlement/stat1.png';
 import stat2Icon from '../../../assets/images/settlement/stat2.png';
 import stat3Icon from '../../../assets/images/settlement/stat3.png';
 
+import { Screen } from '../../components/Screen';
 import { getSettlementOverview } from '../../lib/endpoints';
 import { settlementDueLabel } from '../../lib/format';
 
@@ -36,7 +37,8 @@ export function SettlementTab() {
   const dueLabel = data ? settlementDueLabel(data.bill_month) : '';
 
   return (
-    <View style={styles.container}>
+    <Screen>
+      <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <Text style={styles.title}>Settlement</Text>
 
@@ -94,7 +96,8 @@ export function SettlementTab() {
           />
         ) : null}
       </ScrollView>
-    </View>
+      </View>
+    </Screen>
   );
 }
 

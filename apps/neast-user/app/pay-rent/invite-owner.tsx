@@ -1,81 +1,85 @@
 import { useState } from 'react';
-import { Linking, ScrollView, StyleSheet, Text } from 'react-native';
-import { router } from 'expo-router';
-import { useMutation } from '@tanstack/react-query';
+import { Linking, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Redirect } from 'expo-router';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import {
-  BrandHeader,
-  Button,
-  Card,
-  coreColors,
-  spacing,
-  TextField,
-  textStyles,
-  Toast,
-} from '@neast/ui-mobile';
+import { Button, TextField, Toast, userHomeColors } from '@neast/ui-mobile';
 
 import { apiErrorMessage } from '../../src/lib/api';
-import { sendRentInvite } from '../../src/lib/endpoints';
+import { saveOwnerContact } from '../../src/lib/endpoints';
 import { useSelectionStore } from '../../src/stores/selection';
+import { PageHeader } from '../../src/components/PageHeader';
 import { Screen } from '../../src/components/Screen';
 
-/**
- * Owner invite (owner_invite_screen parity): name/email/phone form +
- * WhatsApp-style draft message. `POST /app/rent/invite` is mock-only —
- * failure is tolerated and the share sheet still opens.
- */
+/** Invite an owner who is not a NEAST landlord. Opened from an unlinked tenancy card. */
 export default function InviteOwnerRoute() {
+  const queryClient = useQueryClient();
   const rent = useSelectionStore((state) => state.rent);
-  const history = useSelectionStore((state) => state.history);
 
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
+  const [name, setName] = useState(rent?.landlord_name ?? '');
+  const [email, setEmail] = useState(rent?.owner_email ?? '');
+  const [phone, setPhone] = useState(rent?.owner_phone ?? '');
 
-  const inviteMutation = useMutation({
+  const saveMutation = useMutation({
     mutationFn: () =>
-      sendRentInvite({
-        rent_id: rent?.id ?? history?.rent_id ?? 0,
-        history_id: history?.id ?? 0,
-        name: name.trim(),
-        email: email.trim(),
-        phone: phone.trim(),
+      saveOwnerContact(rent!.id, {
+        owner_name: name.trim(),
+        owner_email: email.trim(),
+        owner_phone: phone.trim(),
       }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['rent-list'] }),
   });
 
-  const buildMessage = () =>
-    [
-      `Hi ${name.trim() || 'there'},`,
-      '',
-      `I've been paying rent for ${rent?.property_name ?? history?.property_address ?? 'my unit'} through NEAST.`,
-      'Join NEAST so you can receive rent payouts directly:',
-      'https://neast.my/owner',
-    ].join('\n');
+  if (!rent) {
+    return <Redirect href="/" />;
+  }
 
-  const submit = async () => {
-    if (!name.trim() || !phone.trim()) {
-      Toast.error('Please enter the owner name and phone');
+  const message = [
+    `Hi ${name.trim()},`,
+    '',
+    `I've been paying rent for ${rent.property_name} through NEAST.`,
+    'Join NEAST so you can receive rent payouts directly:',
+    'https://neast.my/owner',
+  ].join('\n');
+
+  const send = async (channel: 'email' | 'whatsapp') => {
+    if (!name.trim()) {
+      Toast.error('Please enter the owner name');
+      return;
+    }
+    if (channel === 'email' && !email.trim()) {
+      Toast.error('Please enter the owner email');
+      return;
+    }
+    if (channel === 'whatsapp' && !phone.trim()) {
+      Toast.error('Please enter the owner phone');
       return;
     }
     try {
-      await inviteMutation.mutateAsync();
-      Toast.success('Invitation recorded');
+      await saveMutation.mutateAsync();
     } catch (error) {
-      // Mock-only endpoint — tolerate failure against the real API.
-      Toast.info(apiErrorMessage(error, 'Invite unavailable — sharing the message instead.'));
+      Toast.error(apiErrorMessage(error));
+      return;
     }
-    const digits = phone.replace(/\D/g, '');
-    const url = `https://wa.me/${digits}?text=${encodeURIComponent(buildMessage())}`;
+    const url =
+      channel === 'email'
+        ? `mailto:${email.trim()}?subject=${encodeURIComponent('Join NEAST')}&body=${encodeURIComponent(message)}`
+        : `https://wa.me/${phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
     void Linking.openURL(url).catch(() => Toast.error('Could not open the share sheet'));
   };
 
   return (
-    <Screen>
-      <BrandHeader title="Invite Owner" onBack={() => router.back()} />
-      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scroll}>
-        <Card style={styles.formCard}>
-          <Text style={styles.title}>Owner details</Text>
-          <TextField label="Name" value={name} onChangeText={setName} />
+    <Screen edges={[]}>
+      <PageHeader title="Connect with owner" />
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        style={styles.scroll}
+        contentContainerStyle={styles.content}
+      >
+        <View style={styles.card}>
+          <Text style={styles.label}>Relationship to property</Text>
+          <Text style={styles.relationship}>Owner</Text>
+          <TextField label="Owner name" value={name} onChangeText={setName} />
           <TextField
             label="Email"
             value={email}
@@ -84,17 +88,13 @@ export default function InviteOwnerRoute() {
             autoCapitalize="none"
           />
           <TextField label="Phone" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
-        </Card>
-
-        <Card style={styles.previewCard}>
-          <Text style={styles.title}>Message preview</Text>
-          <Text style={styles.previewText}>{buildMessage()}</Text>
-        </Card>
-
+        </View>
+        <Button title="Email" onPress={() => void send('email')} loading={saveMutation.isPending} />
         <Button
-          title="Send Invite"
-          onPress={() => void submit()}
-          loading={inviteMutation.isPending}
+          title="WhatsApp"
+          variant="outline"
+          onPress={() => void send('whatsapp')}
+          loading={saveMutation.isPending}
         />
       </ScrollView>
     </Screen>
@@ -103,21 +103,29 @@ export default function InviteOwnerRoute() {
 
 const styles = StyleSheet.create({
   scroll: {
-    padding: spacing.lg,
-    gap: spacing.lg,
-    paddingBottom: spacing.xxl,
+    flex: 1,
+    backgroundColor: userHomeColors.background,
   },
-  formCard: {
-    gap: spacing.md,
+  content: {
+    padding: 14,
+    gap: 12,
+    paddingBottom: 32,
   },
-  previewCard: {
-    gap: spacing.sm,
+  card: {
+    backgroundColor: userHomeColors.surface,
+    borderRadius: 16,
+    padding: 16,
+    gap: 12,
   },
-  title: {
-    ...textStyles.heading3,
+  label: {
+    color: userHomeColors.textSecondary,
+    fontSize: 12,
+    lineHeight: 17,
   },
-  previewText: {
-    ...textStyles.bodySmall,
-    color: coreColors.textSecondary,
+  relationship: {
+    color: userHomeColors.textPrimary,
+    fontSize: 15,
+    lineHeight: 21,
+    fontWeight: '600',
   },
 });

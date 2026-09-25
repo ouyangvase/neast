@@ -19,7 +19,7 @@ export type LogoutReason =
 
 export interface ApiClientOptions {
   prefix: ApiPrefix;
-  /** Defaults to `process.env.EXPO_PUBLIC_API_URL`, then `http://10.0.2.2:9512`. */
+  /** Defaults to `process.env.EXPO_PUBLIC_API_URL`, then `http://127.0.0.1:9512`. */
   baseUrl?: string;
   /** Defaults to the shared `sessionStore` singleton. */
   session?: SessionStore;

@@ -57,23 +57,15 @@ cd apps/neast-user      # or neast-merchant / neast-owner
 pnpm start              # Expo dev server
 ```
 
-The API base URL comes from `EXPO_PUBLIC_API_URL` (read by `@neast/types`), defaulting to `http://10.0.2.2:9512` — the Android-emulator loopback for the Docker API stack. On a physical device use your machine's LAN IP, e.g. `EXPO_PUBLIC_API_URL=http://192.168.1.10:9512 pnpm start`.
+Local app runs call the Docker API. The default base URL is `http://127.0.0.1:9512` (iOS simulator and this Mac). An Android emulator needs `EXPO_PUBLIC_API_URL=http://10.0.2.2:9512`. On a physical device use your machine's LAN IP, e.g. `EXPO_PUBLIC_API_URL=http://192.168.1.10:9512 pnpm start`.
 
-Two ways to run a backend locally:
+```bash
+cp services/neast-api/.env.example services/neast-api/.env  # first run only
+docker compose up --build
+```
 
-1. **Mock API (user app only, no Docker):**
-   ```bash
-   cd apps/neast-user
-   pnpm mock                                        # mock /app API on :8000
-   EXPO_PUBLIC_API_URL=http://10.0.2.2:8000 pnpm start
-   ```
-2. **Full local stack (Docker):**
-   ```bash
-   cp services/neast-api/.env.example services/neast-api/.env  # first run only
-   docker compose up --build
-   ```
-   - API → http://localhost:9512 (MySQL + Redis start alongside; `services/neast-api/sql` seeds the schema on first boot)
-   - Landing → http://localhost:3000
+- API → http://127.0.0.1:9512 (MySQL + Redis start alongside; `services/neast-api/sql` seeds the schema on first boot)
+- Landing → http://localhost:3000
 
 ### Landing (without Docker)
 

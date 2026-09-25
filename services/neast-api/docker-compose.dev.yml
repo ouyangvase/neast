@@ -1,0 +1,42 @@
+version: '3'
+services:
+  hyperf-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        timezone: PRC
+        app_env: dev
+    container_name: dev-v2
+    restart: always
+    volumes:
+      - ./app:/opt/www/app
+      - ./config:/opt/www/config
+      - ./runtime:/opt/www/runtime
+      - ./bin:/opt/www/bin
+      - ./test:/opt/www/test
+    ports:
+      - "9601:9501"
+      - "9602:9502"
+    environment:
+      - APP_ENV=dev
+      - APP_URL=
+      - TZ=PRC
+      - DB_HOST=localhost
+      - DB_PORT=3306
+      - DB_DATABASE=kjxhs
+      - DB_USERNAME=root
+      - DB_PASSWORD=root
+      - REDIS_HOST=host.docker.internal
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=null
+      - REDIS_PREFIX=t_
+      - REDIS_DB=0
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - kjds_dev_net
+
+networks:
+  kjds_dev_net:
+    driver: bridge

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 
-import { BrandHeader, coreColors, radii, RefreshList, spacing, textStyles } from '@neast/ui-mobile';
+import { RefreshList, userHomeColors } from '@neast/ui-mobile';
 
 import { getRentHistory } from '../../../src/lib/endpoints';
 import { yearChips } from '../../../src/lib/format';
@@ -10,6 +10,7 @@ import type { RentHistoryEntry } from '../../../src/lib/types';
 import { usePaginatedList } from '../../../src/hooks/use-paginated';
 import { useSelectionStore } from '../../../src/stores/selection';
 import { HistoryRow } from '../../../src/features/pay-rent/components';
+import { PageHeader } from '../../../src/components/PageHeader';
 import { Screen } from '../../../src/components/Screen';
 
 /** Full rent history (rent_history_screen parity): year filter chips. */
@@ -23,8 +24,8 @@ export default function RentHistoryRoute() {
   );
 
   return (
-    <Screen>
-      <BrandHeader title="Rent History" onBack={() => router.back()} />
+    <Screen edges={[]}>
+      <PageHeader title="Recent payments" />
       <View style={styles.chipsWrap}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.chipsRow}>
@@ -70,34 +71,37 @@ export default function RentHistoryRoute() {
 
 const styles = StyleSheet.create({
   chipsWrap: {
-    paddingVertical: spacing.sm,
+    paddingVertical: 8,
+    backgroundColor: userHomeColors.background,
   },
   chipsRow: {
     flexDirection: 'row',
-    gap: spacing.sm,
-    paddingHorizontal: spacing.lg,
+    gap: 8,
+    paddingHorizontal: 14,
   },
   chip: {
-    backgroundColor: coreColors.white,
-    borderRadius: radii.pill,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    backgroundColor: userHomeColors.surface,
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderWidth: 1,
-    borderColor: coreColors.border,
+    borderColor: userHomeColors.border,
   },
   chipActive: {
-    backgroundColor: coreColors.brandBlue,
-    borderColor: coreColors.brandBlue,
+    backgroundColor: userHomeColors.royalBlue,
+    borderColor: userHomeColors.royalBlue,
   },
   chipText: {
-    ...textStyles.bodySmall,
-    color: coreColors.textSecondary,
+    color: userHomeColors.textSecondary,
+    fontSize: 13,
+    lineHeight: 18,
   },
   chipTextActive: {
-    color: coreColors.white,
+    color: userHomeColors.surface,
     fontWeight: '600',
   },
   listContent: {
-    paddingVertical: spacing.sm,
+    paddingVertical: 8,
+    backgroundColor: userHomeColors.background,
   },
 });

@@ -1,8 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
+import type { ReactNode } from 'react';
 import {
-  Platform,
   Pressable,
-  StatusBar,
   StyleSheet,
   Text,
   View,
@@ -10,7 +9,7 @@ import {
   type TextStyle,
   type ViewStyle,
 } from 'react-native';
-import type { ReactNode } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { coreColors } from '../tokens/colors';
 import { spacing } from '../tokens/layout';
@@ -35,8 +34,8 @@ export interface GradientHeaderProps {
 
 /**
  * Gradient page header (owner records/ack/portfolio headers, merchant scan
- * header, login headers). Includes status-bar spacing; override with `style`
- * if your app handles safe-area itself.
+ * header, login headers). The gradient bleeds under the status bar; content
+ * sits below the safe-area inset.
  */
 export function GradientHeader({
   colors,
@@ -49,13 +48,14 @@ export function GradientHeader({
   style,
   titleStyle,
 }: GradientHeaderProps) {
+  const insets = useSafeAreaInsets();
   const contentColor = lightContent ? coreColors.white : coreColors.blackText;
   return (
     <LinearGradient
       colors={colors}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
-      style={[styles.gradient, style]}
+      style={[styles.gradient, { paddingTop: insets.top + spacing.sm }, style]}
     >
       <View style={styles.row}>
         <View style={styles.side}>
@@ -88,7 +88,6 @@ export function GradientHeader({
 
 const styles = StyleSheet.create({
   gradient: {
-    paddingTop: (Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 44) + spacing.sm,
     paddingBottom: spacing.lg,
     paddingHorizontal: spacing.lg,
   },

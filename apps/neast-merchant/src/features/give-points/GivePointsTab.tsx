@@ -23,6 +23,7 @@ import stat2Icon from '../../../assets/images/give_points/stat2.png';
 import stat3Icon from '../../../assets/images/give_points/stat3.png';
 import stat4Icon from '../../../assets/images/give_points/stat4.png';
 
+import { Screen } from '../../components/Screen';
 import { openReceiptDetails, type ReceiptCaptureResult } from '../../lib/callbacks';
 import {
   getGivePointsStats,
@@ -85,7 +86,8 @@ export function GivePointsTab() {
   };
 
   return (
-    <View style={styles.container}>
+    <Screen>
+      <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <Image source={headerImage} style={styles.header} resizeMode="cover" />
 
@@ -191,7 +193,8 @@ export function GivePointsTab() {
         fileName={fileName}
         onCancel={cancel}
       />
-    </View>
+      </View>
+    </Screen>
   );
 }
 

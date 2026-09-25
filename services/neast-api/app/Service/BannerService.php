@@ -17,8 +17,16 @@ class BannerService
      */
     public function appList(): array
     {
+        $now = date('Y-m-d H:i:s');
+
         return BannerModel::query()
             ->where('status', BannerModel::STATUS_ENABLED)
+            ->where(function ($query) use ($now) {
+                $query->whereNull('starts_at')->orWhere('starts_at', '<=', $now);
+            })
+            ->where(function ($query) use ($now) {
+                $query->whereNull('ends_at')->orWhere('ends_at', '>=', $now);
+            })
             ->orderByDesc('sort')
             ->orderByDesc('id')
             ->get(['id', 'image', 'link'])
@@ -113,6 +121,8 @@ class BannerService
         $banner->image = $image;
         $banner->link = trim((string) ($params['link'] ?? ''));
         $banner->sort = (int) ($params['sort'] ?? 0);
+        $banner->starts_at = $params['starts_at'] ?? null;
+        $banner->ends_at = $params['ends_at'] ?? null;
         $banner->status = (int) ($params['status'] ?? BannerModel::STATUS_ENABLED) === BannerModel::STATUS_DISABLED
             ? BannerModel::STATUS_DISABLED
             : BannerModel::STATUS_ENABLED;

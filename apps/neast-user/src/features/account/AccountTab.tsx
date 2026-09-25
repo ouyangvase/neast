@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, ImageBackground, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { formatRinggit, useIsLoggedIn } from '@neast/types';
@@ -13,7 +14,10 @@ import {
   spacing,
   textStyles,
   Toast,
+  userHomeColors,
 } from '@neast/ui-mobile';
+
+import metallicBackground from '../../../assets/images/home/neast-metallic-background.png';
 
 import MenuInfoIcon from '../../../assets/images/account/1.svg';
 import MenuBellIcon from '../../../assets/images/account/2.svg';
@@ -40,6 +44,7 @@ interface MenuItem {
 
 /** Account tab (account_screen parity): profile header + menu card. */
 export function AccountTab() {
+  const insets = useSafeAreaInsets();
   const isLoggedIn = useIsLoggedIn();
   const profile = useUserProfile();
   const [deleteVisible, setDeleteVisible] = useState(false);
@@ -66,13 +71,15 @@ export function AccountTab() {
 
   if (!isLoggedIn) {
     return (
-      <View style={styles.guestContainer}>
-        <Text style={styles.title}>Account</Text>
-        <GuestLoginPlaceholder
-          title="Log in to your account"
-          message="Manage your profile, wallet and notifications."
-          onLoginPress={() => router.push('/login')}
-        />
+      <View style={styles.container}>
+        <TabBackdrop title="Account" paddingTop={insets.top + 8} />
+        <View style={styles.sheet}>
+          <GuestLoginPlaceholder
+            title="Log in to your account"
+            message="Manage your profile, wallet and notifications."
+            onLoginPress={() => router.push('/login')}
+          />
+        </View>
       </View>
     );
   }
@@ -143,8 +150,8 @@ export function AccountTab() {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.title}>Account</Text>
-
+        <TabBackdrop title="Account" paddingTop={insets.top + 8} />
+        <View style={styles.sheet}>
         <Card style={styles.headerCard}>
           <View style={styles.headerRow}>
             <View style={styles.avatar}>
@@ -184,6 +191,7 @@ export function AccountTab() {
         </Card>
 
         <Text style={styles.version}>NEAST 1.0.13</Text>
+        </View>
       </ScrollView>
 
       <CountdownConfirmDialog
@@ -202,25 +210,48 @@ export function AccountTab() {
   );
 }
 
+function TabBackdrop({ title, paddingTop }: { title: string; paddingTop: number }) {
+  return (
+    <ImageBackground
+      source={metallicBackground}
+      resizeMode="cover"
+      style={[styles.backdrop, { paddingTop }]}
+    >
+      <Text style={styles.title}>{title}</Text>
+    </ImageBackground>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: coreColors.white,
-  },
-  guestContainer: {
-    flex: 1,
-    backgroundColor: coreColors.white,
-    padding: spacing.lg,
-    gap: spacing.lg,
+    backgroundColor: userHomeColors.surface,
   },
   scrollContent: {
-    paddingBottom: spacing.xl,
+    flexGrow: 1,
+  },
+  backdrop: {
+    backgroundColor: userHomeColors.navy,
+    overflow: 'hidden',
+    paddingHorizontal: 20,
+    paddingBottom: 44,
   },
   title: {
-    ...textStyles.heading1,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.md,
+    color: userHomeColors.surface,
+    fontSize: 18,
+    lineHeight: 24,
+    fontWeight: '700',
+    letterSpacing: -0.4,
+  },
+  sheet: {
+    flex: 1,
+    marginTop: -36,
+    paddingTop: 14,
+    paddingBottom: spacing.xl,
+    overflow: 'hidden',
+    backgroundColor: userHomeColors.surface,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
   },
   headerCard: {
     marginHorizontal: spacing.lg,

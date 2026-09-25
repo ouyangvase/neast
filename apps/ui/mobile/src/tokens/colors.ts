@@ -10,14 +10,10 @@ export const coreColors = {
   brandBlue: '#0851AA',
   /** Secondary brand accents, selected states. */
   brandBlueLight: '#234FA5',
-  /** Dark-mode brand variant (placeholder set; apps default to light). */
-  brandBlueDark: '#0D2567',
   /** Action green — primary button background (Flutter `AppTheme.primaryColor`). */
   actionGreen: '#4ADB77',
   /** Success / paid / positive money states. */
   darkGreen: '#3EBF7A',
-  /** Bright-green success states (user app). */
-  successBright: '#1ADB8B',
   /** Primary text (dark slate, not pure black). */
   blackText: '#0F172A',
   /** Error / overdue / destructive. */
@@ -26,7 +22,6 @@ export const coreColors = {
   // Secondary / hint text
   textSecondary: '#666666',
   textHint: '#999999',
-  textMuted: '#9CA3AF',
 
   // Borders / dividers
   border: '#D0D5DD',
@@ -36,11 +31,8 @@ export const coreColors = {
   // Tinted card / section backgrounds
   tintGreen: '#F6F9F6',
   tintBlue: '#F8FBFF',
-  tintCyan: '#F2F9FC',
 
   // Chrome & layout (from app_theme.dart)
-  scaffoldLight: '#FFFFFF',
-  scaffoldDark: '#17171B',
   appBarBackground: '#F5F5F5',
   tabSelected: '#0F172A',
   tabUnselected: '#B0B0B0',
@@ -61,11 +53,45 @@ export const userAccentColors = {
   tierText: '#895A1B',
   /** Reward-tier card background. */
   tierBackground: '#FBF6DA',
-  /** Bright-green success states. */
-  successBright: '#1ADB8B',
-  /** Section backgrounds (home, rent). */
-  sectionBackground: '#F6F9F6',
+  /** Section background (home). */
   sectionBackgroundAlt: '#F8FBFF',
+} as const;
+
+/**
+ * neast-user home palette — mirrors the tenant web app home
+ * (NEAST-source apps/neast `app/index.tsx` + `src/tenant-ui.tsx`).
+ */
+export const userHomeColors = {
+  /** Home backdrop, journey + property promos. */
+  navy: '#00135C',
+  /** Home header. */
+  deepBlue: '#031B58',
+  /** Primary buttons, links, icons. */
+  royalBlue: '#0738B8',
+  /** Tile artwork background. */
+  lightBlue: '#EEF4FF',
+  /** Gold accents on navy (AmountCard eyebrow, highlights). */
+  gold: '#F4C247',
+  /** AmountCard background. */
+  cream: '#FFF2D3',
+  lightCream: '#FFF9EA',
+  /** Screen background. */
+  background: '#F5F6F9',
+  /** Card surfaces. */
+  surface: '#FFFFFF',
+  textPrimary: '#111827',
+  textSecondary: '#64758A',
+  border: '#E5E9F2',
+  /** Campaign card background. */
+  campaignBlue: '#092C83',
+  /** Notification badge. */
+  badgeRed: '#DA2535',
+  /** Light-blue text on navy, strongest. */
+  textOnNavy: '#E3EBFF',
+  /** Light-blue text on navy, secondary. */
+  textOnNavyAlt: '#D8E3FF',
+  /** Light-blue text on navy, softest. */
+  textOnNavyMuted: '#C7D8FF',
 } as const;
 
 /** neast-owner accents — soft blue gradients + warm tan highlights. */
@@ -111,5 +137,6 @@ export const merchantAccentColors = {
 } as const;
 
 export type UserAccentToken = keyof typeof userAccentColors;
+export type UserHomeColorToken = keyof typeof userHomeColors;
 export type OwnerAccentToken = keyof typeof ownerAccentColors;
 export type MerchantAccentToken = keyof typeof merchantAccentColors;

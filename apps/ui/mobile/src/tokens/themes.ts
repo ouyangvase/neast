@@ -1,4 +1,10 @@
-import { coreColors, merchantAccentColors, ownerAccentColors, userAccentColors } from './colors';
+import {
+  coreColors,
+  merchantAccentColors,
+  ownerAccentColors,
+  userAccentColors,
+  userHomeColors,
+} from './colors';
 
 /** The three NEAST apps. */
 export type AppId = 'user' | 'owner' | 'merchant';
@@ -9,6 +15,8 @@ export interface AppTheme {
   colors: typeof coreColors;
   /** Per-app accent set (see docs/apps-overview.md §8.2–8.4). */
   accents: typeof userAccentColors | typeof ownerAccentColors | typeof merchantAccentColors;
+  /** Web-parity home palette — present on the user theme only. */
+  home?: typeof userHomeColors;
   /** Signature gradients for this app (pass straight to `GradientHeader`). */
   gradients: {
     /** Primary header gradient. */
@@ -22,6 +30,7 @@ export const userTheme: AppTheme = {
   id: 'user',
   colors: coreColors,
   accents: userAccentColors,
+  home: userHomeColors,
   gradients: {
     // User app headers are solid brand blue; gradient kept for API symmetry.
     header: [coreColors.brandBlue, coreColors.brandBlueLight],

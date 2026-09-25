@@ -30,6 +30,7 @@ const GUEST_PATHS = new Set([
   '/merchants',
   '/merchants/map',
   '/coupon',
+  '/properties',
 ]);
 
 export default function RootLayout() {

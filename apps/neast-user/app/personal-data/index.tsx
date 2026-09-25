@@ -1,10 +1,11 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 
-import { BrandHeader, Card, Chevron, coreColors, spacing, textStyles } from '@neast/ui-mobile';
+import { Card, Chevron, coreColors, spacing, textStyles } from '@neast/ui-mobile';
 
 import { useUserProfile } from '../../src/hooks/use-profile';
 import { ErrorState, LoadingState } from '../../src/components/StateViews';
+import { PageHeader } from '../../src/components/PageHeader';
 import { Screen } from '../../src/components/Screen';
 
 /** Personal data (personal_data_screen parity): read-only profile field list. */
@@ -13,8 +14,8 @@ export default function PersonalDataRoute() {
 
   if (profile.isLoading) {
     return (
-      <Screen>
-        <BrandHeader title="Personal Information" onBack={() => router.back()} />
+      <Screen edges={[]}>
+        <PageHeader title="Personal Information" />
         <LoadingState />
       </Screen>
     );
@@ -23,8 +24,8 @@ export default function PersonalDataRoute() {
   const user = profile.data;
   if (!user) {
     return (
-      <Screen>
-        <BrandHeader title="Personal Information" onBack={() => router.back()} />
+      <Screen edges={[]}>
+        <PageHeader title="Personal Information" />
         <ErrorState onRetry={() => profile.refetch()} />
       </Screen>
     );
@@ -40,8 +41,8 @@ export default function PersonalDataRoute() {
   ];
 
   return (
-    <Screen>
-      <BrandHeader title="Personal Information" onBack={() => router.back()} />
+    <Screen edges={[]}>
+      <PageHeader title="Personal Information" />
       <ScrollView contentContainerStyle={styles.scroll}>
         <Card style={styles.card}>
           {rows.map((row, index) => (

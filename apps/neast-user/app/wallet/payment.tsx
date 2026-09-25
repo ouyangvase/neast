@@ -5,7 +5,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { formatRinggit, type FpxBank, type PaymentQuote } from '@neast/types';
 import {
-  BrandHeader,
   Button,
   Card,
   coreColors,
@@ -22,6 +21,7 @@ import { createWalletTopup, getPaymentQuote } from '../../src/lib/endpoints';
 import { buildLocalPaymentQuote, totalForMethod } from '../../src/lib/format';
 import { useAppConfig } from '../../src/hooks/use-profile';
 import { buildPaymentMethodOptions, fiuuChannelFor } from '../../src/lib/payment-methods';
+import { PageHeader } from '../../src/components/PageHeader';
 import { Screen } from '../../src/components/Screen';
 
 /**
@@ -90,8 +90,8 @@ export default function WalletPaymentRoute() {
   const total = totalForMethod(effectiveQuote, method, amount);
 
   return (
-    <Screen>
-      <BrandHeader title="Payment" onBack={() => router.back()} />
+    <Screen edges={[]}>
+      <PageHeader title="Payment" />
       <View style={styles.body}>
         <Card style={styles.summaryCard}>
           <View style={styles.summaryRow}>

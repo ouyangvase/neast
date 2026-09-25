@@ -10,6 +10,7 @@ CREATE TABLE `t_coupon` (
   `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态 0停用 1启用',
   `redeem_limit` int unsigned DEFAULT NULL COMMENT '兑换次数 NULL表示不限制',
   `category_id` int unsigned NOT NULL DEFAULT '0' COMMENT '优惠券分类ID',
+  `image` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '列表展示图片',
   `created_at` datetime DEFAULT NULL,
   `updated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),

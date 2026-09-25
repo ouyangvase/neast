@@ -6,7 +6,7 @@ import prettier from 'eslint-config-prettier';
 // Metro/Babel config files (the root config only ignores *.mjs).
 export default tseslint.config(
   {
-    ignores: ['**/node_modules/**', '**/dist/**', '**/.expo/**', '**/mock-api/**'],
+    ignores: ['**/node_modules/**', '**/dist/**', '**/.expo/**'],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,

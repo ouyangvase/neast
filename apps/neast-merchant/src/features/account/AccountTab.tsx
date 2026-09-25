@@ -11,6 +11,7 @@ import TransactionHistoryIcon from '../../../assets/images/account/transaction_h
 import LegalIcon from '../../../assets/images/account/legal.svg';
 import LogOutIcon from '../../../assets/images/account/log_out.svg';
 
+import { Screen } from '../../components/Screen';
 import { performLogout } from '../../lib/auth';
 import { useMerchantInfo } from '../../hooks/use-merchant';
 
@@ -76,7 +77,8 @@ export function AccountTab() {
   ];
 
   return (
-    <View style={styles.container}>
+    <Screen>
+      <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.title}>Account</Text>
 
@@ -110,7 +112,8 @@ export function AccountTab() {
 
         <Text style={styles.version}>NEAST Merchant 1.0.6</Text>
       </ScrollView>
-    </View>
+      </View>
+    </Screen>
   );
 }
 
@@ -125,7 +128,6 @@ const styles = StyleSheet.create({
   title: {
     ...textStyles.heading1,
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
     paddingBottom: spacing.md,
   },
   balanceCard: {

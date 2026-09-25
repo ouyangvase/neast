@@ -22,6 +22,8 @@ use Hyperf\Database\Model\SoftDeletes;
  * @property string $property_name 房产名称(未绑定时用户填写)
  * @property int|null $landlord_id 房东ID
  * @property string $owner_name 房东名称(未绑物业时用户填写)
+ * @property string $owner_email 未绑定房东时租客填写的邮箱
+ * @property string $owner_phone 未绑定房东时租客填写的手机号
  * @property int $status 状态 0待审核 1审核通过 2驳回 3待绑定 4已终止
  * @property string|null $terminated_at 终止时间
  * @property int|null $terminated_by 终止操作人(admin id)
@@ -61,6 +63,8 @@ class RentModel extends Model
         'property_name',
         'landlord_id',
         'owner_name',
+        'owner_email',
+        'owner_phone',
         'status',
         'terminated_at',
         'terminated_by',

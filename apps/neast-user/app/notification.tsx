@@ -1,14 +1,15 @@
 import { useCallback } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { router, useFocusEffect } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
 import * as Notifications from 'expo-notifications';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { formatRelativeTime, type MessageItem } from '@neast/types';
-import { BrandHeader, coreColors, RefreshList, spacing, textStyles } from '@neast/ui-mobile';
+import { coreColors, RefreshList, spacing, textStyles } from '@neast/ui-mobile';
 
 import { getMessages, markAllMessagesRead } from '../src/lib/endpoints';
 import { usePaginatedList } from '../src/hooks/use-paginated';
+import { PageHeader } from '../src/components/PageHeader';
 import { Screen } from '../src/components/Screen';
 
 /**
@@ -34,8 +35,8 @@ export default function NotificationRoute() {
   );
 
   return (
-    <Screen>
-      <BrandHeader title="Notifications" onBack={() => router.back()} />
+    <Screen edges={[]}>
+      <PageHeader title="Notifications" />
       <RefreshList
         data={list.items}
         keyExtractor={(item) => String(item.id)}

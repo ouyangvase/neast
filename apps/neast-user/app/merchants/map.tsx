@@ -5,11 +5,12 @@ import { useQuery } from '@tanstack/react-query';
 import MapView, { Marker, UrlTile } from 'react-native-maps';
 
 import { type NearbyMerchantItem } from '@neast/types';
-import { BrandHeader, Card, coreColors, radii, spacing, textStyles } from '@neast/ui-mobile';
+import { Card, coreColors, radii, spacing, textStyles } from '@neast/ui-mobile';
 
 import { getMerchantCategories, getNearbyMerchants } from '../../src/lib/endpoints';
 import { useDeviceLocation } from '../../src/lib/location';
 import { ErrorState, LoadingState } from '../../src/components/StateViews';
+import { PageHeader } from '../../src/components/PageHeader';
 import { Screen } from '../../src/components/Screen';
 
 const OSM_TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
@@ -49,8 +50,8 @@ export default function MerchantsMapRoute() {
 
   if (locationLoading) {
     return (
-      <Screen>
-        <BrandHeader title="Merchant Map" onBack={() => router.back()} />
+      <Screen edges={[]}>
+        <PageHeader title="Merchant Map" />
         <LoadingState />
       </Screen>
     );
@@ -58,8 +59,8 @@ export default function MerchantsMapRoute() {
 
   if (!coords) {
     return (
-      <Screen>
-        <BrandHeader title="Merchant Map" onBack={() => router.back()} />
+      <Screen edges={[]}>
+        <PageHeader title="Merchant Map" />
         <ErrorState
           message={
             locationUnavailable
@@ -73,8 +74,8 @@ export default function MerchantsMapRoute() {
   }
 
   return (
-    <Screen>
-      <BrandHeader title="Merchant Map" onBack={() => router.back()} />
+    <Screen edges={[]}>
+      <PageHeader title="Merchant Map" />
       <View style={styles.container}>
         <MapView
           style={styles.map}

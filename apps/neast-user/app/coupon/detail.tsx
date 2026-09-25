@@ -2,7 +2,7 @@ import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 
 import { formatRinggit, formatSimpleDate } from '@neast/types';
-import { BrandHeader, Button, Card, coreColors, spacing, textStyles } from '@neast/ui-mobile';
+import { Button, Card, coreColors, spacing, textStyles } from '@neast/ui-mobile';
 
 import { useSelectionStore } from '../../src/stores/selection';
 import {
@@ -11,6 +11,7 @@ import {
   useCouponActions,
 } from '../../src/features/coupon/components';
 import { ErrorState } from '../../src/components/StateViews';
+import { PageHeader } from '../../src/components/PageHeader';
 import { Screen } from '../../src/components/Screen';
 
 /**
@@ -23,8 +24,8 @@ export default function CouponDetailRoute() {
   const couponActions = useCouponActions();
 
   return (
-    <Screen>
-      <BrandHeader title="Voucher" onBack={() => router.back()} />
+    <Screen edges={[]}>
+      <PageHeader title="Voucher" />
       {!coupon ? (
         <ErrorState message="Voucher unavailable." onRetry={() => router.back()} />
       ) : (

@@ -1,5 +1,5 @@
-/** Android-emulator loopback to the Hyperf container; override via EXPO_PUBLIC_API_URL. */
-export const DEFAULT_API_BASE_URL = 'http://10.0.2.2:9512';
+/** Local Docker API (MySQL + Redis). iOS simulator and this Mac use the published port. */
+export const DEFAULT_API_BASE_URL = 'http://127.0.0.1:9512';
 
 /**
  * Secure-store keys. These exact strings are load-bearing: they mirror the

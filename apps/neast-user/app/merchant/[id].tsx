@@ -3,7 +3,7 @@ import { Image, Linking, Pressable, ScrollView, Share, StyleSheet, Text, View } 
 import { router, useLocalSearchParams } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 
-import { BottomSheet, BrandHeader, coreColors, spacing, textStyles, Toast } from '@neast/ui-mobile';
+import { BottomSheet, coreColors, spacing, textStyles, Toast } from '@neast/ui-mobile';
 
 import { getMerchantCoupons, getMerchantDetail } from '../../src/lib/endpoints';
 import { merchantShareUrl } from '../../src/lib/deep-links';
@@ -12,6 +12,7 @@ import { useSelectionStore } from '../../src/stores/selection';
 import { couponValidityLabel } from '../../src/features/coupon/components';
 import { distanceLabel, MerchantCard } from '../../src/features/merchant/components';
 import { ErrorState, LoadingState } from '../../src/components/StateViews';
+import { PageHeader } from '../../src/components/PageHeader';
 import { Screen } from '../../src/components/Screen';
 
 /** Merchant detail (merchant_detail_screen parity): info, coupons, map, share, nearest. */
@@ -56,8 +57,8 @@ export default function MerchantDetailRoute() {
   };
 
   return (
-    <Screen>
-      <BrandHeader title={merchant?.name ?? 'Merchant'} onBack={() => router.back()} />
+    <Screen edges={[]}>
+      <PageHeader title={merchant?.name ?? 'Merchant'} />
       {detail.isLoading ? (
         <LoadingState />
       ) : !merchant ? (

@@ -41,7 +41,7 @@ import type {
 
 import { api } from './api';
 import type { Coords } from './location';
-import type { RentConnectOption, RentHistoryEntry } from './types';
+import type { RentHistoryEntry } from './types';
 
 /**
  * Typed wrappers for the full `/app/*` API surface (49 endpoints — see
@@ -96,18 +96,14 @@ export const getRentHistory = (query: {
   rent_id?: number;
 }) => api.get<PaginatedList<RentHistoryEntry>>('rent/history/list', query);
 
-/** mock-only (absent from the PHP API) — callers must tolerate failure. */
-export const getRentConnectOptions = () =>
-  api.get<{ items: RentConnectOption[] }>('rent/connect-options');
-
-/** mock-only (absent from the PHP API) — callers must tolerate failure. */
-export const sendRentInvite = (body: {
-  rent_id: number;
-  history_id: number;
-  name: string;
-  email: string;
-  phone: string;
-}) => api.post('rent/invite', body);
+export const saveOwnerContact = (
+  rentId: number,
+  body: { owner_name: string; owner_email: string; owner_phone: string },
+) =>
+  api.put<{ owner_name: string; owner_email: string; owner_phone: string }>(
+    `rent/id/${rentId}/owner-contact`,
+    body,
+  );
 
 /** Owner payout bank fields, collected at pay time when the owner is unbound. */
 export interface OwnerBankFields {

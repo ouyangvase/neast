@@ -13,7 +13,6 @@ export default tseslint.config(
       "**/coverage/**",
       "services/**",
       "apps/landing/**",
-      "**/mock-api/**",
       "**/*.mjs",
     ],
   },

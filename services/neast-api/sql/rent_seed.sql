@@ -13,9 +13,13 @@ INSERT INTO `t_rent` (
   `amount`,
   `file`,
   `paid_at`,
+  `first_pay_month`,
+  `lease_months`,
   `expire_date`,
   `property_id`,
+  `property_name`,
   `landlord_id`,
+  `owner_name`,
   `status`,
   `landlord_bank`,
   `landlord_bank_account`,
@@ -23,6 +27,4 @@ INSERT INTO `t_rent` (
   `created_at`,
   `updated_at`
 ) VALUES
-(1, 2500.00, '/uploads/rent/voucher-20260301.jpg', 1, '2026-06-30', NULL, NULL, 0, '', '', '', NOW(), NOW()),
-(1, 1800.50, '/uploads/rent/voucher-20260215.jpg', 15, '2026-12-31', NULL, @landlord_id, 1, 'Maybank', '512345678901', 'Ahmad Property', NOW(), NOW()),
-(1, 3200.00, '/uploads/rent/voucher-20260120.jpg', 20, '2026-03-31', NULL, NULL, 2, '', '', '', NOW(), NOW());
+(1, 1800.50, '/uploads/rent/voucher-20260215.jpg', 15, '2026-01-01', 12, '2026-12-31', NULL, 'Smoke Villa', @landlord_id, '', 1, 'Maybank', '512345678901', 'Ahmad Property', NOW(), NOW());

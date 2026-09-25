@@ -3,12 +3,13 @@ import { StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { BrandHeader, Button, spacing, TextField, Toast } from '@neast/ui-mobile';
+import { Button, spacing, TextField, Toast } from '@neast/ui-mobile';
 
 import { apiErrorMessage } from '../../src/lib/api';
 import { updateUserProfile } from '../../src/lib/endpoints';
 import { useUserProfile } from '../../src/hooks/use-profile';
 import { DatePickerField, fromYmd, toYmd } from '../../src/components/DatePickerField';
+import { PageHeader } from '../../src/components/PageHeader';
 import { Screen } from '../../src/components/Screen';
 
 /**
@@ -47,8 +48,8 @@ export default function PersonalDataEditRoute() {
   });
 
   return (
-    <Screen>
-      <BrandHeader title={params.label ?? 'Edit'} onBack={() => router.back()} />
+    <Screen edges={[]}>
+      <PageHeader title={params.label ?? 'Edit'} />
       <View style={styles.body}>
         {isDateField ? (
           <DatePickerField

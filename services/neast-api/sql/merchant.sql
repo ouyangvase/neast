@@ -17,6 +17,7 @@ CREATE TABLE `t_merchant` (
   `contact_phone` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '负责人电话',
   `contact_email` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '负责人邮箱',
   `balance` decimal(12, 2) NOT NULL DEFAULT '0.00' COMMENT '余额',
+  `category_id` int unsigned NOT NULL DEFAULT '0' COMMENT '商家分类ID',
   `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态 0停用 1启用',
   `is_recommended` tinyint NOT NULL DEFAULT '0' COMMENT '是否推荐 0否 1是',
   `created_at` datetime DEFAULT NULL,

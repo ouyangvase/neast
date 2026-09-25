@@ -5,7 +5,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { formatRinggit, formatSimpleDate, RENT_STATUS } from '@neast/types';
 import {
-  BrandHeader,
   Button,
   Card,
   coreColors,
@@ -25,6 +24,7 @@ import { rentStatusMeta } from '../../src/lib/format';
 import { isPaidHistory, type RentHistoryEntry } from '../../src/lib/types';
 import { useSelectionStore } from '../../src/stores/selection';
 import { ErrorState } from '../../src/components/StateViews';
+import { PageHeader } from '../../src/components/PageHeader';
 import { Screen } from '../../src/components/Screen';
 
 interface JourneyCell {
@@ -133,8 +133,8 @@ export default function PayRentDetailRoute() {
 
   if (!rent) {
     return (
-      <Screen>
-        <BrandHeader title="Tenancy" onBack={() => router.back()} />
+      <Screen edges={[]}>
+        <PageHeader title="Tenancy" />
         <ErrorState message="Tenancy unavailable." onRetry={() => router.back()} />
       </Screen>
     );
@@ -158,8 +158,8 @@ export default function PayRentDetailRoute() {
   };
 
   return (
-    <Screen>
-      <BrandHeader title="Tenancy" onBack={() => router.back()} />
+    <Screen edges={[]}>
+      <PageHeader title="Tenancy" />
       <ScrollView contentContainerStyle={styles.scroll}>
         <Card style={styles.card}>
           <View style={styles.titleRow}>

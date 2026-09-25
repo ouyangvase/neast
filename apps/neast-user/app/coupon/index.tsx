@@ -3,12 +3,13 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 
 import type { CouponListItem } from '@neast/types';
-import { BrandHeader, coreColors, radii, RefreshList, spacing, textStyles } from '@neast/ui-mobile';
+import { coreColors, radii, RefreshList, spacing, textStyles } from '@neast/ui-mobile';
 
 import { getCouponCategories, getCouponList } from '../../src/lib/endpoints';
 import { usePaginatedList } from '../../src/hooks/use-paginated';
 import { useSelectionStore } from '../../src/stores/selection';
 import { CouponCard } from '../../src/features/coupon/components';
+import { PageHeader } from '../../src/components/PageHeader';
 import { Screen } from '../../src/components/Screen';
 import { useQuery } from '@tanstack/react-query';
 
@@ -29,8 +30,8 @@ export default function CouponRoute() {
   );
 
   return (
-    <Screen>
-      <BrandHeader title="Vouchers" onBack={() => router.back()} />
+    <Screen edges={[]}>
+      <PageHeader title="Vouchers" />
       <View style={styles.chipsWrap}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.chipsRow}>

@@ -3,7 +3,6 @@ import { router } from 'expo-router';
 
 import { formatRinggit } from '@neast/types';
 import {
-  BrandHeader,
   Button,
   Card,
   coreColors,
@@ -17,6 +16,7 @@ import SuccessArt from '../../../assets/images/pay_rent/success.svg';
 import { payStatusLabel, rentHistoryStatusMeta } from '../../../src/lib/format';
 import { useSelectionStore } from '../../../src/stores/selection';
 import { ErrorState } from '../../../src/components/StateViews';
+import { PageHeader } from '../../../src/components/PageHeader';
 import { Screen } from '../../../src/components/Screen';
 
 /** Payment status detail (rent_payment_status_screen parity) + owner-invite entry. */
@@ -25,8 +25,8 @@ export default function RentHistoryDetailRoute() {
 
   if (!entry) {
     return (
-      <Screen>
-        <BrandHeader title="Payment" onBack={() => router.back()} />
+      <Screen edges={[]}>
+        <PageHeader title="Payment" />
         <ErrorState message="Payment record unavailable." onRetry={() => router.back()} />
       </Screen>
     );
@@ -37,8 +37,8 @@ export default function RentHistoryDetailRoute() {
   const payoutHeld = entry.payout_status === 'held' || entry.payout_status === 'queued';
 
   return (
-    <Screen>
-      <BrandHeader title="Payment" onBack={() => router.back()} />
+    <Screen edges={[]}>
+      <PageHeader title="Payment" />
       <View style={styles.body}>
         <View style={styles.hero}>
           <SuccessArt width={96} height={96} />

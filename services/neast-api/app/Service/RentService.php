@@ -34,7 +34,7 @@ class RentService
         $multiplier = (float) ($this->pointsSettingService->get()['rent_points_multiplier'] ?? 1);
 
         $query = RentModel::query()
-            ->with(['landlord:id,name', 'property:id,name'])
+            ->with(['landlord:id,name', 'property:id,name,image'])
             ->where('user_id', $userId)
             ->where('status', '!=', RentModel::STATUS_TERMINATED);
 
@@ -446,6 +446,14 @@ class RentService
             throw new AppException('Lease term must be at least 1 month');
         }
 
+        $alreadyHasTenancy = RentModel::query()
+            ->where('user_id', $userId)
+            ->where('status', '!=', RentModel::STATUS_TERMINATED)
+            ->exists();
+        if ($alreadyHasTenancy) {
+            throw new AppException('You already have a tenancy. Adding another home is coming soon.');
+        }
+
         $rent = new RentModel();
         $rent->user_id = $userId;
         $rent->amount = $amount;
@@ -486,6 +494,35 @@ class RentService
         $rent->save();
 
         return $this->formatAppItem($rent);
+    }
+
+    /**
+     * 未绑定房东的租约：保存租客填写的房东姓名、邮箱、手机号。
+     *
+     * @param array<string, mixed> $params
+     * @return array<string, string>
+     */
+    public function appSaveOwnerContact(int $userId, int $rentId, array $params): array
+    {
+        $rent = RentModel::query()
+            ->where('id', $rentId)
+            ->where('user_id', $userId)
+            ->first();
+
+        if (! $rent) {
+            throw new AppException('Rent not found');
+        }
+
+        $rent->owner_name = trim((string) ($params['owner_name'] ?? ''));
+        $rent->owner_email = trim((string) ($params['owner_email'] ?? ''));
+        $rent->owner_phone = trim((string) ($params['owner_phone'] ?? ''));
+        $rent->save();
+
+        return [
+            'owner_name' => (string) $rent->owner_name,
+            'owner_email' => (string) $rent->owner_email,
+            'owner_phone' => (string) $rent->owner_phone,
+        ];
     }
 
     /**
@@ -580,6 +617,7 @@ class RentService
         $amount = (float) $rent->amount;
         $file = (string) $rent->file;
         $dueLabels = $this->historyService->formatRentDueLabels($nextPayableDueDate);
+        $propertyImage = (string) ($rent->property?->image ?? '');
 
         return [
             'id' => $rent->id,
@@ -594,7 +632,11 @@ class RentService
             'landlord_id' => $landlordId,
             'landlord_name' => $landlordName,
             'landlord_account_name' => (string) ($rent->landlord_account_name ?? ''),
+            'owner_email' => (string) ($rent->owner_email ?? ''),
+            'owner_phone' => (string) ($rent->owner_phone ?? ''),
+            'owner_linked' => $landlordId !== null,
             'property_name' => $this->resolvePropertyName($rent),
+            'property_image' => file_url($propertyImage),
             'earn_points' => (int) round($amount * $multiplier),
             'created_at' => $rent->created_at?->format('Y-m-d H:i:s') ?? '',
             'can_pay' => (int) $rent->status === RentModel::STATUS_APPROVED && $hasPayablePending,

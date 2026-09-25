@@ -71,15 +71,21 @@ class Banner extends AbstractController
     {
         $validator = di(ValidatorFactory::class)->make($params, [
             'image' => 'required|string|max:512',
-            'link' => 'nullable|string|max:512',
+            'link' => ['required', 'string', 'max:512', 'regex:/^https:\/\/\S+$/'],
             'sort' => 'nullable|integer',
             'status' => 'nullable|integer|in:' . BannerModel::STATUS_DISABLED . ',' . BannerModel::STATUS_ENABLED,
+            'starts_at' => 'nullable|date_format:Y-m-d H:i:s',
+            'ends_at' => 'nullable|date_format:Y-m-d H:i:s',
         ], [
             'image.required' => 'Please upload banner image',
             'image.max' => 'Image path is too long',
+            'link.required' => 'Please enter an https link',
+            'link.regex' => 'Link must start with https://',
             'link.max' => 'Link is too long',
             'sort.integer' => 'Invalid sort value',
             'status.in' => 'Invalid status',
+            'starts_at.date_format' => 'Invalid start time',
+            'ends_at.date_format' => 'Invalid end time',
         ]);
 
         if ($validator->fails()) {

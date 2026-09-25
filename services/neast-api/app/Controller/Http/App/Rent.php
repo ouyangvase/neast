@@ -216,6 +216,37 @@ class Rent extends AbstractController
     }
 
     /**
+     * 保存未绑定房东的联系方式
+     */
+    #[Middleware(AppAuthMiddleware::class)]
+    #[RequestMapping(path: 'id/{id}/owner-contact', methods: ['PUT'])]
+    public function saveOwnerContact(int $id, RequestInterface $request): ResponseInterface
+    {
+        $validator = di(ValidatorFactory::class)->make($request->all(), [
+            'owner_name' => 'required|string|max:128',
+            'owner_email' => 'nullable|string|max:128',
+            'owner_phone' => 'nullable|string|max:32',
+        ], [
+            'owner_name.required' => 'Owner name is required',
+            'owner_name.max' => 'Owner name is too long',
+            'owner_email.max' => 'Email is too long',
+            'owner_phone.max' => 'Phone is too long',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->error($validator->errors()->first());
+        }
+
+        $auth = Context::get('app_auth');
+
+        return $this->success($this->service->appSaveOwnerContact(
+            (int) $auth->id,
+            $id,
+            $request->all()
+        ));
+    }
+
+    /**
      * 终止租约
      */
     #[Middleware(AppAuthMiddleware::class)]

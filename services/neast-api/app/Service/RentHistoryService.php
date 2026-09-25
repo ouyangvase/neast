@@ -476,7 +476,7 @@ class RentHistoryService
 
         $query = RentHistoryModel::query()
             ->where('user_id', $userId)
-            ->with(['rent.landlord:id,name', 'rent.property:id,name'])
+            ->with(['rent.landlord:id,name', 'rent.property:id,name,image'])
             ->whereHas('rent', function ($rentQuery) {
                 $rentQuery->where('status', RentModel::STATUS_APPROVED);
             });

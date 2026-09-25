@@ -14,6 +14,7 @@ import {
 
 import housePlaceholder from '../../../assets/images/house-eg.png';
 
+import { Screen } from '../../components/Screen';
 import { getPropertyList } from '../../lib/endpoints';
 import { usePaginatedList } from '../../hooks/use-paginated';
 import { ListSkeleton } from '../../components/StateViews';
@@ -28,7 +29,8 @@ export function PropertiesTab() {
   const addProperty = useAddPropertyGate();
 
   return (
-    <View style={styles.container}>
+    <Screen>
+      <View style={styles.container}>
       <View style={styles.titleRow}>
         <Text style={styles.title}>Properties</Text>
         <Button
@@ -80,7 +82,8 @@ export function PropertiesTab() {
         </View>
       </Modal>
       {addProperty.dialog}
-    </View>
+      </View>
+    </Screen>
   );
 }
 
@@ -129,7 +132,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
     paddingBottom: spacing.md,
   },
   title: {

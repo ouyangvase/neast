@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Model\RentModel;
-use App\Model\UserModel;
 use Carbon\Carbon;
 use Hyperf\Di\Annotation\Inject;
 
@@ -24,8 +23,10 @@ class TentScoreService
      */
     public function info(int $userId): array
     {
-        $score = (int) (UserModel::query()->whereKey($userId)->value('tent_score') ?? 500);
         $stats = $this->rentPaymentStatsService->aggregate($userId);
+        $onTimePayments = (int) ($stats['onTimePayments'] ?? 0);
+        $latePayments = (int) ($stats['latePayments'] ?? 0);
+        $score = max(0, min(1000, 500 + ($onTimePayments * 10) - ($latePayments * 20)));
         $maxStreakMonths = (int) ($stats['maxStreakMonths'] ?? 0);
         $firstPaidAt = $stats['firstPaidAt'] ?? null;
 
@@ -39,10 +40,10 @@ class TentScoreService
             'maxScore' => 1000,
             'ratingLabel' => $this->resolveRatingLabel($score),
             'maxStreakMonths' => $maxStreakMonths,
-            'streakLabel' => $maxStreakMonths > 0 ? "{$maxStreakMonths} Month Streak" : '0 Month Streak',
+            'streakLabel' => $this->rentPaymentStatsService->streakLabel($maxStreakMonths),
             'streakStatus' => $this->rentPaymentStatsService->resolveStreakStatus($maxStreakMonths),
-            'onTimePayments' => (int) ($stats['onTimePayments'] ?? 0),
-            'latePayments' => (int) ($stats['latePayments'] ?? 0),
+            'onTimePayments' => $onTimePayments,
+            'latePayments' => $latePayments,
             'totalPaid' => $this->formatMoney((float) ($stats['totalPaid'] ?? 0)),
             'verifiedLeases' => $verifiedLeases,
             'since' => is_int($firstPaidAt)

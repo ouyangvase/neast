@@ -25,6 +25,8 @@ export interface BrandHeaderProps {
   /** Trailing slot (bell, QR button, …). */
   right?: ReactNode;
   backgroundColor?: string;
+  /** Back chevron color. Defaults to the dark text color. */
+  chevronColor?: string;
   style?: StyleProp<ViewStyle>;
   titleStyle?: StyleProp<TextStyle>;
 }
@@ -37,6 +39,7 @@ export function BrandHeader({
   onBack,
   right,
   backgroundColor = coreColors.appBarBackground,
+  chevronColor = coreColors.blackText,
   style,
   titleStyle,
 }: BrandHeaderProps) {
@@ -51,7 +54,7 @@ export function BrandHeader({
             hitSlop={12}
             style={styles.back}
           >
-            <Chevron direction="left" />
+            <Chevron direction="left" color={chevronColor} />
           </Pressable>
         ) : null}
       </View>

@@ -34,14 +34,6 @@ export interface RentHistoryEntry {
   landlord_bank_last4?: string;
 }
 
-/** GET /app/rent/connect-options item (mock-only endpoint). */
-export interface RentConnectOption {
-  id: number;
-  sn: string;
-  name: string;
-  landlord_name: string;
-}
-
 /** Flutter `isPaidDetailAvailable`: history detail is viewable once paid/settled. */
 export function isPaidHistory(entry: RentHistoryEntry): boolean {
   return entry.status === 1 || entry.status === 2;

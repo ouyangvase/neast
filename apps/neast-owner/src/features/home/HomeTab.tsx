@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 
 import { formatRinggit, type LandlordDueItem } from '@neast/types';
@@ -32,6 +33,7 @@ import { useAddPropertyGate } from '../properties/AddPropertyGate';
 
 /** Home tab (home_screen parity): dashboard header, need-action, portfolio, quick actions. */
 export function HomeTab() {
+  const insets = useSafeAreaInsets();
   const dashboard = useQuery({ queryKey: ['home-dashboard'], queryFn: getHomeDashboard });
   const setDueItem = useSelectionStore((state) => state.setDueItem);
   const setAckItem = useSelectionStore((state) => state.setAckItem);
@@ -47,7 +49,11 @@ export function HomeTab() {
 
   return (
     <View style={styles.container}>
-      <ImageBackground source={headerBg} style={styles.header} resizeMode="cover">
+      <ImageBackground
+        source={headerBg}
+        style={[styles.header, { paddingTop: insets.top + spacing.md }]}
+        resizeMode="cover"
+      >
         <View style={styles.headerTopRow}>
           <Text style={styles.headerTitle}>NEAST Owner</Text>
           <Pressable
@@ -255,7 +261,6 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xl,
     paddingBottom: spacing.lg,
   },
   headerTopRow: {

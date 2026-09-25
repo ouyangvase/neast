@@ -2,9 +2,8 @@
  * `/app` (tenant app) contract types — field names verified against the
  * Hyperf controllers/models in `services/neast-api`.
  *
- * Fields marked `mock-only` exist in `apps/neast-user/mock-api/server.mjs`
- * but NOT in the real PHP API; they are optional so screens can be developed
- * against the mock, but must render sensibly when they are absent.
+ * Fields marked `mock-only` are not in the Hyperf API. Screens must render
+ * when those fields are absent.
  */
 import type {
   AgreementDetail,
@@ -107,7 +106,14 @@ export interface RentListItem {
   landlord_id: number;
   landlord_name: string;
   landlord_account_name: string;
+  /** Typed contact for an owner who is not a NEAST landlord. */
+  owner_email: string;
+  owner_phone: string;
+  /** True when `landlord_id` is set. */
+  owner_linked: boolean;
   property_name: string;
+  /** Public URL of the linked property photo. Empty when unbound. */
+  property_image: string;
   earn_points: number;
   created_at: string;
   can_pay: boolean;
