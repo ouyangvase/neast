@@ -1,37 +1,26 @@
-import { useMemo, useState } from 'react';
-import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useMemo } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useQuery } from '@tanstack/react-query';
 
-import { formatRinggit, formatSimpleDate, RENT_STATUS } from '@neast/types';
-import {
-  Button,
-  Card,
-  coreColors,
-  CountdownConfirmDialog,
-  ImagePreview,
-  spacing,
-  StatusTag,
-  textStyles,
-  Toast,
-  userAccentColors,
-} from '@neast/ui-mobile';
+import { formatRinggit, RENT_HISTORY_STATUS, RENT_STATUS, type RentPayStatus } from '@neast/types';
+import { Chevron, spacing, userHomeColors } from '@neast/ui-mobile';
 
-import { apiErrorMessage } from '../../src/lib/api';
-import { getRentHistory, terminateRent } from '../../src/lib/endpoints';
-import { isImagePath, resolveFileUrl } from '../../src/lib/files';
-import { rentStatusMeta } from '../../src/lib/format';
+import HouseIcon from '../../assets/images/pay_rent/house.svg';
+
+import { getRentHistory } from '../../src/lib/endpoints';
 import { isPaidHistory, type RentHistoryEntry } from '../../src/lib/types';
 import { useSelectionStore } from '../../src/stores/selection';
 import { ErrorState } from '../../src/components/StateViews';
 import { PageHeader } from '../../src/components/PageHeader';
 import { Screen } from '../../src/components/Screen';
+import { TenancyCard } from '../../src/features/pay-rent/components';
 
-interface JourneyCell {
-  key: string;
-  label: string;
-  state: 'paid' | 'pending' | 'due' | 'future';
-}
+const UPCOMING_BLUE = '#A7C4F5';
+const EMPTY_GREY = '#9CA3AF';
+
+const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 const MONTH_INDEX: Record<string, number> = {
   january: 1,
@@ -48,31 +37,38 @@ const MONTH_INDEX: Record<string, number> = {
   december: 12,
 };
 
-/** `October 2026` → `2026-10`; null when unparseable. */
-function periodKey(rentalPeriod: string): string | null {
-  const [monthName, year] = rentalPeriod.split(' ');
-  const month = MONTH_INDEX[(monthName ?? '').toLowerCase()];
-  if (!month || !year) return null;
-  return `${year}-${String(month).padStart(2, '0')}`;
+type MonthTone = RentPayStatus | 'empty';
+
+/** `October 2026` → 10. */
+function monthFromPeriod(rentalPeriod: string): number | null {
+  const month = MONTH_INDEX[(rentalPeriod.split(' ')[0] ?? '').toLowerCase()];
+  return month || null;
 }
 
-function addMonths(firstPayMonth: string, offset: number): string {
-  const [yearRaw, monthRaw] = firstPayMonth.split('-');
-  let year = Number(yearRaw);
-  let month = Number(monthRaw) + offset;
-  while (month > 12) {
-    month -= 12;
-    year += 1;
+function monthTone(entry: RentHistoryEntry): MonthTone {
+  if (entry.status === RENT_HISTORY_STATUS.cancelled) return 'empty';
+  return entry.pay_status;
+}
+
+function toneColor(tone: MonthTone): string {
+  switch (tone) {
+    case 'on_time':
+      return userHomeColors.navy;
+    case 'late':
+      return userHomeColors.royalBlue;
+    case 'upcoming':
+      return UPCOMING_BLUE;
+    default:
+      return EMPTY_GREY;
   }
-  return `${year}-${String(month).padStart(2, '0')}`;
 }
 
-/** Tenancy detail (pay_rent_detail_screen parity): info, journey grid, terminate. */
+/** Tenancy detail: summary card, next payment, this year's rent status, and recent payments. */
 export default function PayRentDetailRoute() {
+  const insets = useSafeAreaInsets();
   const rent = useSelectionStore((state) => state.rent);
-  const queryClient = useQueryClient();
-  const [terminateVisible, setTerminateVisible] = useState(false);
-  const [previewVisible, setPreviewVisible] = useState(false);
+  const setRent = useSelectionStore((state) => state.setRent);
+  const year = new Date().getFullYear();
 
   const history = useQuery({
     queryKey: ['rent-detail-history', rent?.id],
@@ -80,56 +76,31 @@ export default function PayRentDetailRoute() {
     enabled: !!rent,
   });
 
-  const terminateMutation = useMutation({
-    mutationFn: () => terminateRent(rent!.id),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['rent-list'] });
-      Toast.success('Tenancy terminated');
-      router.back();
-    },
-    onError: (error) => Toast.error(apiErrorMessage(error)),
-  });
+  const yearItems = useMemo(
+    () => (history.data?.items ?? []).filter((entry) => entry.rental_period.endsWith(` ${year}`)),
+    [history.data, year],
+  );
 
-  const journey = useMemo<JourneyCell[]>(() => {
-    if (!rent) return [];
-    const byPeriod = new Map<string, RentHistoryEntry>();
-    for (const entry of history.data?.items ?? []) {
-      const key = periodKey(entry.rental_period);
-      if (key) byPeriod.set(key, entry);
+  const months = useMemo<MonthTone[]>(() => {
+    const tones: MonthTone[] = Array.from({ length: 12 }, () => 'empty');
+    for (const entry of yearItems) {
+      const month = monthFromPeriod(entry.rental_period);
+      if (!month) continue;
+      const tone = monthTone(entry);
+      if (tone === 'empty' && tones[month - 1] !== 'empty') continue;
+      tones[month - 1] = tone;
     }
-    const nowKey = addMonths(
-      `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`,
-      0,
-    );
-    const monthNames = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return Array.from({ length: Math.max(rent.lease_months, 1) }, (_, index) => {
-      const key = addMonths(rent.first_pay_month, index);
-      const entry = byPeriod.get(key);
-      const monthNumber = Number(key.split('-')[1]);
-      let state: JourneyCell['state'] = 'future';
-      if (entry && isPaidHistory(entry)) state = 'paid';
-      else if (entry) state = 'pending';
-      else if (key <= nowKey) state = 'due';
-      return {
-        key,
-        label: `${monthNames[monthNumber - 1] ?? monthNumber} ${key.slice(0, 4)}`,
-        state,
-      };
-    });
-  }, [rent, history.data]);
+    return tones;
+  }, [yearItems]);
+
+  const recent = useMemo(
+    () =>
+      (history.data?.items ?? [])
+        .filter(isPaidHistory)
+        .sort((a, b) => b.last_paid_date.localeCompare(a.last_paid_date))
+        .slice(0, 4),
+    [history.data],
+  );
 
   if (!rent) {
     return (
@@ -140,141 +111,117 @@ export default function PayRentDetailRoute() {
     );
   }
 
-  const status = rentStatusMeta(rent.status);
-  const agreementUrl = resolveFileUrl(rent.file, rent.file_url);
-  const canTerminate =
-    rent.status === RENT_STATUS.approved || rent.status === RENT_STATUS.pendingBind;
-
-  const openAgreement = () => {
-    if (!agreementUrl) {
-      Toast.error('No agreement uploaded');
-      return;
-    }
-    if (isImagePath(agreementUrl)) {
-      setPreviewVisible(true);
-    } else {
-      void Linking.openURL(agreementUrl);
-    }
-  };
+  const canPay = rent.can_pay && rent.status === RENT_STATUS.approved;
 
   return (
     <Screen edges={[]}>
       <PageHeader title="Tenancy" />
-      <ScrollView contentContainerStyle={styles.scroll}>
-        <Card style={styles.card}>
-          <View style={styles.titleRow}>
-            <Text style={styles.property} numberOfLines={1}>
-              {rent.property_name}
-            </Text>
-            <StatusTag label={status.label} status={status.tag} />
-          </View>
-          <Text style={styles.amount}>{formatRinggit(rent.amount)} / month</Text>
-          <View style={styles.infoRows}>
-            <InfoRow label="Pay day" value={rent.date_label || rent.paid_at} />
-            <InfoRow label="First payment" value={rent.first_pay_month} />
-            <InfoRow label="Lease" value={`${rent.lease_months} months`} />
-            <InfoRow label="Expires" value={formatSimpleDate(rent.expire_date)} />
-            {rent.landlord_name ? <InfoRow label="Owner" value={rent.landlord_name} /> : null}
-            {rent.landlord_bank_name ? (
-              <InfoRow
-                label="Owner bank"
-                value={`${rent.landlord_bank_name} ****${rent.landlord_bank_last4 ?? ''}`}
-              />
-            ) : null}
-            <InfoRow label="Points per payment" value={`${rent.earn_points} pts`} />
-          </View>
-          <Pressable onPress={openAgreement} accessibilityRole="button">
-            <Text style={styles.agreementLink}>View tenancy agreement</Text>
-          </Pressable>
-        </Card>
+      <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 78 }]}>
+        <TenancyCard rent={rent} summary />
 
-        <Card style={styles.card}>
-          <Text style={styles.sectionTitle}>Property Journey</Text>
-          <View style={styles.journeyGrid}>
-            {journey.map((cell) => (
-              <View key={cell.key} style={[styles.journeyCell, journeyCellStyle(cell.state)]}>
-                <Text style={[styles.journeyText, cell.state === 'paid' && styles.journeyTextPaid]}>
-                  {cell.label}
-                </Text>
+        <View style={[styles.card, styles.payCard]}>
+          <View style={styles.infoLines}>
+            <InfoLine title="Rental Amount" value={formatRinggit(rent.amount)} />
+            <InfoLine
+              title={rent.due_text || 'Due'}
+              value={rent.date_label || 'Payment schedule pending'}
+            />
+          </View>
+          {canPay ? (
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => {
+                setRent(rent);
+                router.push('/pay-rent/payment');
+              }}
+              style={({ pressed }) => [styles.payButton, pressed && styles.pressed]}
+            >
+              <Text style={styles.payText}>Pay Now</Text>
+            </Pressable>
+          ) : null}
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.label}>{year}</Text>
+          <View style={styles.grid}>
+            {months.map((tone, index) => (
+              <View key={MONTH_LABELS[index]} style={styles.month}>
+                <HouseIcon width={22} height={22} color={toneColor(tone)} />
+                <Text style={styles.monthLabel}>{MONTH_LABELS[index]}</Text>
               </View>
             ))}
           </View>
-          <View style={styles.legendRow}>
-            <LegendDot color={coreColors.darkGreen} label="Paid" />
-            <LegendDot color={userAccentColors.pointsDeal} label="Pending" />
-            <LegendDot color={coreColors.error} label="Due" />
-            <LegendDot color={coreColors.divider} label="Upcoming" />
+          <View style={styles.legend}>
+            <Legend tone="on_time" label="On time" />
+            <Legend tone="late" label="Late" />
+            <Legend tone="upcoming" label="Upcoming" />
+            <Legend tone="empty" label="No record" />
           </View>
-        </Card>
+        </View>
 
-        {rent.can_pay && rent.status === RENT_STATUS.approved ? (
-          <Button
-            title="Pay Rent"
-            onPress={() => router.push('/pay-rent/payment')}
-            style={styles.actionButton}
-          />
-        ) : null}
-        {canTerminate ? (
-          <Button
-            title="Terminate Tenancy"
-            variant="outline"
-            onPress={() => setTerminateVisible(true)}
-            style={styles.actionButton}
-          />
-        ) : null}
+        <View style={[styles.card, styles.recentCard]}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.recentTitle}>Recent payments</Text>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => router.push('/pay-rent/recent')}
+              style={({ pressed }) => [styles.viewAllButton, pressed && styles.pressed]}
+            >
+              <Text style={styles.viewAll}>View all</Text>
+              <Chevron direction="right" color={userHomeColors.navy} size={8} />
+            </Pressable>
+          </View>
+          {recent.map((entry) => (
+            <RecentRow key={entry.id} entry={entry} />
+          ))}
+        </View>
       </ScrollView>
-
-      <CountdownConfirmDialog
-        visible={terminateVisible}
-        title="Terminate tenancy?"
-        message="This ends the tenancy and stops future rent payments. This cannot be undone."
-        countdownSeconds={5}
-        confirmText="Terminate"
-        onConfirm={() => {
-          setTerminateVisible(false);
-          terminateMutation.mutate();
-        }}
-        onCancel={() => setTerminateVisible(false)}
-      />
-
-      {agreementUrl && isImagePath(agreementUrl) ? (
-        <ImagePreview
-          visible={previewVisible}
-          source={{ uri: agreementUrl }}
-          onClose={() => setPreviewVisible(false)}
-          caption="Tenancy agreement"
-        />
-      ) : null}
+      {rent.owner_linked ? (
+        <View style={[styles.ownerButton, styles.ownerButtonLinked, { bottom: insets.bottom + 16 }]}>
+          <Text style={styles.ownerButtonText}>Connected with owner</Text>
+        </View>
+      ) : (
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => router.push('/pay-rent/invite-owner')}
+          style={({ pressed }) => [
+            styles.ownerButton,
+            { bottom: insets.bottom + 16 },
+            pressed && styles.pressed,
+          ]}
+        >
+          <Text style={styles.ownerButtonText}>Connect with owner</Text>
+        </Pressable>
+      )}
     </Screen>
   );
 }
 
-function journeyCellStyle(state: JourneyCell['state']) {
-  switch (state) {
-    case 'paid':
-      return { backgroundColor: coreColors.tintGreen, borderColor: coreColors.darkGreen };
-    case 'pending':
-      return { backgroundColor: coreColors.tintBlue, borderColor: userAccentColors.pointsDeal };
-    case 'due':
-      return { backgroundColor: coreColors.white, borderColor: coreColors.error };
-    default:
-      return { backgroundColor: coreColors.white, borderColor: coreColors.divider };
-  }
+function RecentRow({ entry }: { entry: RentHistoryEntry }) {
+  return (
+    <View style={styles.recentRow}>
+      <Text style={styles.recentPeriod} numberOfLines={1}>
+        {entry.rental_period}
+      </Text>
+      <Text style={styles.recentStatus}>{entry.pay_status === 'on_time' ? 'On time' : 'Due'}</Text>
+      <Text style={styles.recentAmount}>{formatRinggit(entry.amount)}</Text>
+    </View>
+  );
 }
 
-function InfoRow({ label, value }: { label: string; value: string }) {
+function InfoLine({ title, value }: { title: string; value: string }) {
   return (
-    <View style={styles.infoRow}>
-      <Text style={styles.infoLabel}>{label}</Text>
+    <View style={styles.infoLine}>
+      <Text style={styles.infoTitle}>{title}</Text>
       <Text style={styles.infoValue}>{value}</Text>
     </View>
   );
 }
 
-function LegendDot({ color, label }: { color: string; label: string }) {
+function Legend({ tone, label }: { tone: MonthTone; label: string }) {
   return (
     <View style={styles.legendItem}>
-      <View style={[styles.legendDot, { backgroundColor: color }]} />
+      <View style={[styles.legendDot, { backgroundColor: toneColor(tone) }]} />
       <Text style={styles.legendText}>{label}</Text>
     </View>
   );
@@ -282,82 +229,161 @@ function LegendDot({ color, label }: { color: string; label: string }) {
 
 const styles = StyleSheet.create({
   scroll: {
-    padding: spacing.lg,
-    gap: spacing.md,
-    paddingBottom: spacing.xxl,
+    padding: 12,
+    gap: 6,
   },
   card: {
-    gap: spacing.sm,
+    backgroundColor: userHomeColors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: userHomeColors.border,
+    padding: 12,
+    gap: spacing.xs,
   },
-  titleRow: {
+  payCard: {
+    gap: spacing.lg,
+  },
+  infoLines: {
+    gap: spacing.xs,
+  },
+  infoLine: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: spacing.sm,
   },
-  property: {
-    ...textStyles.heading3,
+  infoTitle: {
     flex: 1,
-  },
-  amount: {
-    ...textStyles.heading2,
-    color: coreColors.brandBlue,
-  },
-  infoRows: {
-    gap: spacing.xs,
-    marginTop: spacing.xs,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: spacing.md,
-  },
-  infoLabel: {
-    ...textStyles.bodySmall,
-    color: coreColors.textSecondary,
+    color: userHomeColors.textSecondary,
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: '600',
   },
   infoValue: {
-    ...textStyles.bodySmall,
-    fontWeight: '500',
+    flexShrink: 1,
+    color: userHomeColors.textPrimary,
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: '700',
+    textAlign: 'right',
   },
-  agreementLink: {
-    ...textStyles.bodySmall,
-    color: coreColors.brandBlue,
+  recentCard: {
+    padding: 14,
+    gap: spacing.sm,
+  },
+  recentTitle: {
+    flex: 1,
+    color: userHomeColors.textPrimary,
+    fontSize: 17,
+    lineHeight: 22,
+    fontWeight: '700',
+  },
+  recentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  recentPeriod: {
+    flex: 1,
+    color: userHomeColors.textSecondary,
+    fontSize: 15,
+    lineHeight: 20,
     fontWeight: '600',
-    marginTop: spacing.xs,
   },
-  sectionTitle: {
-    ...textStyles.heading3,
+  recentStatus: {
+    width: 72,
+    color: userHomeColors.textPrimary,
+    fontSize: 15,
+    lineHeight: 20,
+    fontWeight: '700',
+    textAlign: 'center',
   },
-  journeyGrid: {
+  recentAmount: {
+    width: 108,
+    color: userHomeColors.textPrimary,
+    fontSize: 15,
+    lineHeight: 20,
+    fontWeight: '700',
+    textAlign: 'right',
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  viewAllButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  viewAll: {
+    color: userHomeColors.navy,
+    fontSize: 15,
+    lineHeight: 20,
+    fontWeight: '700',
+  },
+  ownerButton: {
+    position: 'absolute',
+    left: 14,
+    right: 14,
+    minHeight: 46,
+    borderRadius: 11,
+    backgroundColor: userHomeColors.navy,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+  },
+  ownerButtonLinked: {
+    backgroundColor: EMPTY_GREY,
+  },
+  ownerButtonText: {
+    color: userHomeColors.surface,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  label: {
+    color: userHomeColors.textSecondary,
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: '600',
+  },
+  payButton: {
+    minHeight: 36,
+    borderRadius: 8,
+    backgroundColor: userHomeColors.navy,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  payText: {
+    color: userHomeColors.surface,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.sm,
-    marginTop: spacing.sm,
   },
-  journeyCell: {
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
+  month: {
+    width: '16.666%',
+    alignItems: 'center',
+    gap: 2,
+    paddingVertical: 4,
   },
-  journeyText: {
-    ...textStyles.caption,
-    color: coreColors.textSecondary,
+  monthLabel: {
+    color: userHomeColors.textSecondary,
+    fontSize: 12,
+    lineHeight: 16,
   },
-  journeyTextPaid: {
-    color: coreColors.darkGreen,
-    fontWeight: '600',
-  },
-  legendRow: {
+  legend: {
     flexDirection: 'row',
-    gap: spacing.md,
-    marginTop: spacing.sm,
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
   },
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
+    gap: 6,
   },
   legendDot: {
     width: 8,
@@ -365,9 +391,11 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   legendText: {
-    ...textStyles.caption,
+    color: userHomeColors.textSecondary,
+    fontSize: 12,
+    lineHeight: 16,
   },
-  actionButton: {
-    marginTop: spacing.xs,
+  pressed: {
+    opacity: 0.7,
   },
 });

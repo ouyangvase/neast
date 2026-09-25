@@ -6,16 +6,15 @@ import { userHomeColors } from '@neast/ui-mobile';
 
 import walletArt from '../../../../assets/images/home/reference-rent-wallet.png';
 
-import { useSelectionStore } from '../../../stores/selection';
 import { useTabsStore } from '../../../stores/tabs';
 
 /**
  * AmountCard (web parity): next-rent summary on cream with a royal-blue CTA.
  * Doubles as the guest sign-in card (replaces GuestLoginPlaceholder on home).
+ * Logged-in Pay Rent Now opens the Pay rent tab.
  */
 export function AmountCard({ nextRent }: { nextRent: RentListItem | null }) {
   const isLoggedIn = useIsLoggedIn();
-  const setRent = useSelectionStore((state) => state.setRent);
   const selectTab = useTabsStore((state) => state.select);
 
   const signedOut = !isLoggedIn;
@@ -23,12 +22,9 @@ export function AmountCard({ nextRent }: { nextRent: RentListItem | null }) {
   const onCtaPress = () => {
     if (signedOut) {
       router.push('/login');
-    } else if (nextRent) {
-      setRent(nextRent);
-      router.push('/pay-rent/detail');
-    } else {
-      selectTab('payRent');
+      return;
     }
+    selectTab('payRent');
   };
 
   return (

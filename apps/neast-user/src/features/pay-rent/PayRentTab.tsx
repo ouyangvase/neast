@@ -12,7 +12,7 @@ import unloginImage from '../../../assets/images/pay_rent/unlogin.png';
 
 import { getRentList } from '../../lib/endpoints';
 import { ListSkeleton } from '../../components/StateViews';
-import { ComingSoonTenancyCard, TenancyCard } from './components';
+import { AddTenancyCard, ComingSoonTenancyCard, TenancyCard } from './components';
 
 /** Pay Rent tab: tenancy stack and add tenancy. */
 export function PayRentTab() {
@@ -65,7 +65,9 @@ export function PayRentTab() {
                   <ComingSoonTenancyCard />
                   <ComingSoonTenancyCard />
                 </>
-              ) : null}
+              ) : (
+                <AddTenancyCard />
+              )}
             </>
           )}
         </View>

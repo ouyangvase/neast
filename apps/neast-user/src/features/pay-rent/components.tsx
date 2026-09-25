@@ -20,9 +20,64 @@ function leaseLabel(firstPayMonth: string, expireDate: string): string {
   return `${MONTHS[Number(fromMonth) - 1]} ${fromYear} – ${Number(toDay)} ${MONTHS[Number(toMonth) - 1]} ${toYear}`;
 }
 
-/** One tenancy on the Pay Rent tab. */
-export function TenancyCard({ rent }: { rent: RentListItem }) {
+/** One tenancy on the Pay Rent tab. `summary` is the static card on tenancy details. */
+export function TenancyCard({ rent, summary = false }: { rent: RentListItem; summary?: boolean }) {
   const setRent = useSelectionStore((state) => state.setRent);
+
+  const body = (
+    <>
+      <View style={[styles.imageFrame, summary && styles.summaryImageFrame]}>
+        <Image
+          source={rent.property_image ? { uri: rent.property_image } : propertyPlaceholder}
+          resizeMode="cover"
+          style={styles.image}
+        />
+      </View>
+      <View style={[styles.copy, summary && styles.summaryCopy]}>
+        <View style={styles.titleRow}>
+          <Text style={styles.property} numberOfLines={1}>
+            {rent.property_name}
+          </Text>
+          {summary ? null : (
+            <Text style={styles.amount} numberOfLines={1}>
+              {formatRinggit(rent.amount)}
+            </Text>
+          )}
+        </View>
+        <Text style={styles.meta} numberOfLines={1}>
+          {rent.landlord_name}
+        </Text>
+        <Text style={styles.meta} numberOfLines={1}>
+          {leaseLabel(rent.first_pay_month, rent.expire_date)}
+        </Text>
+        {summary ? null : (
+          <View style={styles.actions}>
+            {rent.owner_linked ? (
+              <Text style={styles.connectedText} numberOfLines={1}>
+                Connected with owner
+              </Text>
+            ) : (
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => {
+                  setRent(rent);
+                  router.push('/pay-rent/invite-owner');
+                }}
+                style={({ pressed }) => [styles.connectButton, pressed && styles.pressed]}
+              >
+                <Text style={styles.connectText}>Connect with owner</Text>
+              </Pressable>
+            )}
+          </View>
+        )}
+      </View>
+      {summary ? null : <Chevron direction="right" color={userHomeColors.textSecondary} size={8} />}
+    </>
+  );
+
+  if (summary) {
+    return <View style={[styles.card, styles.summaryCard]}>{body}</View>;
+  }
 
   return (
     <Pressable
@@ -33,60 +88,38 @@ export function TenancyCard({ rent }: { rent: RentListItem }) {
       }}
       style={({ pressed }) => [styles.card, pressed && styles.pressed]}
     >
+      {body}
+    </Pressable>
+  );
+}
+
+/** Empty Pay Rent slot. Opens tenancy create. */
+export function AddTenancyCard() {
+  const pulse = useRef(new Animated.Value(0.45)).current;
+
+  useEffect(() => {
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1, duration: 900, useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 0.45, duration: 900, useNativeDriver: true }),
+      ]),
+    );
+    animation.start();
+    return () => animation.stop();
+  }, [pulse]);
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={() => router.push('/pay-rent/create')}
+      style={({ pressed }) => [styles.card, styles.soonCard, pressed && styles.pressed]}
+    >
       <View style={styles.imageFrame}>
-        <Image
-          source={rent.property_image ? { uri: rent.property_image } : propertyPlaceholder}
-          resizeMode="cover"
-          style={styles.image}
-        />
+        <Image source={propertyPlaceholder} resizeMode="cover" style={styles.image} />
       </View>
-      <View style={styles.copy}>
-        <View style={styles.titleRow}>
-          <Text style={styles.property} numberOfLines={1}>
-            {rent.property_name}
-          </Text>
-          <Text style={styles.amount} numberOfLines={1}>
-            {formatRinggit(rent.amount)}
-          </Text>
-        </View>
-        <Text style={styles.meta} numberOfLines={1}>
-          {rent.landlord_name}
-        </Text>
-        <Text style={styles.meta} numberOfLines={1}>
-          {leaseLabel(rent.first_pay_month, rent.expire_date)}
-        </Text>
-        <View style={styles.actions}>
-          {rent.can_pay ? (
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => {
-                setRent(rent);
-                router.push('/pay-rent/payment');
-              }}
-              style={({ pressed }) => [styles.payButton, pressed && styles.pressed]}
-            >
-              <Text style={styles.payText}>Pay</Text>
-            </Pressable>
-          ) : null}
-          {rent.owner_linked ? (
-            <Text style={styles.connectedText} numberOfLines={1}>
-              Connected with owner
-            </Text>
-          ) : (
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => {
-                setRent(rent);
-                router.push('/pay-rent/invite-owner');
-              }}
-              style={({ pressed }) => [styles.connectButton, pressed && styles.pressed]}
-            >
-              <Text style={styles.connectText}>Connect with owner</Text>
-            </Pressable>
-          )}
-        </View>
+      <View style={styles.soonSide}>
+        <Animated.Text style={[styles.soonLabel, { opacity: pulse }]}>Add new tenancy now</Animated.Text>
       </View>
-      <Chevron direction="right" color={userHomeColors.textSecondary} size={8} />
     </Pressable>
   );
 }
@@ -164,6 +197,23 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: userHomeColors.lightBlue,
   },
+  summaryCard: {
+    height: 88,
+    gap: 10,
+    paddingLeft: 8,
+    paddingRight: 12,
+    borderRadius: 12,
+  },
+  summaryImageFrame: {
+    width: 72,
+    height: 72,
+    borderRadius: 10,
+  },
+  summaryCopy: {
+    height: 72,
+    justifyContent: 'center',
+    gap: 2,
+  },
   image: {
     width: '100%',
     height: '100%',
@@ -201,19 +251,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-  },
-  payButton: {
-    minHeight: 28,
-    borderRadius: 8,
-    backgroundColor: userHomeColors.navy,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 12,
-  },
-  payText: {
-    color: userHomeColors.surface,
-    fontSize: 13,
-    fontWeight: '600',
   },
   connectButton: {
     minHeight: 28,

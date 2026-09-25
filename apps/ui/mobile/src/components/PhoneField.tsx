@@ -123,9 +123,11 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    ...textStyles.body,
+    fontSize: textStyles.body.fontSize,
+    fontWeight: textStyles.body.fontWeight,
+    color: textStyles.body.color,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
+    paddingVertical: 0,
   },
   error: {
     ...textStyles.caption,

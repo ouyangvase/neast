@@ -59,8 +59,8 @@ thin composition of `src/features/home/components/`, top → bottom:
    scan looks up `getRentPropertyBySn` and opens
    `/pay-rent/create/connect` with that property filled in (otherwise “Property not found”).
 2. **AmountCard** — guest: "Rent, made simple." / "Sign in to pay rent" → `/login`; logged in
-   with `nextRent`: "Next Rent" / "Pay Rent Now" → `/pay-rent/detail`; logged in without
-   `nextRent`: "Payment schedule pending" → payRent tab.
+   "Pay Rent Now" opens the Pay rent tab (with `nextRent`: amount and due line; without:
+   "Payment schedule pending").
 3. **CampaignCarousel** — full-bleed photos from `dashboard.banners` (admin `t_banner`:
    image, required `https://` link, sort, status, optional `starts_at`/`ends_at`).
    Auto-advances about every 4s. When no banner is active, three local samples slide

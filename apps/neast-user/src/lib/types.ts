@@ -20,8 +20,7 @@ export interface RentHistoryEntry {
   user_id?: number;
   paid_at?: string | null;
   created_at?: string;
-  /** mock-only */
-  last_paid_date?: string;
+  last_paid_date: string;
   /** mock-only */
   user_paid_at?: string;
   /** mock-only: '' | 'queued' | 'held' | 'invited' */

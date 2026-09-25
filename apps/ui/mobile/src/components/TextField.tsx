@@ -65,7 +65,7 @@ export function TextField({
             setFocused(false);
             onBlur?.(e);
           }}
-          style={[styles.input, inputStyle]}
+          style={[styles.input, inputProps.multiline ? styles.inputMultiline : null, inputStyle]}
         />
         {right}
       </View>
@@ -108,7 +108,13 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    ...textStyles.body,
+    fontSize: textStyles.body.fontSize,
+    fontWeight: textStyles.body.fontWeight,
+    color: textStyles.body.color,
+    paddingVertical: 0,
+  },
+  inputMultiline: {
+    lineHeight: textStyles.body.lineHeight,
     paddingVertical: spacing.md,
   },
   error: {
