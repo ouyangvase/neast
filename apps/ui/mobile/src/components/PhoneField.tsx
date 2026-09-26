@@ -9,9 +9,10 @@ import {
   type ViewStyle,
 } from 'react-native';
 
-import { coreColors } from '@ui/tokens/colors';
-import { radii, spacing } from '@ui/tokens/layout';
+import { coreColors, userHomeColors } from '@ui/tokens/colors';
+import { spacing } from '@ui/tokens/layout';
 import { textStyles } from '@ui/tokens/typography';
+import { Chevron } from './Chevron';
 
 export interface PhoneFieldProps {
   /** Dial code with `+`, e.g. `'+60'`. */
@@ -56,7 +57,7 @@ export function PhoneField({
           accessibilityRole="button"
         >
           <Text style={styles.dialCodeText}>{dialCode}</Text>
-          {onDialCodePress ? <Text style={styles.chevron}>▾</Text> : null}
+          {onDialCodePress ? <Chevron direction="down" color={userHomeColors.navy} size={8} /> : null}
         </Pressable>
         <View style={styles.separator} />
         <TextInput
@@ -83,49 +84,50 @@ export function getFullPhoneNumber(dialCode: string, phone: string): string {
 
 const styles = StyleSheet.create({
   label: {
-    ...textStyles.bodySmall,
-    fontWeight: '500',
+    color: userHomeColors.textSecondary,
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '600',
     marginBottom: spacing.sm,
   },
   field: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: coreColors.border,
-    borderRadius: radii.button,
-    backgroundColor: coreColors.white,
-    minHeight: 48,
+    borderWidth: 1.5,
+    borderColor: userHomeColors.border,
+    borderRadius: 16,
+    backgroundColor: userHomeColors.lightBlue,
+    minHeight: 56,
   },
   fieldFocused: {
-    borderColor: coreColors.brandBlue,
+    borderColor: userHomeColors.navy,
+    backgroundColor: userHomeColors.surface,
   },
   fieldError: {
     borderColor: coreColors.error,
+    backgroundColor: userHomeColors.surface,
   },
   dialCode: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    gap: spacing.xs,
+    paddingHorizontal: spacing.lg,
+    gap: spacing.sm,
   },
   dialCodeText: {
     ...textStyles.body,
-    fontWeight: '500',
-  },
-  chevron: {
-    ...textStyles.caption,
-    color: coreColors.textHint,
+    color: userHomeColors.navy,
+    fontWeight: '700',
   },
   separator: {
-    width: StyleSheet.hairlineWidth,
-    height: 24,
-    backgroundColor: coreColors.divider,
+    width: 1,
+    height: 22,
+    backgroundColor: userHomeColors.border,
   },
   input: {
     flex: 1,
-    fontSize: textStyles.body.fontSize,
-    fontWeight: textStyles.body.fontWeight,
-    color: textStyles.body.color,
+    fontSize: 16,
+    fontWeight: '500',
+    color: userHomeColors.textPrimary,
     paddingHorizontal: spacing.md,
     paddingVertical: 0,
   },

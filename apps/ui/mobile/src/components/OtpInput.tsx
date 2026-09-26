@@ -9,8 +9,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 
-import { coreColors } from '@ui/tokens/colors';
-import { radii } from '@ui/tokens/layout';
+import { coreColors, userHomeColors } from '@ui/tokens/colors';
 
 export interface OtpInputProps {
   /** Current code (digits only). */
@@ -68,7 +67,12 @@ export function OtpInput({
       {boxes.map((digit, i) => (
         <View
           key={i}
-          style={[styles.box, i === activeIndex && styles.boxActive, hasError && styles.boxError]}
+          style={[
+            styles.box,
+            digit !== '' && styles.boxFilled,
+            i === activeIndex && styles.boxActive,
+            hasError && styles.boxError,
+          ]}
         >
           <Text style={styles.digit}>{digit}</Text>
         </View>
@@ -80,7 +84,7 @@ export function OtpInput({
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: 8,
     alignSelf: 'stretch',
   },
   hiddenInput: {
@@ -90,24 +94,28 @@ const styles = StyleSheet.create({
     opacity: 0,
   },
   box: {
-    width: 48,
-    height: 56,
-    borderRadius: radii.button,
-    borderWidth: 1,
-    borderColor: coreColors.border,
-    backgroundColor: coreColors.white,
+    flex: 1,
+    height: 58,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: userHomeColors.border,
+    backgroundColor: userHomeColors.lightBlue,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  boxFilled: {
+    backgroundColor: userHomeColors.surface,
+  },
   boxActive: {
-    borderColor: coreColors.brandBlue,
+    borderColor: userHomeColors.navy,
+    backgroundColor: userHomeColors.surface,
   },
   boxError: {
     borderColor: coreColors.error,
   },
   digit: {
     fontSize: 22,
-    fontWeight: '600',
-    color: coreColors.blackText,
+    fontWeight: '700',
+    color: userHomeColors.textPrimary,
   },
 });

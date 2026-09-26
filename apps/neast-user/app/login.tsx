@@ -1,30 +1,22 @@
 import { useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, ImageBackground, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { joinPhoneAccount } from '@neast/types';
-import {
-  Button,
-  coreColors,
-  CountryCodePicker,
-  GradientHeader,
-  PhoneField,
-  spacing,
-  textStyles,
-  Toast,
-  useUiTheme,
-} from '@neast/ui-mobile';
+import { Button, CountryCodePicker, PhoneField, Toast, userHomeColors } from '@neast/ui-mobile';
 
 import logo from '@assets/images/home/hone_logo.png';
+import metallicBackground from '@assets/images/home/neast-metallic-background.png';
 
 import { apiErrorMessage } from '@/lib/api';
 import { getCountryCodes, sendCode } from '@/lib/endpoints';
-import { Screen } from '@/components/Screen';
 
-/** Login (login_screen parity): phone OTP, country-code picker, default +60. */
+/** Login: phone OTP on the home metallic background, with a white sheet for the form. */
 export default function LoginRoute() {
-  const theme = useUiTheme();
+  const insets = useSafeAreaInsets();
   const [dialCode, setDialCode] = useState('+60');
   const [phone, setPhone] = useState(__DEV__ ? '111111111' : '');
   const [pickerVisible, setPickerVisible] = useState(false);
@@ -56,15 +48,25 @@ export default function LoginRoute() {
   const codes = (countryCodes.data ?? []).map((item) => item.code);
 
   return (
-    <Screen edges={[]}>
+    <View style={styles.container}>
+      <StatusBar style="light" />
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scroll}>
-        <GradientHeader colors={theme.gradients.header} style={styles.header}>
-          <Image source={logo} style={styles.logo} resizeMode="contain" />
-          <Text style={styles.headerTitle}>Welcome to NEAST</Text>
-          <Text style={styles.headerSubtitle}>Log in with your phone number</Text>
-        </GradientHeader>
+        <ImageBackground
+          source={metallicBackground}
+          resizeMode="cover"
+          style={[styles.hero, { paddingTop: insets.top + 20 }]}
+        >
+          <Image
+            source={logo}
+            style={styles.logo}
+            resizeMode="contain"
+            accessibilityLabel="NEAST"
+          />
+          <Text style={styles.title}>Welcome to NEAST</Text>
+          <Text style={styles.subtitle}>Log in with your phone number</Text>
+        </ImageBackground>
 
-        <View style={styles.form}>
+        <View style={[styles.sheet, { paddingBottom: insets.bottom + 24 }]}>
           <PhoneField
             label="Phone number"
             dialCode={dialCode}
@@ -75,12 +77,12 @@ export default function LoginRoute() {
             autoFocus
           />
           <Button
-            title="Send Code"
+            title="Send code"
             onPress={submit}
             loading={sendMutation.isPending}
+            size="large"
             style={styles.submit}
           />
-
           <Text style={styles.terms}>
             By continuing you agree to our{' '}
             <Text
@@ -112,47 +114,64 @@ export default function LoginRoute() {
         selectedCode={dialCode}
         onSelect={setDialCode}
       />
-    </Screen>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: userHomeColors.navy,
+  },
   scroll: {
     flexGrow: 1,
   },
-  header: {
-    alignItems: 'center',
-    paddingBottom: spacing.xxl,
+  hero: {
+    backgroundColor: userHomeColors.navy,
+    overflow: 'hidden',
+    paddingHorizontal: 24,
+    paddingBottom: 56,
   },
   logo: {
-    width: 120,
-    height: 44,
-    marginTop: spacing.xl,
+    width: 48,
+    height: 36,
+    marginBottom: 20,
   },
-  headerTitle: {
-    ...textStyles.heading1,
-    color: coreColors.white,
-    marginTop: spacing.lg,
+  title: {
+    color: userHomeColors.surface,
+    fontSize: 28,
+    lineHeight: 34,
+    fontWeight: '700',
+    letterSpacing: -0.6,
   },
-  headerSubtitle: {
-    ...textStyles.bodySmall,
-    color: coreColors.white,
-    opacity: 0.85,
-    marginTop: spacing.xs,
+  subtitle: {
+    color: userHomeColors.textOnNavyAlt,
+    fontSize: 15,
+    lineHeight: 22,
+    marginTop: 8,
   },
-  form: {
-    padding: spacing.lg,
-    gap: spacing.md,
+  sheet: {
+    flexGrow: 1,
+    marginTop: -28,
+    paddingHorizontal: 20,
+    paddingTop: 28,
+    gap: 16,
+    backgroundColor: userHomeColors.surface,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
   },
   submit: {
-    marginTop: spacing.sm,
+    borderRadius: 16,
   },
   terms: {
-    ...textStyles.caption,
+    color: userHomeColors.textSecondary,
+    fontSize: 12,
+    lineHeight: 18,
     textAlign: 'center',
-    marginTop: spacing.md,
+    marginTop: 8,
   },
   termsLink: {
-    color: coreColors.brandBlue,
+    color: userHomeColors.navy,
+    fontWeight: '600',
   },
 });
