@@ -111,21 +111,58 @@ export interface MonthOption {
   month: number;
 }
 
-/** Next 12 months starting from the current one (first-pay-month picker). */
-export function upcomingMonths(): MonthOption[] {
+function monthIndex({ year, month }: MonthOption): number {
+  return year * 12 + month - 1;
+}
+
+function monthFromIndex(index: number): MonthOption {
+  return { year: Math.floor(index / 12), month: (index % 12) + 1 };
+}
+
+export function currentMonth(): MonthOption {
   const now = new Date();
+  return { year: now.getFullYear(), month: now.getMonth() + 1 };
+}
+
+export function shiftMonth(value: MonthOption, delta: number): MonthOption {
+  return monthFromIndex(monthIndex(value) + delta);
+}
+
+function monthRange(from: MonthOption, to: MonthOption): MonthOption[] {
   const result: MonthOption[] = [];
-  let year = now.getFullYear();
-  let month = now.getMonth() + 1;
-  for (let i = 0; i < 12; i += 1) {
-    result.push({ year, month });
-    month += 1;
-    if (month === 13) {
-      month = 1;
-      year += 1;
-    }
+  for (let index = monthIndex(from); index <= monthIndex(to); index += 1) {
+    result.push(monthFromIndex(index));
   }
   return result;
+}
+
+export function clampMonth(value: MonthOption, months: MonthOption[]): MonthOption {
+  const first = months[0] as MonthOption;
+  const last = months[months.length - 1] as MonthOption;
+  const index = monthIndex(value);
+  if (index < monthIndex(first)) return first;
+  if (index > monthIndex(last)) return last;
+  return value;
+}
+
+/** Agreement start: 36 months before the current month through 36 months after. */
+export function agreementFromMonths(): MonthOption[] {
+  const current = currentMonth();
+  return monthRange(shiftMonth(current, -36), shiftMonth(current, 36));
+}
+
+/** Agreement end: from max(from, current month), spanning at most 36 Neast payments. */
+export function agreementToMonths(agreementFrom: MonthOption): MonthOption[] {
+  const current = currentMonth();
+  const start = monthIndex(agreementFrom) > monthIndex(current) ? agreementFrom : current;
+  return monthRange(start, shiftMonth(start, 35));
+}
+
+/** First Neast month: from max(agreement from, current month) through the agreement end. */
+export function firstPayMonths(agreementFrom: MonthOption, agreementTo: MonthOption): MonthOption[] {
+  const current = currentMonth();
+  const start = monthIndex(agreementFrom) > monthIndex(current) ? agreementFrom : current;
+  return monthRange(start, agreementTo);
 }
 
 export function monthOptionLabel({ year, month }: MonthOption): string {

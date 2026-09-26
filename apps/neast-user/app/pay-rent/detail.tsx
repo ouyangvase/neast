@@ -27,7 +27,7 @@ function monthFromPeriod(rentalPeriod: string): number | null {
   return month || null;
 }
 
-/** Lease months (`first_pay_month` + `lease_months`) that fall in `year`. */
+/** NEAST payment months (`first_pay_month` + `lease_months`) that fall in `year`. */
 function leaseMonthsInYear(firstPayMonth: string, leaseMonths: number, year: number): number[] {
   const [startYear, startMonth] = firstPayMonth.split('-').map(Number);
   const months: number[] = [];

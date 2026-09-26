@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { DAY_OPTIONS, LEASE_MONTH_OPTIONS } from '@neast/constant';
+import { DAY_OPTIONS } from '@neast/constant';
 import {
   BottomSheet,
   Button,
@@ -19,7 +19,18 @@ import {
   userHomeColors,
 } from '@neast/ui-mobile';
 
-import { monthOptionLabel, monthOptionValue, ordinalDay, upcomingMonths } from '@/lib/format';
+import {
+  agreementFromMonths,
+  agreementToMonths,
+  clampMonth,
+  currentMonth,
+  firstPayMonths,
+  monthOptionLabel,
+  monthOptionValue,
+  ordinalDay,
+  shiftMonth,
+  type MonthOption,
+} from '@/lib/format';
 import { pickDocumentFile, pickImageFile } from '@/lib/pickers';
 import { useFileUpload } from '@/hooks/use-upload';
 
@@ -27,17 +38,31 @@ export interface TenancyFormValues {
   amount: string;
   file: string;
   paid_at: string;
+  /** `Y-m`. */
+  agreement_start: string;
+  /** `Y-m`. */
+  agreement_end: string;
+  /** `Y-m`. */
   first_pay_month: string;
-  lease_months: number;
 }
 
 export interface TenancyFormInitial {
   amount: string;
   paidAt: number;
   /** `Y-m`. */
+  agreementStart: string;
+  /** `Y-m`. */
+  agreementEnd: string;
+  /** `Y-m`. */
   firstPayMonth: string;
-  leaseMonths: number;
   file: string;
+}
+
+function parseYearMonth(value: string): MonthOption {
+  return {
+    year: Number(value.slice(0, 4)),
+    month: Number(value.slice(5, 7)),
+  };
 }
 
 /** Shared rent fields, agreement upload, and footer submit for both add-tenancy pages. */
@@ -56,27 +81,47 @@ export function TenancyForm({
 }) {
   const insets = useSafeAreaInsets();
   const upload = useFileUpload();
-  const now = new Date();
+  const today = currentMonth();
+  const startingFrom = clampMonth(
+    initial ? parseYearMonth(initial.agreementStart) : today,
+    agreementFromMonths(),
+  );
+  const startingTo = clampMonth(
+    initial ? parseYearMonth(initial.agreementEnd) : shiftMonth(today, 11),
+    agreementToMonths(startingFrom),
+  );
   const [amount, setAmount] = useState(initial?.amount ?? '');
   const [payDay, setPayDay] = useState(initial?.paidAt ?? 1);
+  const [agreementFrom, setAgreementFrom] = useState(startingFrom);
+  const [agreementTo, setAgreementTo] = useState(startingTo);
   const [firstPayMonth, setFirstPayMonth] = useState(
-    initial
-      ? {
-          year: Number(initial.firstPayMonth.slice(0, 4)),
-          month: Number(initial.firstPayMonth.slice(5, 7)),
-        }
-      : { year: now.getFullYear(), month: now.getMonth() + 1 },
+    clampMonth(
+      initial ? parseYearMonth(initial.firstPayMonth) : today,
+      firstPayMonths(startingFrom, startingTo),
+    ),
   );
-  const [leaseMonths, setLeaseMonths] = useState(initial?.leaseMonths ?? 12);
   const [agreementPath, setAgreementPath] = useState<string | null>(initial?.file ?? null);
   const [agreementName, setAgreementName] = useState<string | null>(
     initial ? initial.file.slice(initial.file.lastIndexOf('/') + 1) : null,
   );
 
   const [dayPickerVisible, setDayPickerVisible] = useState(false);
+  const [fromPickerVisible, setFromPickerVisible] = useState(false);
+  const [toPickerVisible, setToPickerVisible] = useState(false);
   const [monthPickerVisible, setMonthPickerVisible] = useState(false);
-  const [leasePickerVisible, setLeasePickerVisible] = useState(false);
   const [agreementPickerVisible, setAgreementPickerVisible] = useState(false);
+
+  const selectAgreementFrom = (value: MonthOption) => {
+    const nextTo = clampMonth(agreementTo, agreementToMonths(value));
+    setAgreementFrom(value);
+    setAgreementTo(nextTo);
+    setFirstPayMonth(clampMonth(firstPayMonth, firstPayMonths(value, nextTo)));
+  };
+
+  const selectAgreementTo = (value: MonthOption) => {
+    setAgreementTo(value);
+    setFirstPayMonth(clampMonth(firstPayMonth, firstPayMonths(agreementFrom, value)));
+  };
 
   const pickAgreement = async (source: 'image' | 'document') => {
     const file = source === 'image' ? await pickImageFile() : await pickDocumentFile();
@@ -103,8 +148,9 @@ export function TenancyForm({
       amount,
       file,
       paid_at: String(payDay),
+      agreement_start: monthOptionValue(agreementFrom),
+      agreement_end: monthOptionValue(agreementTo),
       first_pay_month: monthOptionValue(firstPayMonth),
-      lease_months: leaseMonths,
     });
   };
 
@@ -129,14 +175,19 @@ export function TenancyForm({
             onPress={() => setDayPickerVisible(true)}
           />
           <SelectField
-            label="First payment month"
-            value={monthOptionLabel(firstPayMonth)}
-            onPress={() => setMonthPickerVisible(true)}
+            label="Agreement from"
+            value={monthOptionLabel(agreementFrom)}
+            onPress={() => setFromPickerVisible(true)}
           />
           <SelectField
-            label="Lease duration"
-            value={`${leaseMonths} months`}
-            onPress={() => setLeasePickerVisible(true)}
+            label="Agreement to"
+            value={monthOptionLabel(agreementTo)}
+            onPress={() => setToPickerVisible(true)}
+          />
+          <SelectField
+            label="First payment month on NEAST"
+            value={monthOptionLabel(firstPayMonth)}
+            onPress={() => setMonthPickerVisible(true)}
           />
           {__DEV__ ? null : (
             <SelectField
@@ -197,31 +248,31 @@ export function TenancyForm({
       </BottomSheet>
 
       <MonthPicker
+        visible={fromPickerVisible}
+        onClose={() => setFromPickerVisible(false)}
+        onSelect={selectAgreementFrom}
+        selected={agreementFrom}
+        months={agreementFromMonths()}
+        title="Agreement from"
+      />
+
+      <MonthPicker
+        visible={toPickerVisible}
+        onClose={() => setToPickerVisible(false)}
+        onSelect={selectAgreementTo}
+        selected={agreementTo}
+        months={agreementToMonths(agreementFrom)}
+        title="Agreement to"
+      />
+
+      <MonthPicker
         visible={monthPickerVisible}
         onClose={() => setMonthPickerVisible(false)}
         onSelect={setFirstPayMonth}
         selected={firstPayMonth}
-        months={upcomingMonths()}
-        title="First payment month"
+        months={firstPayMonths(agreementFrom, agreementTo)}
+        title="First payment month on NEAST"
       />
-
-      <BottomSheet
-        visible={leasePickerVisible}
-        onClose={() => setLeasePickerVisible(false)}
-        title="Lease duration"
-      >
-        {LEASE_MONTH_OPTIONS.map((months) => (
-          <PickerOption
-            key={months}
-            label={`${months} months`}
-            selected={months === leaseMonths}
-            onPress={() => {
-              setLeaseMonths(months);
-              setLeasePickerVisible(false);
-            }}
-          />
-        ))}
-      </BottomSheet>
 
       <BottomSheet
         visible={agreementPickerVisible}

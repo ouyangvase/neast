@@ -240,17 +240,14 @@ class RentService
             throw new AppException('Landlord bank information is required for approval');
         }
 
-        $leaseMonths = (int) ($params['lease_months'] ?? 0);
-        if ($leaseMonths < 1) {
+        $leaseMonths = (int) $rent->lease_months;
+        if ($leaseMonths < 1 || $rent->first_pay_month === null) {
             throw new AppException('Lease term must be at least 1 month');
         }
 
         $schedule = $this->buildPaymentSchedule($rent, $leaseMonths);
 
         $propertyId = (int) ($params['property_id'] ?? 0);
-        $createdAt = $rent->created_at !== null
-            ? Carbon::parse((string) $rent->created_at)
-            : null;
 
         Db::transaction(function () use (
             $rent,
@@ -258,9 +255,7 @@ class RentService
             $landlordBankAccount,
             $landlordAccountName,
             $propertyId,
-            $leaseMonths,
-            $schedule,
-            $createdAt
+            $schedule
         ) {
             if (RentHistoryModel::query()->where('rent_id', $rent->id)->exists()) {
                 throw new AppException('Payment schedule already exists');
@@ -278,8 +273,6 @@ class RentService
             $rent->landlord_bank = $landlordBank;
             $rent->landlord_bank_account = $landlordBankAccount;
             $rent->landlord_account_name = $landlordAccountName;
-            $rent->lease_months = $leaseMonths;
-            $rent->expire_date = $this->calculateExpireDate($leaseMonths, $createdAt);
             $rent->status = RentModel::STATUS_APPROVED;
             if ((int) ($rent->property_id ?? 0) > 0) {
                 $rent->link_status = RentModel::LINK_APPROVED;
@@ -394,14 +387,14 @@ class RentService
      *
      * @return array<string, mixed>
      */
-    public function paymentSchedulePreview(int $id, ?int $leaseMonths = null): array
+    public function paymentSchedulePreview(int $id): array
     {
         $rent = $this->findOrFail($id);
         if ((int) $rent->status !== RentModel::STATUS_PENDING) {
             throw new AppException('Only pending records can be previewed');
         }
 
-        $months = $leaseMonths ?? (int) $rent->lease_months;
+        $months = (int) $rent->lease_months;
         if ($months < 1) {
             throw new AppException('Lease term must be at least 1 month');
         }
@@ -468,15 +461,7 @@ class RentService
         }
 
         $paidAt = $this->normalizePaidDay($params['paid_at'] ?? 0);
-        $firstPayMonth = $this->normalizeFirstPayMonth(
-            trim((string) ($params['first_pay_month'] ?? '')),
-            $paidAt
-        );
-
-        $leaseMonths = (int) ($params['lease_months'] ?? 0);
-        if ($leaseMonths < 1) {
-            throw new AppException('Lease term must be at least 1 month');
-        }
+        $terms = $this->resolveTenancyTerms($params);
 
         $alreadyHasTenancy = RentModel::query()
             ->where('user_id', $userId)
@@ -491,9 +476,7 @@ class RentService
         $rent->amount = $amount;
         $rent->file = $file;
         $rent->paid_at = $paidAt;
-        $rent->first_pay_month = $firstPayMonth;
-        $rent->lease_months = $leaseMonths;
-        $rent->expire_date = $this->calculateExpireDate($leaseMonths);
+        $this->applyTenancyTerms($rent, $terms);
 
         $propertyId = (int) ($params['property_id'] ?? 0);
         if ($propertyId > 0) {
@@ -559,12 +542,7 @@ class RentService
         }
 
         $paidAt = $this->normalizePaidDay($params['paid_at']);
-        $submittedMonth = (string) $params['first_pay_month'];
-        $storedDate = $rent->first_pay_month->format('Y-m-d');
-        $firstPayMonth = $submittedMonth === substr($storedDate, 0, 7)
-            ? $storedDate
-            : $this->normalizeFirstPayMonth($submittedMonth, $paidAt);
-        $leaseMonths = (int) $params['lease_months'];
+        $terms = $this->resolveTenancyTerms($params);
         $propertyChanged = false;
 
         if ((int) $rent->property_id > 0) {
@@ -597,9 +575,7 @@ class RentService
         $rent->amount = $params['amount'];
         $rent->file = (string) $params['file'];
         $rent->paid_at = $paidAt;
-        $rent->first_pay_month = $firstPayMonth;
-        $rent->lease_months = $leaseMonths;
-        $rent->expire_date = $this->calculateExpireDate($leaseMonths, Carbon::parse((string) $rent->created_at));
+        $this->applyTenancyTerms($rent, $terms);
 
         if ($propertyChanged) {
             $rent->status = RentModel::STATUS_PENDING;
@@ -813,6 +789,8 @@ class RentService
             'file' => $file,
             'file_url' => file_url($file),
             'paid_at' => $rent->paid_at,
+            'agreement_start' => $rent->agreement_start?->format('Y-m') ?? '',
+            'agreement_end' => $rent->agreement_end?->format('Y-m') ?? '',
             'first_pay_month' => $rent->first_pay_month?->format('Y-m') ?? '',
             'lease_months' => (int) ($rent->lease_months ?? 0),
             'expire_date' => $rent->expire_date?->format('Y-m-d') ?? '',
@@ -848,6 +826,8 @@ class RentService
             'amount' => $rent->amount,
             'file' => $rent->file,
             'paid_at' => $rent->paid_at,
+            'agreement_start' => $rent->agreement_start?->format('Y-m') ?? '',
+            'agreement_end' => $rent->agreement_end?->format('Y-m') ?? '',
             'first_pay_month' => $rent->first_pay_month?->format('Y-m') ?? '',
             'lease_months' => (int) ($rent->lease_months ?? 0),
             'expire_date' => $rent->expire_date?->format('Y-m-d') ?? '',
@@ -877,6 +857,8 @@ class RentService
         $file = (string) ($rent->file ?? '');
         $data['file'] = $file;
         $data['file_url'] = file_url($file);
+        $data['agreement_start'] = $rent->agreement_start?->format('Y-m') ?? '';
+        $data['agreement_end'] = $rent->agreement_end?->format('Y-m') ?? '';
         $data['first_pay_month'] = $rent->first_pay_month?->format('Y-m') ?? '';
         $data['property_name'] = $this->resolvePropertyName($rent);
         $data['property_address'] = $rent->property?->address ?? '';
@@ -949,6 +931,8 @@ class RentService
             'property_address' => $propertyAddress,
             'amount' => $amount,
             'paid_at' => (int) ($rent->paid_at ?? 0),
+            'agreement_start' => $rent->agreement_start?->format('Y-m') ?? '',
+            'agreement_end' => $rent->agreement_end?->format('Y-m') ?? '',
             'first_pay_month' => $rent->first_pay_month?->format('Y-m') ?? '',
             'lease_months' => (int) ($rent->lease_months ?? 0),
             'expire_date' => $rent->expire_date?->format('Y-m-d') ?? '',
@@ -979,43 +963,45 @@ class RentService
         return $day;
     }
 
-    private function normalizeFirstPayMonth(string $value, int $paidAt): string
+    /**
+     * @param array<string, mixed> $params
+     * @return array{agreement_start: string, agreement_end: string, first_pay_month: string, lease_months: int, expire_date: string}
+     */
+    private function resolveTenancyTerms(array $params): array
     {
-        if ($value === '' || ! preg_match('/^\d{4}-\d{2}$/', $value)) {
-            throw new AppException('Invalid first pay month');
-        }
+        $agreementStart = $this->monthStart((string) $params['agreement_start']);
+        $agreementEnd = $this->monthStart((string) $params['agreement_end']);
+        $firstPayMonth = $this->monthStart((string) $params['first_pay_month']);
 
-        [$year, $month] = array_map('intval', explode('-', $value));
-        if ($month < 1 || $month > 12) {
-            throw new AppException('Invalid first pay month');
-        }
+        $leaseMonths = ($agreementEnd->year - $firstPayMonth->year) * 12
+            + ($agreementEnd->month - $firstPayMonth->month)
+            + 1;
 
-        $today = Carbon::now();
-        $currentMonth = $today->copy()->startOfMonth();
-        $nextMonth = $currentMonth->copy()->addMonth();
-        $target = Carbon::create($year, $month, 1)->startOfMonth();
-
-        if ($paidAt > $today->day) {
-            $allowed = [$currentMonth->format('Y-m'), $nextMonth->format('Y-m')];
-        } else {
-            $allowed = [$nextMonth->format('Y-m')];
-        }
-
-        if (! in_array($target->format('Y-m'), $allowed, true)) {
-            throw new AppException('Invalid first pay month for the selected pay date');
-        }
-
-        return $target->format('Y-m-d');
+        return [
+            'agreement_start' => $agreementStart->format('Y-m-d'),
+            'agreement_end' => $agreementEnd->format('Y-m-d'),
+            'first_pay_month' => $firstPayMonth->format('Y-m-d'),
+            'lease_months' => $leaseMonths,
+            'expire_date' => $agreementEnd->copy()->endOfMonth()->format('Y-m-d'),
+        ];
     }
 
-    private function calculateExpireDate(int $leaseMonths, ?Carbon $createdAt = null): string
+    private function monthStart(string $value): Carbon
     {
-        $created = ($createdAt ?? Carbon::now())->copy()->startOfDay();
-        $day = $created->day;
-        $target = $created->copy()->startOfMonth()->addMonths($leaseMonths);
-        $lastDay = $target->copy()->endOfMonth()->day;
-        $target->day(min($day, $lastDay));
+        [$year, $month] = array_map('intval', explode('-', $value));
 
-        return $target->format('Y-m-d');
+        return Carbon::create($year, $month, 1)->startOfMonth();
+    }
+
+    /**
+     * @param array{agreement_start: string, agreement_end: string, first_pay_month: string, lease_months: int, expire_date: string} $terms
+     */
+    private function applyTenancyTerms(RentModel $rent, array $terms): void
+    {
+        $rent->agreement_start = $terms['agreement_start'];
+        $rent->agreement_end = $terms['agreement_end'];
+        $rent->first_pay_month = $terms['first_pay_month'];
+        $rent->lease_months = $terms['lease_months'];
+        $rent->expire_date = $terms['expire_date'];
     }
 }

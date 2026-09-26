@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 
-import { VOUCHER_STATUS_TABS } from '@neast/constant';
-import type { UserCouponItem, VoucherStatus } from '@neast/types';
+import { COUPON_STATUS_TABS } from '@neast/constant';
+import type { CouponStatus, UserCouponItem } from '@neast/types';
 import { coreColors, RefreshList, spacing, textStyles, userHomeColors } from '@neast/ui-mobile';
 
 import { getMyCoupons } from '@/lib/endpoints';
@@ -13,9 +13,9 @@ import { CouponCard, CouponQrDialog, useCouponActions } from '@/features/coupon/
 import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 
-/** My vouchers (my_vouchers_screen parity): active / used / expired tabs. */
-export default function MyVouchersRoute() {
-  const [status, setStatus] = useState<VoucherStatus>('active');
+/** My coupons: active / used / expired tabs. */
+export default function MyCouponsRoute() {
+  const [status, setStatus] = useState<CouponStatus>('active');
   const couponActions = useCouponActions();
 
   const list = usePaginatedList(
@@ -25,7 +25,7 @@ export default function MyVouchersRoute() {
   );
 
   const handlePress = (item: UserCouponItem) => {
-    if (item.voucher_status === 'active') {
+    if (item.coupon_status === 'active') {
       couponActions.showQr(item);
       return;
     }
@@ -35,9 +35,9 @@ export default function MyVouchersRoute() {
 
   return (
     <Screen edges={[]}>
-      <PageHeader title="My Vouchers" />
+      <PageHeader title="My Coupons" />
       <View style={styles.tabs}>
-        {VOUCHER_STATUS_TABS.map((tab) => (
+        {COUPON_STATUS_TABS.map((tab) => (
           <Pressable
             key={tab.key}
             style={[styles.tab, status === tab.key && styles.tabActive]}
@@ -58,8 +58,8 @@ export default function MyVouchersRoute() {
         onLoadMore={list.loadMore}
         hasMore={list.hasMore}
         loadingMore={list.loadingMore}
-        emptyTitle={`No ${status} vouchers`}
-        emptyMessage="Redeem vouchers with your points from the catalog."
+        emptyTitle={`No ${status} coupons`}
+        emptyMessage="Redeem coupons with your points from the catalog."
         contentContainerStyle={styles.listContent}
         renderItem={({ item }) => <CouponCard coupon={item} onPress={() => handlePress(item)} />}
       />
@@ -68,6 +68,7 @@ export default function MyVouchersRoute() {
         visible={!!couponActions.qrCoupon}
         onClose={couponActions.closeQr}
       />
+      {couponActions.redeemDialog}
     </Screen>
   );
 }

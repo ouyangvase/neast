@@ -84,8 +84,9 @@ export default function ConnectTenancyRoute() {
             ? {
                 amount: editing.amount,
                 paidAt: Number(editing.paid_at),
+                agreementStart: editing.agreement_start,
+                agreementEnd: editing.agreement_end,
                 firstPayMonth: editing.first_pay_month,
-                leaseMonths: editing.lease_months,
                 file: editing.file,
               }
             : undefined

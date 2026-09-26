@@ -12,8 +12,9 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQueries, useQuery } from '@tanstack/react-query';
 
-import { useIsLoggedIn, type UserCouponItem, type VoucherStatus } from '@neast/types';
+import { useIsLoggedIn, type CouponStatus, type UserCouponItem } from '@neast/types';
 import {
+  CouponCard,
   EmptyState,
   radii,
   RewardCard,
@@ -21,8 +22,7 @@ import {
   spacing,
   textStyles,
   userHomeColors,
-  VoucherCard,
-  type VoucherCardStatus,
+  type CouponCardStatus,
 } from '@neast/ui-mobile';
 
 import metallicBackground from '@assets/images/home/neast-metallic-background.png';
@@ -32,22 +32,22 @@ import { useSelectionStore } from '@/stores/selection';
 import { CouponQrDialog, useCouponActions } from '@/features/coupon/components';
 import { PointsSummaryCard } from './components/PointsSummaryCard';
 
-type VoucherFilter = 'All' | VoucherCardStatus;
+type CouponFilter = 'All' | CouponCardStatus;
 
-/** Reward tab: points, tier, featured merchant vouchers, and my vouchers. */
+/** Reward tab: points, tier, featured merchant coupons, and my coupons. */
 export function RewardTab() {
   const insets = useSafeAreaInsets();
   const isLoggedIn = useIsLoggedIn();
   const setCoupon = useSelectionStore((state) => state.setCoupon);
   const couponActions = useCouponActions();
-  const [voucherFilter, setVoucherFilter] = useState<VoucherFilter>('All');
+  const [couponFilter, setCouponFilter] = useState<CouponFilter>('All');
 
   const dashboard = useQuery({
     queryKey: ['reward-dashboard'],
     queryFn: () => getRewardDashboard(null),
   });
 
-  const voucherQueries = useQueries({
+  const couponQueries = useQueries({
     queries: (['active', 'used', 'expired'] as const).map((status) => ({
       queryKey: ['my-coupons', 'preview', status],
       queryFn: () => getMyCoupons(1, 4, status),
@@ -59,23 +59,23 @@ export function RewardTab() {
   const featured = data?.featuredRewards
     .filter((coupon) => coupon.merchant_names.length > 0)
     .slice(0, 2);
-  const vouchersByStatus = {
-    Active: voucherQueries[0]?.data?.items ?? [],
-    Used: voucherQueries[1]?.data?.items ?? [],
-    Expired: voucherQueries[2]?.data?.items ?? [],
+  const couponsByStatus = {
+    Active: couponQueries[0]?.data?.items ?? [],
+    Used: couponQueries[1]?.data?.items ?? [],
+    Expired: couponQueries[2]?.data?.items ?? [],
   };
-  const visibleVouchers = (
-    voucherFilter === 'All'
-      ? [...vouchersByStatus.Active, ...vouchersByStatus.Used, ...vouchersByStatus.Expired]
-      : vouchersByStatus[voucherFilter]
+  const visibleCoupons = (
+    couponFilter === 'All'
+      ? [...couponsByStatus.Active, ...couponsByStatus.Used, ...couponsByStatus.Expired]
+      : couponsByStatus[couponFilter]
   ).slice(0, 4);
-  const hasVouchers =
-    vouchersByStatus.Active.length + vouchersByStatus.Used.length + vouchersByStatus.Expired.length >
+  const hasCoupons =
+    couponsByStatus.Active.length + couponsByStatus.Used.length + couponsByStatus.Expired.length >
     0;
-  const vouchersPending = voucherQueries.some((query) => query.isLoading);
+  const couponsPending = couponQueries.some((query) => query.isLoading);
 
-  const openVoucher = (item: UserCouponItem) => {
-    if (item.voucher_status === 'active') {
+  const openCoupon = (item: UserCouponItem) => {
+    if (item.coupon_status === 'active') {
       couponActions.showQr(item);
       return;
     }
@@ -89,12 +89,12 @@ export function RewardTab() {
         refreshControl={
           <RefreshControl
             refreshing={
-              dashboard.isRefetching || voucherQueries.some((query) => query.isRefetching)
+              dashboard.isRefetching || couponQueries.some((query) => query.isRefetching)
             }
             onRefresh={() => {
               void dashboard.refetch();
               if (!isLoggedIn) return;
-              for (const query of voucherQueries) {
+              for (const query of couponQueries) {
                 void query.refetch();
               }
             }}
@@ -150,7 +150,7 @@ export function RewardTab() {
             ) : data ? (
               <EmptyState
                 title="No featured rewards"
-                message="Redeemable vouchers appear here."
+                message="Redeemable coupons appear here."
                 messageStyle={styles.emptyMessage}
               />
             ) : null}
@@ -158,26 +158,26 @@ export function RewardTab() {
 
           <View>
             <SectionHeader
-              title="My Vouchers"
+              title="My Coupons"
               titleStyle={styles.sectionTitle}
               actionLabel="View all"
               onActionPress={() =>
-                router.push(isLoggedIn ? '/coupon/my-vouchers' : '/login')
+                router.push(isLoggedIn ? '/coupon/my-coupons' : '/login')
               }
             />
-            {hasVouchers ? (
+            {hasCoupons ? (
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.chips}
               >
                 {(['All', 'Active', 'Used', 'Expired'] as const).map((filter) => {
-                  const selected = voucherFilter === filter;
+                  const selected = couponFilter === filter;
                   return (
                     <Pressable
                       key={filter}
                       accessibilityRole="button"
-                      onPress={() => setVoucherFilter(filter)}
+                      onPress={() => setCouponFilter(filter)}
                       style={[styles.chip, selected && styles.chipActive]}
                     >
                       <Text style={[styles.chipText, selected && styles.chipTextActive]}>
@@ -188,27 +188,27 @@ export function RewardTab() {
                 })}
               </ScrollView>
             ) : null}
-            {vouchersPending ? null : visibleVouchers.length > 0 ? (
-              <View style={styles.voucherList}>
-                {visibleVouchers.map((item) => (
-                  <VoucherCard
+            {couponsPending ? null : visibleCoupons.length > 0 ? (
+              <View style={styles.couponList}>
+                {visibleCoupons.map((item) => (
+                  <CouponCard
                     key={item.user_coupon_id}
                     title={item.name}
                     merchant={item.merchant_names.join(' · ')}
-                    status={voucherStatusLabel(item.voucher_status)}
+                    status={couponStatusLabel(item.coupon_status)}
                     image={item.image ? { uri: item.image } : undefined}
-                    onPress={() => openVoucher(item)}
+                    onPress={() => openCoupon(item)}
                   />
                 ))}
               </View>
             ) : (
               <EmptyState
                 title={
-                  voucherFilter === 'All'
-                    ? 'No vouchers'
-                    : `No ${voucherFilter.toLowerCase()} vouchers`
+                  couponFilter === 'All'
+                    ? 'No coupons'
+                    : `No ${couponFilter.toLowerCase()} coupons`
                 }
-                message="Redeem vouchers with your points from the catalog."
+                message="Redeem coupons with your points from the catalog."
                 messageStyle={styles.emptyMessage}
               />
             )}
@@ -220,11 +220,12 @@ export function RewardTab() {
         visible={!!couponActions.qrCoupon}
         onClose={couponActions.closeQr}
       />
+      {couponActions.redeemDialog}
     </View>
   );
 }
 
-function voucherStatusLabel(status: VoucherStatus): VoucherCardStatus {
+function couponStatusLabel(status: CouponStatus): CouponCardStatus {
   if (status === 'used') return 'Used';
   if (status === 'expired') return 'Expired';
   return 'Active';
@@ -314,7 +315,7 @@ const styles = StyleSheet.create({
   chipTextActive: {
     color: userHomeColors.surface,
   },
-  voucherList: {
+  couponList: {
     paddingHorizontal: spacing.lg,
     gap: spacing.sm,
   },

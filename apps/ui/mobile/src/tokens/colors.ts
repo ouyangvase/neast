@@ -17,7 +17,7 @@ export const coreColors = {
   /** Primary text (dark slate, not pure black). */
   blackText: '#0F172A',
   /** Error / overdue / destructive. */
-  error: '#FF4444',
+  error: '#E03C3C',
 
   // Secondary / hint text
   textSecondary: '#666666',

@@ -54,7 +54,7 @@ App-level wrappers live in `src/lib/endpoints.ts`; upload/refresh/push are insid
 | 16  | `GET /landlord/record/list?year&month&page&limit` | `getRecordList`               | `RecordsTab` (MonthPicker + `amount_sum`)           |
 | 17  | `GET /landlord/info`                       | `getLandlordInfo`                    | `AccountTab`, `AddPropertyGate`, `bank-detail.tsx`  |
 | 18  | `POST /landlord/bank-detail`               | `updateBankDetail`                   | `bank-detail.tsx`                                   |
-| 19  | `POST /landlord/delete-account`            | `deleteAccount`                      | `AccountTab` (10s CountdownConfirmDialog)           |
+| 19  | `POST /landlord/delete-account`            | `deleteAccount`                      | `AccountTab` (ConfirmDialog, 10s countdown)         |
 | 20  | `GET /landlord/message/list?page&limit`    | `getMessages`                        | `notification.tsx`                                  |
 | 21  | `POST /landlord/message/read-all`          | `markAllMessagesRead`                | `notification.tsx`                                  |
 | 22  | `GET /landlord/agreement/detail?title=`    | `getAgreement`                       | `rich-text.tsx`                                     |

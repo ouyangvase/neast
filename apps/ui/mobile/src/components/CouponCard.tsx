@@ -5,24 +5,24 @@ import { radii, spacing } from '@ui/tokens/layout';
 import { Chevron } from './Chevron';
 import { StatusTag, type StatusTagStatus } from './StatusTag';
 
-export type VoucherCardStatus = 'Active' | 'Used' | 'Expired';
+export type CouponCardStatus = 'Active' | 'Used' | 'Expired';
 
-export interface VoucherCardProps {
+export interface CouponCardProps {
   title: string;
   merchant: string;
-  status: VoucherCardStatus;
+  status: CouponCardStatus;
   image?: ImageSourcePropType;
   onPress?: () => void;
 }
 
-const STATUS_TONE: Record<VoucherCardStatus, StatusTagStatus> = {
+const STATUS_TONE: Record<CouponCardStatus, StatusTagStatus> = {
   Active: 'success',
   Used: 'cancelled',
   Expired: 'overdue',
 };
 
-/** Surface row for a voucher the user already holds. */
-export function VoucherCard({ title, merchant, status, image, onPress }: VoucherCardProps) {
+/** Surface row for a coupon the user already holds. */
+export function CouponCard({ title, merchant, status, image, onPress }: CouponCardProps) {
   return (
     <Pressable
       accessibilityRole="button"

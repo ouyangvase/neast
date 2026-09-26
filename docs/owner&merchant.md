@@ -171,7 +171,7 @@ Byte-for-byte the same as owner except `_refreshPath = '/merchant/auth/refresh-t
 | `/invoice` | invoice | `InvoiceScreen` | stub (see §11) |
 | `/transaction-history` | transactionHistory | `TransactionHistoryScreen` | |
 | `/scanner` | scanner | `QrScannerScreen` | full-screen scanner, returns String via `context.push<String>` |
-| `/redeem-voucher` | redeemVoucher | `RedeemVoucherScreen` | `extra`: `RedeemVoucherRouteArgs {preview, code}` |
+| `/redeem-coupon` | redeemCoupon | `RedeemCouponScreen` | `extra`: `RedeemCouponRouteArgs {preview, code}` |
 
 ### Theme
 - `core/theme/app_colors.dart` — same as owner plus `brandBlueLight = 0xFF234FA5`.
@@ -194,14 +194,14 @@ Only one: `core/widgets/app_refresher.dart` — same `AppRefresher` as owner but
 - `models/sms_scene_enum.dart` — **dead code** (copied from a member app; never referenced).
 
 ### scan (tab 1, default tab)
-- `pages/scan_screen.dart`: idle page with tap-to-scan frame, "Manual" (6-char voucher code dialog, regex `^[A-Z0-9]{6}$`, auto-uppercase) and "Photos" (gallery QR via `scan_gallery_util.dart`) actions, outlet info card. Any code (scanned or manual) → `POST /merchant/coupon/verify {code}` → push `/redeem-voucher`.
+- `pages/scan_screen.dart`: idle page with tap-to-scan frame, "Manual" (6-char coupon code dialog, regex `^[A-Z0-9]{6}$`, auto-uppercase) and "Photos" (gallery QR via `scan_gallery_util.dart`) actions, outlet info card. Any code (scanned or manual) → `POST /merchant/coupon/verify {code}` → push `/redeem-coupon`.
 - `pages/qr_scanner_screen.dart`: full-screen `mobile_scanner` scanner w/ scan-line animation + gallery pick; returns raw string.
 - `utils/qr_scanner_launcher.dart` (`openQrScanner` — camera permission gate via `CameraPermissionUtil`, then push `/scanner`), `utils/scan_gallery_util.dart` (`pickQrFromGallery`).
-- `redeem/utils/voucher_code_util.dart`: manual SN pattern `^[A-Z0-9]{6}$`; also `isRedeemToken` pattern `^[a-f0-9]{32}$` (defined, not used in the scan path).
+- `redeem/utils/coupon_code_util.dart`: manual SN pattern `^[A-Z0-9]{6}$`; also `isRedeemToken` pattern `^[a-f0-9]{32}$` (defined, not used in the scan path).
 
 ### redeem
-- `pages/redeem_voucher_screen.dart` ("Confirm Redeem": voucher card, detail card, valid banner, confirm).
-- `services/redeem_service.dart`: `POST /merchant/coupon/verify` `{code}`; `POST /merchant/coupon/redeem` `{code}`. Model: `RedeemVoucherPreviewModel`.
+- `pages/redeem_coupon_screen.dart` ("Confirm Redeem": coupon card, detail card, valid banner, confirm).
+- `services/redeem_service.dart`: `POST /merchant/coupon/verify` `{code}`; `POST /merchant/coupon/redeem` `{code}`. Model: `RedeemCouponPreviewModel`.
 
 ### give_points (tab 2)
 - Screens: `pages/give_points_screen.dart` (header, today stats card, receipt card, earn-rule card, outlet card → `/daily-closing`), `pages/receipt_details_screen.dart` (Step 1: receipt number, amount, notes; live points preview from points setting; retake), `pages/confirm_points_screen.dart` (Step 2: identify customer by **phone input or customer QR scan**, then confirm).
@@ -264,9 +264,9 @@ Email + password only: `POST /merchant/auth/login` `{account, password}` → `{m
 Same as owner: register `POST /merchant/push/add-fcm-token` `{token, platform: 'ios'|'android'}`, unregister `POST /merchant/push/delete-fcm-token` `{token}`; background handler logs only; Android foreground shows local notification channel `high_importance_channel`.
 
 ## 5. QR (merchant)
-- Scans **user/coupon QR** in two places: scan tab (any QR content → treated as voucher code → `/merchant/coupon/verify`) and give-points confirm (`{"user_id": N}` JSON → `/merchant/give-points/customer`).
-- Voucher codes: scanned raw string, or manual 6-char `[A-Z0-9]`; a 32-char hex "redeem token" pattern exists in `voucher_code_util.dart` but is unused in the flow.
-- Files: `scan/pages/scan_screen.dart`, `scan/pages/qr_scanner_screen.dart`, `scan/utils/qr_scanner_launcher.dart`, `scan/utils/scan_gallery_util.dart`, `redeem/utils/voucher_code_util.dart`, `give_points/widgets/confirm_points_customer_card.dart`.
+- Scans **user/coupon QR** in two places: scan tab (any QR content → treated as coupon code → `/merchant/coupon/verify`) and give-points confirm (`{"user_id": N}` JSON → `/merchant/give-points/customer`).
+- Coupon codes: scanned raw string, or manual 6-char `[A-Z0-9]`; a 32-char hex "redeem token" pattern exists in `coupon_code_util.dart` but is unused in the flow.
+- Files: `scan/pages/scan_screen.dart`, `scan/pages/qr_scanner_screen.dart`, `scan/utils/qr_scanner_launcher.dart`, `scan/utils/scan_gallery_util.dart`, `redeem/utils/coupon_code_util.dart`, `give_points/widgets/confirm_points_customer_card.dart`.
 
 ## 6. WebView Fiuu H5 flow (merchant only)
 - Screen: `wallet/pages/wallet_pay_h5_webview_page.dart` (route `/pay-h5-webview`), launched from `wallet_payment_screen.dart` (top-up) and `settlement_payment_screen.dart` (platform-fee payment).
@@ -294,5 +294,5 @@ Same as owner: register `POST /merchant/push/add-fcm-token` `{token, platform: '
 ## Cross-app notes for the rebuild
 - The two dio clients are identical except the refresh path prefix — one shared RN networking module with a per-app prefix (`/landlord` vs `/merchant`) covers both.
 - Envelope contract (`code/message|msg/data`, business `400` = refresh, raw-token `Authorization` header, refresh via query param) is unusual — preserve exactly.
-- Owner QR payload = bare property `sn`; merchant customer QR = `{"user_id": n}` JSON; merchant voucher = raw code or 6-char manual entry. Three different QR contracts to port.
+- Owner QR payload = bare property `sn`; merchant customer QR = `{"user_id": n}` JSON; merchant coupon = raw code or 6-char manual entry. Three different QR contracts to port.
 - Fiuu H5 result detection is URL-substring based (`pay_success|pay_failed|pay_pending.html`) with no server polling — the RN WebView must replicate navigation-URL interception plus `intent://`/external-scheme handling.

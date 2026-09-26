@@ -17,7 +17,7 @@ import { Screen } from '@/components/Screen';
 /**
  * Coupon detail (coupon_detail_screen parity). The coupon arrives via the
  * selection store (go_router `extra` parity) — every entry point (catalog,
- * merchant sheet, my-vouchers) sets it before pushing.
+ * merchant sheet, my-coupons) sets it before pushing.
  */
 export default function CouponDetailRoute() {
   const coupon = useSelectionStore((state) => state.coupon);
@@ -25,9 +25,9 @@ export default function CouponDetailRoute() {
 
   return (
     <Screen edges={[]}>
-      <PageHeader title="Voucher" />
+      <PageHeader title="Coupon" />
       {!coupon ? (
-        <ErrorState message="Voucher unavailable." onRetry={() => router.back()} />
+        <ErrorState message="Coupon unavailable." onRetry={() => router.back()} />
       ) : (
         <ScrollView contentContainerStyle={styles.scroll}>
           <Image source={{ uri: coupon.image }} style={styles.hero} resizeMode="cover" />
@@ -75,6 +75,7 @@ export default function CouponDetailRoute() {
         visible={!!couponActions.qrCoupon}
         onClose={couponActions.closeQr}
       />
+      {couponActions.redeemDialog}
     </Screen>
   );
 }

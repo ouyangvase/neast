@@ -11,7 +11,7 @@ UNION ALL
 SELECT @user_id, 'Points credited to account', 'You have received 30 points after paying 3000 yuan for rent on the platform.', 0, DATE_SUB(NOW(), INTERVAL 1 DAY), NOW()
 WHERE @user_id IS NOT NULL
 UNION ALL
-SELECT @user_id, 'Coupon expiring soon', 'Your voucher will expire in 7 days. Redeem it at a participating merchant.', 1, DATE_SUB(NOW(), INTERVAL 3 DAY), NOW()
+SELECT @user_id, 'Coupon expiring soon', 'Your coupon will expire in 7 days. Redeem it at a participating merchant.', 1, DATE_SUB(NOW(), INTERVAL 3 DAY), NOW()
 WHERE @user_id IS NOT NULL
 UNION ALL
 SELECT @user_id, 'Welcome to Neast', 'Thank you for joining Neast. Start paying rent and earning points today.', 1, DATE_SUB(NOW(), INTERVAL 7 DAY), NOW()

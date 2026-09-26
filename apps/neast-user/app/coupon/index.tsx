@@ -31,7 +31,7 @@ export default function CouponRoute() {
 
   return (
     <Screen edges={[]}>
-      <PageHeader title="Vouchers" />
+      <PageHeader title="Coupons" />
       <View style={styles.chipsWrap}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.chipsRow}>
@@ -55,8 +55,8 @@ export default function CouponRoute() {
         onLoadMore={list.loadMore}
         hasMore={list.hasMore}
         loadingMore={list.loadingMore}
-        emptyTitle="No vouchers"
-        emptyMessage="No vouchers in this category right now."
+        emptyTitle="No coupons"
+        emptyMessage="No coupons in this category right now."
         contentContainerStyle={styles.listContent}
         renderItem={({ item }) => (
           <CouponCard

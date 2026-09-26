@@ -21,7 +21,7 @@ import { GivePointsTab } from '@/features/give-points/GivePointsTab';
 import { ScanTab } from '@/features/scan/ScanTab';
 import { SettlementTab } from '@/features/settlement/SettlementTab';
 
-const tabIconStyle = { width: 24, height: 24 } as const;
+const tabIconStyle = { width: 28, height: 28 } as const;
 
 const TAB_ITEMS: TabBarItem[] = [
   {

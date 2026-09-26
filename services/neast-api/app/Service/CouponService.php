@@ -287,7 +287,7 @@ class CouponService
      */
     public function appMyCount(int $userId): array
     {
-        $count = $this->applyMyVoucherStatusFilter(
+        $count = $this->applyMyCouponStatusFilter(
             UserCouponModel::query()->where('user_id', $userId),
             'active'
         )->count();
@@ -306,9 +306,9 @@ class CouponService
     ): array {
         $page = max(1, $page);
         $limit = $limit > 0 ? $limit : 10;
-        $status = $this->normalizeMyVoucherStatus($status);
+        $status = $this->normalizeMyCouponStatus($status);
 
-        $query = $this->applyMyVoucherStatusFilter(
+        $query = $this->applyMyCouponStatusFilter(
             UserCouponModel::query()->where('user_id', $userId),
             $status
         )->orderBy('id', 'desc');
@@ -376,7 +376,7 @@ class CouponService
                 }
             }
 
-            $voucherStatus = $this->resolveUserCouponVoucherStatus($userCoupon);
+            $couponStatus = $this->resolveUserCouponStatus($userCoupon);
 
             $items[] = [
                 'user_coupon_id' => (int) $userCoupon->id,
@@ -391,10 +391,10 @@ class CouponService
                 'image' => file_url($coupon->image ?? ''),
                 'expire_at' => (string) $userCoupon->expire_at,
                 'redeemed_at' => $userCoupon->redeemed_at ? (string) $userCoupon->redeemed_at : null,
-                'voucher_status' => $voucherStatus,
+                'coupon_status' => $couponStatus,
                 'sn' => (string) $userCoupon->sn,
                 'qrcode' => (string) $userCoupon->redeem_token,
-                'action_status' => $voucherStatus === 'active' ? 'use_now' : 'use_now',
+                'action_status' => $couponStatus === 'active' ? 'use_now' : 'use_now',
             ];
         }
 
@@ -450,11 +450,11 @@ class CouponService
                 ->exists();
 
             if ($hasUnused) {
-                throw new AppException('You have already redeemed this voucher');
+                throw new AppException('You have already redeemed this coupon');
             }
 
             if ($coupon->redeem_limit !== null && (int) $coupon->redeem_limit === 0) {
-                throw new AppException('This voucher is fully redeemed');
+                throw new AppException('This coupon is fully redeemed');
             }
 
             $requiredPoints = (int) $coupon->required_points;
@@ -612,7 +612,7 @@ class CouponService
     {
         $coupon = $this->findOrFail($id);
         if ($coupon->origin !== 'merchant') {
-            throw new AppException('Only merchant-submitted vouchers can be reviewed');
+            throw new AppException('Only merchant-submitted coupons can be reviewed');
         }
 
         if ($result === 'approved') {
@@ -755,7 +755,7 @@ class CouponService
         return $data;
     }
 
-    private function normalizeMyVoucherStatus(string $status): string
+    private function normalizeMyCouponStatus(string $status): string
     {
         return match ($status) {
             'used', 'expired' => $status,
@@ -766,7 +766,7 @@ class CouponService
     /**
      * @param \Hyperf\Database\Model\Builder|UserCouponModel $query
      */
-    private function applyMyVoucherStatusFilter($query, string $status)
+    private function applyMyCouponStatusFilter($query, string $status)
     {
         return match ($status) {
             'used' => $query->where('status', UserCouponModel::STATUS_USED),
@@ -779,7 +779,7 @@ class CouponService
         };
     }
 
-    private function resolveUserCouponVoucherStatus(UserCouponModel $userCoupon): string
+    private function resolveUserCouponStatus(UserCouponModel $userCoupon): string
     {
         if ((int) $userCoupon->status === UserCouponModel::STATUS_USED) {
             return 'used';
@@ -964,7 +964,7 @@ class CouponService
     {
         $code = trim($code);
         if ($code === '') {
-            throw new AppException('Invalid voucher code');
+            throw new AppException('Invalid coupon code');
         }
 
         $query = UserCouponModel::query();
@@ -977,14 +977,14 @@ class CouponService
         } else {
             $sn = strtoupper($code);
             if (preg_match('/^[A-Z0-9]{6}$/', $sn) !== 1) {
-                throw new AppException('Invalid voucher code');
+                throw new AppException('Invalid coupon code');
             }
             $query->where('sn', $sn);
         }
 
         $userCoupon = $query->first();
         if (! $userCoupon) {
-            throw new AppException('Voucher not found');
+            throw new AppException('Coupon not found');
         }
 
         return $userCoupon;
@@ -993,16 +993,16 @@ class CouponService
     private function assertMerchantCanUseUserCoupon(UserCouponModel $userCoupon, int $merchantId): void
     {
         if ((int) $userCoupon->status !== UserCouponModel::STATUS_UNUSED) {
-            throw new AppException('Voucher already used');
+            throw new AppException('Coupon already used');
         }
 
         if (Carbon::parse((string) $userCoupon->expire_at)->lte(Carbon::now())) {
-            throw new AppException('Voucher expired');
+            throw new AppException('Coupon expired');
         }
 
         $merchantIds = $this->parseSnapshotMerchantIds((string) $userCoupon->merchant_ids);
         if ($merchantIds === [] || ! in_array($merchantId, $merchantIds, true)) {
-            throw new AppException('Voucher not valid at this outlet');
+            throw new AppException('Coupon not valid at this outlet');
         }
     }
 
@@ -1069,7 +1069,7 @@ class CouponService
             }
         }
 
-        throw new AppException('Failed to generate voucher code');
+        throw new AppException('Failed to generate coupon code');
     }
 
     private function isDuplicateUserCouponCodeError(\Throwable $e): bool

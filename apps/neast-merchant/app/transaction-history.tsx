@@ -86,8 +86,8 @@ function RedeemedList({ year }: { year: number }) {
       onLoadMore={list.loadMore}
       hasMore={list.hasMore}
       loadingMore={list.loadingMore}
-      emptyTitle="No redeemed vouchers"
-      emptyMessage="Vouchers you redeem will appear here."
+      emptyTitle="No redeemed coupons"
+      emptyMessage="Coupons you redeem will appear here."
       contentContainerStyle={styles.listContent}
       renderItem={({ item }) => <RedeemedRow item={item} />}
     />

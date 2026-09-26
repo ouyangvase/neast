@@ -84,17 +84,18 @@ const styles = StyleSheet.create({
     backgroundColor: coreColors.white,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: coreColors.divider,
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.xl,
   },
   item: {
     flex: 1,
     alignItems: 'center',
-    gap: 2,
+    gap: 4,
+    paddingVertical: 2,
   },
   icon: {
-    width: 24,
-    height: 24,
+    width: 28,
+    height: 28,
   },
   beta: {
     position: 'absolute',
@@ -103,6 +104,6 @@ const styles = StyleSheet.create({
   },
   label: {
     ...textStyles.caption,
-    fontSize: 10,
+    fontSize: 12,
   },
 });

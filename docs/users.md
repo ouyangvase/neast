@@ -53,7 +53,7 @@ Single `DioClient` class wrapping Dio, provided via `dioClientProvider`. Three i
 | `/merchant/:id` | merchant | `MerchantScreen(merchantId)` |
 | `/merchants` | merchantList | `?kind=all\|recommended\|nearby&header=merchants\|nearbyMerchants` |
 | `/merchants/map` | merchantMap | `MerchantMapScreen` (demo screen commented out) |
-| `/coupon` | coupon | `CouponScreen`; sub-routes: `detail` (extra `CouponDetailArgs` or `CouponListItemModel`), `my-vouchers` (`MyVouchersScreen`) |
+| `/coupon` | coupon | `CouponScreen`; sub-routes: `detail` (extra `CouponDetailArgs` or `CouponListItemModel`), `my-coupons` (`MyCouponsScreen`) |
 | `/wallet` | wallet | `WalletScreen`; sub-route `payment` (extra `WalletPaymentArgs`, default RM 500 fallback) |
 | `/pay-h5-webview` | payH5WebView | `WalletPayH5WebViewPage`, extra `Map{url, title}` |
 | `/pay-rent/payment` | payRentPayment | extra `RentModel` |
@@ -135,19 +135,19 @@ Only one file: `app_refresher.dart` — `AppRefresher`, the standard pull-refres
 - **Utils**: `camera_permission_util.dart` (permission_handler wrapper).
 
 ### coupon
-- **Pages**: `coupon_screen.dart` (Rewards catalog: category tabs + paginated list, skeletons), `coupon_detail_screen.dart` (hero, body, points banner; actions Redeem / Use Now / Fully Redeemed; share stub), `my_vouchers_screen.dart` (Active/Used/Expired 3-tab via extended_tabs).
+- **Pages**: `coupon_screen.dart` (Rewards catalog: category tabs + paginated list, skeletons), `coupon_detail_screen.dart` (hero, body, points banner; actions Redeem / Use Now / Fully Redeemed; share stub), `my_coupons_screen.dart` (Active/Used/Expired 3-tab via extended_tabs).
 - **Service** (`coupon_service.dart`): `GET /app/coupon/categories`, `GET /app/coupon/list` (page, limit, category_id), `GET /app/coupon/merchant-list` (merchant_id), `GET /app/coupon/my-count`, `GET /app/coupon/my-list` (status), `GET /app/coupon/latest`, `POST /app/coupon/redeem` `{coupon_id}`.
-- **Models**: `CouponModel{id,name,requiredPoints,image}`, `CouponListItemModel` (userCouponId, requiredPoints, validDays, categoryId/Name, usageCondition, discountAmount, merchantNames, expireAt, redeemedAt, voucherStatus, sn, qrcode, actionStatus), `CouponCategoryModel{id,name}`, `CouponDetailArgs`, enums `MyVoucherStatus`, `CouponActionStatus`.
-- **Providers**: `couponListProvider` (family by categoryId, paginated), `couponCategoriesProvider`, `latestCouponProvider`, `myVoucherListProvider`, `myVoucherCountProvider`, `couponRedeemProvider`.
-- **Widgets**: category tabs, reward card/list view, detail hero/body/section/points banner, action button, `coupon_qrcode_dialog` (qr_flutter redemption QR), `coupon_redeem_confirm_dialog`, my-voucher card/tabs/list panel, skeletons.
+- **Models**: `CouponModel{id,name,requiredPoints,image}`, `CouponListItemModel` (userCouponId, requiredPoints, validDays, categoryId/Name, usageCondition, discountAmount, merchantNames, expireAt, redeemedAt, couponStatus, sn, qrcode, actionStatus), `CouponCategoryModel{id,name}`, `CouponDetailArgs`, enums `MyCouponStatus`, `CouponActionStatus`.
+- **Providers**: `couponListProvider` (family by categoryId, paginated), `couponCategoriesProvider`, `latestCouponProvider`, `myCouponListProvider`, `myCouponCountProvider`, `couponRedeemProvider`.
+- **Widgets**: category tabs, reward card/list view, detail hero/body/section/points banner, action button, `coupon_qrcode_dialog` (qr_flutter redemption QR), `coupon_redeem_confirm_dialog`, my-coupon card/tabs/list panel, skeletons.
 - **Utils**: `coupon_icon_utils`, `coupon_redeem_actions` (`redeemCoupon` confirm→redeem→toast; `showCouponQrcode`).
 
 ### home
-- **Page**: `home_screen.dart` — Home tab: dark-blue `home_bg` header (logo, notification bell w/ unread dot, QR button → `/account/my-qr`), greeting, `NextRentCard`, `TodaysRewardCard`, white rounded content: `NearbyDealsSection`, `JourneyStreakCard` ("Your Journey"), `MyVoucherCard`, "For Rent" promo carousel.
+- **Page**: `home_screen.dart` — Home tab: dark-blue `home_bg` header (logo, notification bell w/ unread dot, QR button → `/account/my-qr`), greeting, `NextRentCard`, `TodaysRewardCard`, white rounded content: `NearbyDealsSection`, `JourneyStreakCard` ("Your Journey"), `MyCouponCard`, "For Rent" promo carousel.
 - **Service** (`home_service.dart`): `GET /app/home/dashboard` (optional latitude/longitude).
 - **Models**: `HomeDashboardModel{nextRent: RentModel?, todayReward: CouponModel?, nearbyDeals: MerchantModel[], journey: HomeJourneyModel{maxStreakMonths,streakLabel,streakStatus}, banners: HomeBannerModel{id,image,imageUrl,link}}`.
 - **Providers**: `homeDashboardProvider` (AsyncNotifier, location-aware), `home_merchants_provider.dart` (`homeAllMerchantsProvider` / `homeRecommendedMerchantsProvider` / `homeNearbyListMerchantsProvider` — paginated, location-gated), `nearbyMerchantsProvider` (FutureProvider for map distribution).
-- **Widgets**: `deal_card`, `home_address_tag` (marquee), `home_merchant_section_skeleton`, `home_section_header`, `horizontal_deal_section`, `journey_streak_card`, `my_voucher_card`, `nearby_deals_section`, `next_rent_card`, `promo_carousel`, `suggested_merchant_item`, `todays_reward_card`.
+- **Widgets**: `deal_card`, `home_address_tag` (marquee), `home_merchant_section_skeleton`, `home_section_header`, `horizontal_deal_section`, `journey_streak_card`, `my_coupon_card`, `nearby_deals_section`, `next_rent_card`, `promo_carousel`, `suggested_merchant_item`, `todays_reward_card`.
 - `data/` directory exists but is **empty**.
 
 ### main
@@ -181,7 +181,7 @@ Only one file: `app_refresher.dart` — `AppRefresher`, the standard pull-refres
 ### points
 - **Pages**: `points_screen.dart` (summary card, action section, "How to Earn Faster", "Merchant Reward" grid), `points_history_screen.dart` (paginated logs).
 - **Service** (`points_service.dart`): `GET /app/points/dashboard`, `GET /app/points/logs` (page, limit=15).
-- **Models**: `PointsDashboardModel{points, voucherCount, tier, inviterRewardPoints, inviteeRewardPoints,...}`, `PointsLogModel{id,userId,points,title,subtitle,createdAt}` + list response.
+- **Models**: `PointsDashboardModel{points, couponCount, tier, inviterRewardPoints, inviteeRewardPoints,...}`, `PointsLogModel{id,userId,points,title,subtitle,createdAt}` + list response.
 - **Providers**: `pointsDashboardProvider`, `pointsLogListProvider` (paginated).
 - **Widgets**: summary/action/earn/history/merchant-reward cards & sections. **Data**: `points_assets.dart` (image paths).
 
@@ -248,7 +248,7 @@ Only one file: `app_refresher.dart` — `AppRefresher`, the standard pull-refres
   - Local notifications via `flutter_local_notifications` (Android icon `@mipmap/ic_launcher`, channel `high_importance_channel`); foreground messages shown as local notifications on **Android only** (iOS uses `setForegroundNotificationPresentationOptions(alert/badge/sound)`).
   - Permission request (alert/badge/sound); iOS waits for APNs token (10×2s) before FCM token, retry up to 8× with backoff.
   - **Token registration: `POST /app/push/add-fcm-token` `{token, platform: ios|android}`** (skipped when logged out); onTokenRefresh re-saves. Logout: `POST /app/push/delete-fcm-token` `{token}` then `deleteToken()` (3s timeout, non-blocking).
-  - Tap/foreground handling: clears badge (`app_badge_plus` → `updateBadge(0)`), refreshes notification list/unread, navigates by `data['type']`: `PointAdd` → `/points`, `Coupon` → `/coupon/my-vouchers`, default → `/notification`.
+  - Tap/foreground handling: clears badge (`app_badge_plus` → `updateBadge(0)`), refreshes notification list/unread, navigates by `data['type']`: `PointAdd` → `/points`, `Coupon` → `/coupon/my-coupons`, default → `/notification`.
   - Badge also cleared when `NotificationScreen` opens. iOS `UIBackgroundModes` includes `remote-notification`.
 
 ---
@@ -262,7 +262,7 @@ Only one file: `app_refresher.dart` — `AppRefresher`, the standard pull-refres
 ## 6. QR
 
 - **Scanning** (`mobile_scanner` 7.2.1): `QrScannerScreen` (`/scanner`) only; launched via `openQrScanner` with permission_handler camera check; used solely by the pay-rent create form ("Connect with owner" → scan property SN → `GET /app/rent/property?sn=`). Gallery-pick fallback uses `MobileScannerController.analyzeImage`.
-- **Generation** (`qr_flutter` 4.1.0, `QrImageView`): `account/pages/my_qr_screen.dart` (profile `qrCode` payload, save-to-gallery), `account/widgets/user_qrcode_dialog.dart`, `coupon/widgets/coupon_qrcode_dialog.dart` (voucher redemption QR from `qrcode`/`sn`).
+- **Generation** (`qr_flutter` 4.1.0, `QrImageView`): `account/pages/my_qr_screen.dart` (profile `qrCode` payload, save-to-gallery), `account/widgets/user_qrcode_dialog.dart`, `coupon/widgets/coupon_qrcode_dialog.dart` (coupon redemption QR from `qrcode`/`sn`).
 
 ## 7. Maps
 

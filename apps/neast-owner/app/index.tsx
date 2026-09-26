@@ -25,26 +25,26 @@ const TAB_ITEMS: TabBarItem[] = [
   {
     key: 'home',
     label: 'Home',
-    icon: <HomeIcon width={24} height={24} />,
-    activeIcon: <HomeActiveIcon width={24} height={24} />,
+    icon: <HomeIcon width={28} height={28} />,
+    activeIcon: <HomeActiveIcon width={28} height={28} />,
   },
   {
     key: 'properties',
     label: 'Properties',
-    icon: <PropertiesIcon width={24} height={24} />,
-    activeIcon: <PropertiesActiveIcon width={24} height={24} />,
+    icon: <PropertiesIcon width={28} height={28} />,
+    activeIcon: <PropertiesActiveIcon width={28} height={28} />,
   },
   {
     key: 'records',
     label: 'Records',
-    icon: <RecordsIcon width={24} height={24} />,
-    activeIcon: <RecordsActiveIcon width={24} height={24} />,
+    icon: <RecordsIcon width={28} height={28} />,
+    activeIcon: <RecordsActiveIcon width={28} height={28} />,
   },
   {
     key: 'account',
     label: 'Account',
-    icon: <AccountIcon width={24} height={24} />,
-    activeIcon: <AccountActiveIcon width={24} height={24} />,
+    icon: <AccountIcon width={28} height={28} />,
+    activeIcon: <AccountActiveIcon width={28} height={28} />,
   },
 ];
 

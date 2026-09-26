@@ -18,14 +18,14 @@ import {
 import successImage from '@assets/images/redeem/success.png';
 
 import { apiErrorMessage } from '@/lib/api';
-import { getRedeemVoucherArgs } from '@/lib/callbacks';
+import { getRedeemCouponArgs } from '@/lib/callbacks';
 import { redeemCoupon } from '@/lib/endpoints';
 import { Screen } from '@/components/Screen';
 import { SuccessDialog } from '@/components/SuccessDialog';
 
-/** Confirm Redeem (redeem_voucher_screen parity): voucher card + detail card + confirm. */
-export default function RedeemVoucherRoute() {
-  const args = getRedeemVoucherArgs();
+/** Confirm Redeem: coupon card + detail card + confirm. */
+export default function RedeemCouponRoute() {
+  const args = getRedeemCouponArgs();
   const [successVisible, setSuccessVisible] = useState(false);
 
   const redeemMutation = useMutation({
@@ -39,8 +39,8 @@ export default function RedeemVoucherRoute() {
       <Screen>
         <BrandHeader title="Confirm Redeem" onBack={() => router.back()} />
         <EmptyState
-          title="No voucher selected"
-          message="Scan or enter a voucher code from the Scan tab."
+          title="No coupon selected"
+          message="Scan or enter a coupon code from the Scan tab."
           actionLabel="Go back"
           onAction={() => router.back()}
           style={styles.missing}
@@ -55,16 +55,16 @@ export default function RedeemVoucherRoute() {
     <Screen>
       <BrandHeader title="Confirm Redeem" onBack={() => router.back()} />
       <ScrollView contentContainerStyle={styles.content}>
-        <Card style={styles.voucherCard}>
-          <Text style={styles.voucherName}>{preview.name}</Text>
-          <Text style={styles.voucherDiscount}>{formatRinggit(preview.discount_amount)}</Text>
-          <Text style={styles.voucherMeta}>
+        <Card style={styles.couponCard}>
+          <Text style={styles.couponName}>{preview.name}</Text>
+          <Text style={styles.couponDiscount}>{formatRinggit(preview.discount_amount)}</Text>
+          <Text style={styles.couponMeta}>
             {preview.used_points} points · SN {preview.sn}
           </Text>
         </Card>
 
         <View style={styles.validBanner}>
-          <Text style={styles.validBannerText}>This voucher is valid</Text>
+          <Text style={styles.validBannerText}>This coupon is valid</Text>
         </View>
 
         <Card style={styles.detailCard}>
@@ -87,7 +87,7 @@ export default function RedeemVoucherRoute() {
       <SuccessDialog
         visible={successVisible}
         image={successImage}
-        title="Voucher redeemed"
+        title="Coupon redeemed"
         message={`${preview.name} has been redeemed for ${preview.customer_name}.`}
         onClose={() => {
           setSuccessVisible(false);
@@ -116,19 +116,19 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     gap: spacing.lg,
   },
-  voucherCard: {
+  couponCard: {
     alignItems: 'center',
     gap: spacing.xs,
   },
-  voucherName: {
+  couponName: {
     ...textStyles.heading2,
     textAlign: 'center',
   },
-  voucherDiscount: {
+  couponDiscount: {
     ...textStyles.displayLarge,
     color: coreColors.brandBlue,
   },
-  voucherMeta: {
+  couponMeta: {
     ...textStyles.bodySmall,
     color: coreColors.textSecondary,
   },

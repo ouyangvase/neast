@@ -48,22 +48,22 @@ export function clearH5Callbacks(): void {
   h5Callbacks = null;
 }
 
-// ---- /redeem-voucher (RedeemVoucherRouteArgs parity) ----
+// ---- /redeem-coupon ----
 
-export interface RedeemVoucherArgs {
+export interface RedeemCouponArgs {
   preview: VerifyCouponResponse;
   code: string;
 }
 
-let redeemVoucherArgs: RedeemVoucherArgs | null = null;
+let redeemCouponArgs: RedeemCouponArgs | null = null;
 
-export function openRedeemVoucher(args: RedeemVoucherArgs): void {
-  redeemVoucherArgs = args;
-  router.push('/redeem-voucher');
+export function openRedeemCoupon(args: RedeemCouponArgs): void {
+  redeemCouponArgs = args;
+  router.push('/redeem-coupon');
 }
 
-export function getRedeemVoucherArgs(): RedeemVoucherArgs | null {
-  return redeemVoucherArgs;
+export function getRedeemCouponArgs(): RedeemCouponArgs | null {
+  return redeemCouponArgs;
 }
 
 // ---- /give-points/receipt-details (ReceiptCaptureResult parity) ----

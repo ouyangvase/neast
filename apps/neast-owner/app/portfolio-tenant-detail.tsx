@@ -8,8 +8,8 @@ import {
   BrandHeader,
   Button,
   Card,
+  ConfirmDialog,
   coreColors,
-  CountdownConfirmDialog,
   ownerAccentColors,
   spacing,
   textStyles,
@@ -78,8 +78,11 @@ export default function PortfolioTenantDetailRoute() {
             <Text style={styles.amount}>RM{item.amount} / month</Text>
             <View style={styles.infoRows}>
               <InfoRow label="Pay day" value={`Day ${item.paid_at}`} />
-              <InfoRow label="First payment" value={item.first_pay_month} />
-              <InfoRow label="Lease" value={`${item.lease_months} months`} />
+              <InfoRow
+                label="Agreement"
+                value={`${item.agreement_start} – ${item.agreement_end}`}
+              />
+              <InfoRow label="First payment on NEAST" value={item.first_pay_month} />
               <InfoRow label="Expires" value={formatSimpleDate(item.expire_date)} />
               <InfoRow label="Started" value={formatSimpleDate(item.created_at)} />
             </View>
@@ -98,12 +101,13 @@ export default function PortfolioTenantDetailRoute() {
         </ScrollView>
       )}
 
-      <CountdownConfirmDialog
+      <ConfirmDialog
         visible={terminateVisible}
         title="Terminate tenancy?"
         message="This ends the tenancy and cancels pending rent payments. This cannot be undone."
         countdownSeconds={5}
         confirmText="Terminate"
+        danger
         onConfirm={() => {
           setTerminateVisible(false);
           terminateMutation.mutate();

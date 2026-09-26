@@ -15,7 +15,7 @@ all inside `@neast/types`).
 | `/login` | `app/login.tsx` | `auth/pages/login_screen.dart` | email + password only |
 | `/` | `app/index.tsx` | `main/pages/main_screen.dart` | 4-tab shell (Scan / Give Points / Settlement / Account), double-back-to-exit |
 | `/scanner` | `app/scanner.tsx` | `scan/pages/qr_scanner_screen.dart` | `QrScannerScreen` from `@neast/ui-mobile`; result via `openScanner(cb)` |
-| `/redeem-voucher` | `app/redeem-voucher.tsx` | `redeem/pages/redeem_voucher_screen.dart` | args via `openRedeemVoucher` stash; missing-args fallback |
+| `/redeem-coupon` | `app/redeem-coupon.tsx` | `redeem/pages/redeem_coupon_screen.dart` | args via `openRedeemCoupon` stash; missing-args fallback |
 | `/give-points/receipt-details` | `app/give-points/receipt-details.tsx` | `give_points/pages/receipt_details_screen.dart` | Step 1; live points preview |
 | `/give-points/confirm-points` | `app/give-points/confirm-points.tsx` | `give_points/pages/confirm_points_screen.dart` | Step 2; phone or customer QR |
 | `/daily-closing` | `app/daily-closing.tsx` | `daily_closing/pages/daily_closing_screen.dart` | Export Report stub omitted |
@@ -41,7 +41,7 @@ app state, not routes — IndexedStack parity).
 | `GET info` | `src/hooks/use-merchant.ts` (`useMerchantInfo`) |
 | `GET config` | `src/hooks/use-merchant.ts` (`useMerchantConfig`) — processing fees |
 | `POST coupon/verify` | `src/features/scan/ScanTab.tsx` |
-| `POST coupon/redeem` | `app/redeem-voucher.tsx` |
+| `POST coupon/redeem` | `app/redeem-coupon.tsx` |
 | `GET give-points/today-commission` | `src/features/give-points/GivePointsTab.tsx` |
 | `GET give-points/stats` | `src/features/give-points/GivePointsTab.tsx` |
 | `GET give-points/customer` | `app/give-points/confirm-points.tsx` |
@@ -72,7 +72,7 @@ app state, not routes — IndexedStack parity).
 - **Export Report** (`daily_closing_screen.dart:127`) — no-op button; not rendered.
 - Mock defaults (`give_points_constants.dart`: outlet `Sunway Pyramid`, receipt
   `R-2604-1108` / `48.60`) — not ported; real `/merchant/info` data is shown.
-- `isRedeemToken` 32-hex pattern (`voucher_code_util.dart`) — defined but unused in
+- `isRedeemToken` 32-hex pattern (`coupon_code_util.dart`) — defined but unused in
   the Flutter scan path; any scanned code goes straight to `coupon/verify`.
 - Alpha-notice flow (`show_alpha_notice` from `/merchant/config`) — commented out
   everywhere in Flutter; only `payment_processing_fees` is consumed.
@@ -101,7 +101,7 @@ non-obvious confirmed paths worth keeping visible:
   Preview + confirm use `points = floor(amount_cents × yuan_to_points / 100)`
   (cents math avoids IEEE drift on values like 48.60).
 - **Scan-tab branching** — `docs/apps-overview.md` §6.2 shows the scan tab
-  branching user-QR vs voucher; `docs/owner&merchant.md` (from the Flutter source)
+  branching user-QR vs coupon; `docs/owner&merchant.md` (from the Flutter source)
   says any scanned code → `coupon/verify`, with customer QR scanned only inside
   confirm-points. The latter is implemented.
 - **Receipt upload timing** — `receipt_capture_service.dart` groups capture →

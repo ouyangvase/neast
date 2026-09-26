@@ -1,8 +1,9 @@
-import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 
 import { formatRinggit } from '@neast/types';
-import { Card, Chevron, coreColors, spacing, textStyles } from '@neast/ui-mobile';
+import { Card, Chevron, ConfirmDialog, coreColors, spacing, textStyles } from '@neast/ui-mobile';
 
 import coinIcon from '@assets/images/account/coin.png';
 import StoreProfileIcon from '@assets/images/account/store_profile.svg';
@@ -30,6 +31,7 @@ interface MenuItem {
  */
 export function AccountTab() {
   const info = useMerchantInfo();
+  const [logoutVisible, setLogoutVisible] = useState(false);
 
   const menu: MenuItem[] = [
     {
@@ -61,18 +63,7 @@ export function AccountTab() {
       label: 'Log Out',
       icon: LogOutIcon,
       danger: true,
-      onPress: () => {
-        Alert.alert('Log out', 'Are you sure you want to log out?', [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Log Out',
-            style: 'destructive',
-            onPress: () => {
-              void performLogout();
-            },
-          },
-        ]);
-      },
+      onPress: () => setLogoutVisible(true),
     },
   ];
 
@@ -112,6 +103,18 @@ export function AccountTab() {
 
         <Text style={styles.version}>NEAST Merchant 1.0.6</Text>
       </ScrollView>
+      <ConfirmDialog
+        visible={logoutVisible}
+        title="Log out"
+        message="Are you sure you want to log out?"
+        confirmText="Log Out"
+        danger
+        onCancel={() => setLogoutVisible(false)}
+        onConfirm={() => {
+          setLogoutVisible(false);
+          void performLogout();
+        }}
+      />
       </View>
     </Screen>
   );

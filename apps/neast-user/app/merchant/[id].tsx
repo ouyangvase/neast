@@ -79,7 +79,7 @@ export default function MerchantDetailRoute() {
                 onPress={() => setCouponSheetVisible(true)}
                 accessibilityRole="button"
               >
-                <Text style={styles.actionText}>Vouchers</Text>
+                <Text style={styles.actionText}>Coupons</Text>
               </Pressable>
               <Pressable
                 style={styles.actionButton}
@@ -118,12 +118,12 @@ export default function MerchantDetailRoute() {
       <BottomSheet
         visible={couponSheetVisible}
         onClose={() => setCouponSheetVisible(false)}
-        title="Vouchers"
+        title="Coupons"
       >
         {coupons.isLoading ? (
           <LoadingState />
         ) : (coupons.data?.items.length ?? 0) === 0 ? (
-          <Text style={styles.emptyCoupons}>No vouchers available for this merchant.</Text>
+          <Text style={styles.emptyCoupons}>No coupons available for this merchant.</Text>
         ) : (
           <View style={styles.couponList}>
             {(coupons.data?.items ?? []).map((coupon) => (

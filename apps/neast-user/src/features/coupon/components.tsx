@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, Image, Modal, StyleSheet, Text, View } from 'react-native';
+import { Image, Modal, StyleSheet, Text, View } from 'react-native';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import type { CouponListItem, UserCouponItem } from '@neast/types';
@@ -7,6 +7,7 @@ import { formatRinggit, formatSimpleDate } from '@neast/types';
 import {
   Button,
   Card,
+  ConfirmDialog,
   coreColors,
   QrCodeView,
   radii,
@@ -21,7 +22,7 @@ import { redeemCoupon } from '@/lib/endpoints';
 
 type AnyCoupon = CouponListItem | UserCouponItem;
 
-/** Coupon catalog / voucher row (reward card parity). */
+/** Coupon catalog row (reward card parity). */
 export function CouponCard({ coupon, onPress }: { coupon: AnyCoupon; onPress?: () => void }) {
   return (
     <Card onPress={onPress} style={styles.card} padded={false}>
@@ -76,16 +77,17 @@ export function CouponQrDialog({
 
 /**
  * Redeem / Use-Now actions (coupon_redeem_actions parity):
- * confirm → POST /app/coupon/redeem → toast + QR dialog with the new voucher.
+ * confirm → POST /app/coupon/redeem → toast + QR dialog with the new coupon.
  */
 export function useCouponActions() {
   const queryClient = useQueryClient();
   const [qrCoupon, setQrCoupon] = useState<AnyCoupon | null>(null);
+  const [redeemTarget, setRedeemTarget] = useState<AnyCoupon | null>(null);
 
   const redeemMutation = useMutation({
     mutationFn: (couponId: number) => redeemCoupon(couponId),
     onSuccess: (response) => {
-      Toast.success('Voucher redeemed');
+      Toast.success('Coupon redeemed');
       setQrCoupon(response.item);
       void queryClient.invalidateQueries({ queryKey: ['user-profile'] });
       void queryClient.invalidateQueries({ queryKey: ['my-coupon-count'] });
@@ -96,19 +98,34 @@ export function useCouponActions() {
   });
 
   const confirmRedeem = (coupon: AnyCoupon) => {
-    Alert.alert('Redeem voucher', `Redeem "${coupon.name}" for ${coupon.required_points} points?`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Redeem',
-        onPress: () => redeemMutation.mutate(coupon.id),
-      },
-    ]);
+    setRedeemTarget(coupon);
   };
 
   const showQr = (coupon: AnyCoupon) => setQrCoupon(coupon);
   const closeQr = () => setQrCoupon(null);
 
-  return { confirmRedeem, showQr, closeQr, qrCoupon, redeeming: redeemMutation.isPending };
+  const redeemDialog = redeemTarget ? (
+    <ConfirmDialog
+      visible
+      title="Redeem coupon"
+      message={`Redeem "${redeemTarget.name}" for ${redeemTarget.required_points} points?`}
+      confirmText="Redeem"
+      onCancel={() => setRedeemTarget(null)}
+      onConfirm={() => {
+        redeemMutation.mutate(redeemTarget.id);
+        setRedeemTarget(null);
+      }}
+    />
+  ) : null;
+
+  return {
+    confirmRedeem,
+    showQr,
+    closeQr,
+    qrCoupon,
+    redeeming: redeemMutation.isPending,
+    redeemDialog,
+  };
 }
 
 /** Small validity line used on cards/detail (`Valid for 30 days` / expiry date). */

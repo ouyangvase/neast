@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 
 import { MONTH_NAMES_LONG } from '@neast/constant';
 
@@ -55,7 +55,7 @@ export function MonthPicker({
   const data = months ?? getRollingMonths();
   return (
     <BottomSheet visible={visible} onClose={onClose} title={title}>
-      <View style={styles.grid}>
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.grid}>
         {data.map((value) => {
           const selected_ = value.year === selected?.year && value.month === selected?.month;
           return (
@@ -74,12 +74,15 @@ export function MonthPicker({
             </Pressable>
           );
         })}
-      </View>
+      </ScrollView>
     </BottomSheet>
   );
 }
 
 const styles = StyleSheet.create({
+  scroll: {
+    maxHeight: 420,
+  },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',

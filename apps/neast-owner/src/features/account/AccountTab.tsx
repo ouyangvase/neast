@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import {
-  Alert,
   Image,
   ImageBackground,
   Pressable,
@@ -16,8 +15,8 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import {
   Card,
   Chevron,
+  ConfirmDialog,
   coreColors,
-  CountdownConfirmDialog,
   sharedAssets,
   spacing,
   textStyles,
@@ -48,6 +47,7 @@ interface MenuItem {
 export function AccountTab() {
   const info = useQuery({ queryKey: ['landlord-info'], queryFn: getLandlordInfo });
   const [deleteVisible, setDeleteVisible] = useState(false);
+  const [logoutVisible, setLogoutVisible] = useState(false);
 
   const deleteMutation = useMutation({
     mutationFn: deleteAccount,
@@ -94,18 +94,7 @@ export function AccountTab() {
       key: 'logout',
       label: 'Log Out',
       icon: logoutIcon,
-      onPress: () => {
-        Alert.alert('Log out', 'Are you sure you want to log out?', [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Log Out',
-            style: 'destructive',
-            onPress: () => {
-              void performLogout();
-            },
-          },
-        ]);
-      },
+      onPress: () => setLogoutVisible(true),
       danger: true,
     },
   ];
@@ -153,12 +142,25 @@ export function AccountTab() {
         <Text style={styles.version}>NEAST Owner 1.0.6</Text>
       </ScrollView>
 
-      <CountdownConfirmDialog
+      <ConfirmDialog
+        visible={logoutVisible}
+        title="Log out"
+        message="Are you sure you want to log out?"
+        confirmText="Log Out"
+        danger
+        onCancel={() => setLogoutVisible(false)}
+        onConfirm={() => {
+          setLogoutVisible(false);
+          void performLogout();
+        }}
+      />
+      <ConfirmDialog
         visible={deleteVisible}
         title="Delete account?"
         message="This permanently deletes your account and all associated data. This action cannot be undone."
         countdownSeconds={10}
         confirmText="Delete"
+        danger
         onCancel={() => setDeleteVisible(false)}
         onConfirm={() => {
           setDeleteVisible(false);

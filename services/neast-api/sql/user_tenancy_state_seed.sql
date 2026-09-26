@@ -2,11 +2,11 @@
 -- Phones are +60 plus the local number. OTP is 123456.
 
 INSERT INTO `t_rent` (
-  `user_id`, `amount`, `file`, `paid_at`, `first_pay_month`, `lease_months`, `expire_date`,
+  `user_id`, `amount`, `file`, `paid_at`, `agreement_start`, `agreement_end`, `first_pay_month`, `lease_months`, `expire_date`,
   `property_id`, `property_name`, `landlord_id`, `owner_name`, `status`, `rejected_by`, `link_status`,
   `landlord_bank`, `landlord_bank_account`, `landlord_account_name`, `created_at`, `updated_at`
 )
-SELECT u.id, 1100.00, '/uploads/rent/local-test-agreement.jpg', 15, '2026-10-01', 12, '2027-09-26',
+SELECT u.id, 1100.00, '/uploads/rent/local-test-agreement.jpg', 15, '2026-10-01', '2027-09-01', '2026-10-01', 12, '2027-09-30',
   NULL, 'Pending Review House', NULL, 'Lim Wei', 0, '', 'none',
   'Maybank', '111122223333', 'Lim Wei', NOW(), NOW()
 FROM `t_user` u
@@ -14,11 +14,11 @@ WHERE u.account = '60222222222'
   AND NOT EXISTS (SELECT 1 FROM `t_rent` r WHERE r.user_id = u.id AND r.deleted_at IS NULL);
 
 INSERT INTO `t_rent` (
-  `user_id`, `amount`, `file`, `paid_at`, `first_pay_month`, `lease_months`, `expire_date`,
+  `user_id`, `amount`, `file`, `paid_at`, `agreement_start`, `agreement_end`, `first_pay_month`, `lease_months`, `expire_date`,
   `property_id`, `property_name`, `landlord_id`, `owner_name`, `status`, `rejected_by`, `link_status`,
   `landlord_bank`, `landlord_bank_account`, `landlord_account_name`, `created_at`, `updated_at`
 )
-SELECT u.id, 1300.00, '/uploads/rent/local-test-agreement.jpg', 15, '2026-10-01', 12, '2027-09-26',
+SELECT u.id, 1300.00, '/uploads/rent/local-test-agreement.jpg', 15, '2026-10-01', '2027-09-01', '2026-10-01', 12, '2027-09-30',
   2, 'Kiulap Apartment', 1, 'Smoke Test', 0, '', 'pending',
   'Maybank', '1234567890', 'Smoke Test', NOW(), NOW()
 FROM `t_user` u
@@ -26,11 +26,11 @@ WHERE u.account = '60333333333'
   AND NOT EXISTS (SELECT 1 FROM `t_rent` r WHERE r.user_id = u.id AND r.deleted_at IS NULL);
 
 INSERT INTO `t_rent` (
-  `user_id`, `amount`, `file`, `paid_at`, `first_pay_month`, `lease_months`, `expire_date`,
+  `user_id`, `amount`, `file`, `paid_at`, `agreement_start`, `agreement_end`, `first_pay_month`, `lease_months`, `expire_date`,
   `property_id`, `property_name`, `landlord_id`, `owner_name`, `status`, `rejected_by`, `link_status`,
   `landlord_bank`, `landlord_bank_account`, `landlord_account_name`, `created_at`, `updated_at`
 )
-SELECT u.id, 1400.00, '/uploads/rent/local-test-agreement.jpg', 15, '2026-10-01', 12, '2027-09-26',
+SELECT u.id, 1400.00, '/uploads/rent/local-test-agreement.jpg', 15, '2026-10-01', '2027-09-01', '2026-10-01', 12, '2027-09-30',
   NULL, 'Admin Reject House', NULL, 'Ahmad', 2, 'admin', 'none',
   'Maybank', '222233334444', 'Ahmad', NOW(), NOW()
 FROM `t_user` u
@@ -38,11 +38,11 @@ WHERE u.account = '60444444444'
   AND NOT EXISTS (SELECT 1 FROM `t_rent` r WHERE r.user_id = u.id AND r.deleted_at IS NULL);
 
 INSERT INTO `t_rent` (
-  `user_id`, `amount`, `file`, `paid_at`, `first_pay_month`, `lease_months`, `expire_date`,
+  `user_id`, `amount`, `file`, `paid_at`, `agreement_start`, `agreement_end`, `first_pay_month`, `lease_months`, `expire_date`,
   `property_id`, `property_name`, `landlord_id`, `owner_name`, `status`, `rejected_by`, `link_status`,
   `landlord_bank`, `landlord_bank_account`, `landlord_account_name`, `created_at`, `updated_at`
 )
-SELECT u.id, 1450.00, '/uploads/rent/local-test-agreement.jpg', 15, '2026-10-01', 12, '2027-09-26',
+SELECT u.id, 1450.00, '/uploads/rent/local-test-agreement.jpg', 15, '2026-10-01', '2027-09-01', '2026-10-01', 12, '2027-09-30',
   3, 'Gadong Terrace', 1, 'Smoke Test', 2, 'admin', 'pending',
   'Maybank', '1234567890', 'Smoke Test', NOW(), NOW()
 FROM `t_user` u
@@ -51,11 +51,11 @@ WHERE u.account = '60555555555'
 
 -- Due today (26 Sep 2026). Wallet covers one month.
 INSERT INTO `t_rent` (
-  `user_id`, `amount`, `file`, `paid_at`, `first_pay_month`, `lease_months`, `expire_date`,
+  `user_id`, `amount`, `file`, `paid_at`, `agreement_start`, `agreement_end`, `first_pay_month`, `lease_months`, `expire_date`,
   `property_id`, `property_name`, `landlord_id`, `owner_name`, `status`, `rejected_by`, `link_status`,
   `landlord_bank`, `landlord_bank_account`, `landlord_account_name`, `created_at`, `updated_at`
 )
-SELECT u.id, 1500.00, '/uploads/rent/local-test-agreement.jpg', 26, '2026-09-01', 12, '2027-09-01',
+SELECT u.id, 1500.00, '/uploads/rent/local-test-agreement.jpg', 26, '2026-09-01', '2027-08-01', '2026-09-01', 12, '2027-08-31',
   NULL, 'Due Today Home', NULL, 'Siti', 1, '', 'none',
   'Maybank', '333344445555', 'Siti', '2026-09-01 10:00:00', NOW()
 FROM `t_user` u
@@ -76,11 +76,11 @@ WHERE u.account = '60666666666' AND r.deleted_at IS NULL
 
 -- Due 15 Aug 2026, still unpaid. Wallet is empty.
 INSERT INTO `t_rent` (
-  `user_id`, `amount`, `file`, `paid_at`, `first_pay_month`, `lease_months`, `expire_date`,
+  `user_id`, `amount`, `file`, `paid_at`, `agreement_start`, `agreement_end`, `first_pay_month`, `lease_months`, `expire_date`,
   `property_id`, `property_name`, `landlord_id`, `owner_name`, `status`, `rejected_by`, `link_status`,
   `landlord_bank`, `landlord_bank_account`, `landlord_account_name`, `created_at`, `updated_at`
 )
-SELECT u.id, 1200.00, '/uploads/rent/local-test-agreement.jpg', 15, '2026-08-01', 12, '2027-07-01',
+SELECT u.id, 1200.00, '/uploads/rent/local-test-agreement.jpg', 15, '2026-08-01', '2027-07-01', '2026-08-01', 12, '2027-07-31',
   NULL, 'Overdue Flat', NULL, 'Farid', 1, '', 'none',
   'Maybank', '444455556666', 'Farid', '2026-07-01 10:00:00', NOW()
 FROM `t_user` u
@@ -101,11 +101,11 @@ WHERE u.account = '60777777777' AND r.deleted_at IS NULL
 
 -- August paid on time. Next due 28 Sep 2026. Wallet covers that month.
 INSERT INTO `t_rent` (
-  `user_id`, `amount`, `file`, `paid_at`, `first_pay_month`, `lease_months`, `expire_date`,
+  `user_id`, `amount`, `file`, `paid_at`, `agreement_start`, `agreement_end`, `first_pay_month`, `lease_months`, `expire_date`,
   `property_id`, `property_name`, `landlord_id`, `owner_name`, `status`, `rejected_by`, `link_status`,
   `landlord_bank`, `landlord_bank_account`, `landlord_account_name`, `created_at`, `updated_at`
 )
-SELECT u.id, 1600.00, '/uploads/rent/local-test-agreement.jpg', 28, '2026-08-01', 12, '2027-08-01',
+SELECT u.id, 1600.00, '/uploads/rent/local-test-agreement.jpg', 28, '2026-08-01', '2027-07-01', '2026-08-01', 12, '2027-07-31',
   NULL, 'Partial Paid Home', NULL, 'Nora', 1, '', 'none',
   'Maybank', '555566667777', 'Nora', '2026-08-01 10:00:00', NOW()
 FROM `t_user` u

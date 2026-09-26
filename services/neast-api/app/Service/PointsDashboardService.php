@@ -42,7 +42,7 @@ class PointsDashboardService
             'points' => $points,
             'tier' => ['current' => $tier['current']],
             'expiring' => $this->userPointsService->expiringSummary($userId),
-            'voucher_count' => $this->couponService->appMyCount($userId)['count'],
+            'coupon_count' => $this->couponService->appMyCount($userId)['count'],
             'inviter_reward_points' => (int) ($settings['inviter_reward_points'] ?? 0),
             'invitee_reward_points' => (int) ($settings['invitee_reward_points'] ?? 0),
         ];

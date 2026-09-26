@@ -43,7 +43,6 @@ class MerchantPointsLogService
                     'notes' => (string) $record->notes,
                     'receipt_number' => (string) $record->receipt_number,
                     'receipt_path' => (string) $record->receipt_path,
-                    'voucher' => (string) $record->receipt_path,
                     'user_account' => $user?->account ?? '',
                     'user_name' => trim(trim((string) ($user?->first_name ?? '')) . ' ' . trim((string) ($user?->last_name ?? ''))),
                     'created_at' => $record->created_at?->format('Y-m-d H:i:s') ?? '',

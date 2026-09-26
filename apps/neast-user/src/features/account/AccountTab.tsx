@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import {
-  Alert,
   ImageBackground,
   Pressable,
   RefreshControl,
@@ -18,8 +17,8 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { formatRinggit, useIsLoggedIn } from '@neast/types';
 import {
   Chevron,
+  ConfirmDialog,
   coreColors,
-  CountdownConfirmDialog,
   spacing,
   Toast,
   userHomeColors,
@@ -49,6 +48,7 @@ export function AccountTab() {
   const isLoggedIn = useIsLoggedIn();
   const profile = useUserProfile();
   const [deleteVisible, setDeleteVisible] = useState(false);
+  const [logoutVisible, setLogoutVisible] = useState(false);
 
   const balance = useQuery({
     queryKey: ['wallet-balance'],
@@ -124,18 +124,7 @@ export function AccountTab() {
         key: 'logout',
         label: 'Log Out',
         icon: 'log-out-outline',
-        onPress: () => {
-          Alert.alert('Log out', 'Are you sure you want to log out?', [
-            { text: 'Cancel', style: 'cancel' },
-            {
-              text: 'Log Out',
-              style: 'destructive',
-              onPress: () => {
-                void performLogout();
-              },
-            },
-          ]);
-        },
+        onPress: () => setLogoutVisible(true),
       },
       {
         key: 'delete',
@@ -266,18 +255,33 @@ export function AccountTab() {
       </ScrollView>
 
       {isLoggedIn ? (
-        <CountdownConfirmDialog
-          visible={deleteVisible}
-          title="Delete account?"
-          message="This permanently deletes your account and all associated data. This action cannot be undone."
-          countdownSeconds={10}
-          confirmText="Delete"
-          onCancel={() => setDeleteVisible(false)}
-          onConfirm={() => {
-            setDeleteVisible(false);
-            deleteMutation.mutate();
-          }}
-        />
+        <>
+          <ConfirmDialog
+            visible={logoutVisible}
+            title="Log out"
+            message="Are you sure you want to log out?"
+            confirmText="Log Out"
+            danger
+            onCancel={() => setLogoutVisible(false)}
+            onConfirm={() => {
+              setLogoutVisible(false);
+              void performLogout();
+            }}
+          />
+          <ConfirmDialog
+            visible={deleteVisible}
+            title="Delete account?"
+            message="This permanently deletes your account and all associated data. This action cannot be undone."
+            countdownSeconds={10}
+            confirmText="Delete"
+            danger
+            onCancel={() => setDeleteVisible(false)}
+            onConfirm={() => {
+              setDeleteVisible(false);
+              deleteMutation.mutate();
+            }}
+          />
+        </>
       ) : null}
     </View>
   );

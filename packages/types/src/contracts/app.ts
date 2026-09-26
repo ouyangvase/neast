@@ -103,8 +103,13 @@ export interface RentListItem {
   file_url: string;
   /** Payday label (`Y-m-d` of month or day-of-month label per backend). */
   paid_at: string;
-  /** `Y-m`. */
+  /** `Y-m`. Agreement start month. */
+  agreement_start: string;
+  /** `Y-m`. Agreement end month. */
+  agreement_end: string;
+  /** `Y-m`. First month billed on NEAST. */
   first_pay_month: string;
+  /** Months from `first_pay_month` through `agreement_end`, inclusive. */
   lease_months: number;
   /** `Y-m-d`. */
   expire_date: string;
@@ -158,8 +163,11 @@ export interface CreateRentBody {
   file: string;
   paid_at: string;
   /** `Y-m`. */
+  agreement_start: string;
+  /** `Y-m`. */
+  agreement_end: string;
+  /** `Y-m`. First month billed on NEAST. */
   first_pay_month: string;
-  lease_months: number;
   property_name: string;
   property_id?: number;
   owner_name?: string;
@@ -178,7 +186,13 @@ export interface CreateRentResponse {
   amount: string;
   file: string;
   paid_at: string;
+  /** `Y-m`. */
+  agreement_start: string;
+  /** `Y-m`. */
+  agreement_end: string;
+  /** `Y-m`. */
   first_pay_month: string;
+  /** Months from `first_pay_month` through `agreement_end`, inclusive. */
   lease_months: number;
   expire_date: string;
   status: RentStatus;
@@ -352,7 +366,7 @@ export interface PointsDashboard {
     points: number;
     expired_date: string;
   } | null;
-  voucher_count: number;
+  coupon_count: number;
   inviter_reward_points: number;
   invitee_reward_points: number;
 }
@@ -394,7 +408,7 @@ export interface RewardDashboard {
 // ---------------------------------------------------------------------------
 
 export type CouponActionStatus = 'redeem' | 'use_now' | 'fully_redeemed';
-export type VoucherStatus = 'active' | 'used' | 'expired';
+export type CouponStatus = 'active' | 'used' | 'expired';
 
 /** GET /app/coupon/list item. */
 export interface CouponListItem {
@@ -420,7 +434,7 @@ export type CouponListResponse = PaginatedList<CouponListItem>;
 export interface UserCouponItem extends CouponListItem {
   user_coupon_id: number;
   redeemed_at: string | null;
-  voucher_status: VoucherStatus;
+  coupon_status: CouponStatus;
 }
 export type UserCouponListResponse = PaginatedList<UserCouponItem>;
 

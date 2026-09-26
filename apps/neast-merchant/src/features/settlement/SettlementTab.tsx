@@ -66,7 +66,7 @@ export function SettlementTab() {
             />
             <BillStat
               icon={stat2Icon}
-              label="Vouchers redeemed"
+              label="Coupons redeemed"
               value={data ? formatThousands(data.redeemed) : '—'}
             />
             <BillStat

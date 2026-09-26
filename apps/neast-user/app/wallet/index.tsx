@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useLayoutEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { router } from 'expo-router';
+import { router, useNavigation } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -28,12 +28,17 @@ import { Screen } from '@/components/Screen';
 /** Wallet top-up: balance, presets, payment method, then Fiuu H5. */
 export default function WalletRoute() {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation();
   const queryClient = useQueryClient();
 
   const [amount, setAmount] = useState('');
   const [method, setMethod] = useState('fpx');
   const [bank, setBank] = useState<FpxBank | null>(null);
   const [bankPickerVisible, setBankPickerVisible] = useState(false);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({ gestureEnabled: false });
+  }, [navigation]);
 
   const balance = useQuery({
     queryKey: ['wallet-balance'],

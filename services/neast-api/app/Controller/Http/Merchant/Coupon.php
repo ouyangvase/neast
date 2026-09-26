@@ -35,10 +35,10 @@ class Coupon extends AbstractController
         $validator = di(ValidatorFactory::class)->make($request->all(), [
             'code' => 'required|string|min:1|max:64',
         ], [
-            'code.required' => 'Voucher code is required',
-            'code.string' => 'Invalid voucher code',
-            'code.min' => 'Invalid voucher code',
-            'code.max' => 'Invalid voucher code',
+            'code.required' => 'Coupon code is required',
+            'code.string' => 'Invalid coupon code',
+            'code.min' => 'Invalid coupon code',
+            'code.max' => 'Invalid coupon code',
         ]);
 
         if ($validator->fails()) {
@@ -63,10 +63,10 @@ class Coupon extends AbstractController
         $validator = di(ValidatorFactory::class)->make($request->all(), [
             'code' => 'required|string|min:1|max:64',
         ], [
-            'code.required' => 'Voucher code is required',
-            'code.string' => 'Invalid voucher code',
-            'code.min' => 'Invalid voucher code',
-            'code.max' => 'Invalid voucher code',
+            'code.required' => 'Coupon code is required',
+            'code.string' => 'Invalid coupon code',
+            'code.min' => 'Invalid coupon code',
+            'code.max' => 'Invalid coupon code',
         ]);
 
         if ($validator->fails()) {

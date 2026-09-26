@@ -35,7 +35,7 @@ function handleNotificationResponse(response: Notifications.NotificationResponse
   if (type === 'PointAdd') {
     router.push('/points/history');
   } else if (type === 'Coupon') {
-    router.push('/coupon/my-vouchers');
+    router.push('/coupon/my-coupons');
   } else {
     router.push('/notification');
   }

@@ -21,14 +21,14 @@ import manualIcon from '@assets/images/scan/manual.png';
 import photosIcon from '@assets/images/scan/photos.png';
 
 import { apiErrorMessage } from '@/lib/api';
-import { openRedeemVoucher, openScanner } from '@/lib/callbacks';
+import { openRedeemCoupon, openScanner } from '@/lib/callbacks';
 import { verifyCoupon } from '@/lib/endpoints';
 import { useMerchantInfo } from '@/hooks/use-merchant';
 
 /**
- * Scan tab (scan_screen parity): tap-to-scan frame, manual 6-char voucher
+ * Scan tab (scan_screen parity): tap-to-scan frame, manual 6-char coupon
  * entry, gallery QR pick, outlet info card. Any code — scanned or manual —
- * goes to POST /merchant/coupon/verify, then /redeem-voucher.
+ * goes to POST /merchant/coupon/verify, then /redeem-coupon.
  */
 export function ScanTab() {
   const theme = useUiTheme();
@@ -39,7 +39,7 @@ export function ScanTab() {
 
   const verifyMutation = useMutation({
     mutationFn: (code: string) => verifyCoupon(code),
-    onSuccess: (preview, code) => openRedeemVoucher({ preview, code }),
+    onSuccess: (preview, code) => openRedeemCoupon({ preview, code }),
     onError: (error) => Toast.error(apiErrorMessage(error)),
   });
 
@@ -49,7 +49,7 @@ export function ScanTab() {
 
   const submitManual = () => {
     if (!/^[A-Z0-9]{6}$/.test(manualCode)) {
-      setManualError('Enter the 6-character voucher code');
+      setManualError('Enter the 6-character coupon code');
       return;
     }
     setManualVisible(false);
@@ -82,7 +82,7 @@ export function ScanTab() {
       <ScrollView contentContainerStyle={styles.scroll}>
         <GradientHeader colors={theme.gradients.header} style={styles.header}>
           <Text style={styles.headerTitle}>Scan</Text>
-          <Text style={styles.headerSubtitle}>Scan a voucher QR to redeem</Text>
+          <Text style={styles.headerSubtitle}>Scan a coupon QR to redeem</Text>
         </GradientHeader>
 
         <Pressable
@@ -132,7 +132,7 @@ export function ScanTab() {
       <BottomSheet
         visible={manualVisible}
         onClose={() => setManualVisible(false)}
-        title="Enter voucher code"
+        title="Enter coupon code"
       >
         <View style={styles.manualForm}>
           <TextField

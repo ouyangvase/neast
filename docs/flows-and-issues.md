@@ -196,7 +196,7 @@ Ack confirm does **not** send bank fields. This app never starts a tenant charge
 
 | Flow | APIs |
 |---|---|
-| Burn user voucher | `POST /merchant/coupon/verify` `{ code }`, `POST /merchant/coupon/redeem` `{ code }` |
+| Burn user coupon | `POST /merchant/coupon/verify` `{ code }`, `POST /merchant/coupon/redeem` `{ code }` |
 | Award points | upload receipt → `POST /merchant/give-points/confirm` `{ customer, amount, points, merchant_id, notes, receipt_number, receipt_path }` |
 | Customer lookup | scan JSON `{ user_id }` → `GET /merchant/give-points/customer?user_id=` |
 | Points rate | `GET /merchant/points-setting` → `yuan_to_points` |
@@ -249,7 +249,7 @@ sequenceDiagram
 
 **QR identity (points):** Tenant My QR encodes backend `qrCode`. Merchant parser **requires** JSON `{ "user_id": <int> }`. Works only if the issued string is that JSON.
 
-**Vouchers:** Tenant `POST /app/coupon/redeem` `{ coupon_id }` (points → voucher). Merchant `POST /merchant/coupon/redeem` `{ code }` (burn). Same backend, opposite verbs.
+**Coupons:** Tenant `POST /app/coupon/redeem` `{ coupon_id }` (points → coupon). Merchant `POST /merchant/coupon/redeem` `{ code }` (burn). Same backend, opposite verbs.
 
 **Rent pay + ack:** Tenant pays NEAST. Owner confirms a queue item. Admin later marks Platform Settled with a receipt. Owner ack is **not** a bank payout.
 
@@ -450,7 +450,7 @@ Prioritized by user / business damage.
 | P1 | Fiuu notify still on old wallet URLs | Cannot migrate Nest without freezing Flutter money | `FIUU_INTEGRATION.md` |
 | P2 | Flutter localhost + `https://` to localhost | Dev friction; easy to ship a build that talks to nothing | All three `app_constants.dart` |
 | P2 | Stubs: PDF, invoices, WhatsApp, campaigns, coupon share, merchant export, merchant delete account | Looks shipped, is not | See §2 |
-| P2 | No marketplace checkout on Flutter (browse + vouchers only) | Merchant value is points, not GMV | User merchant routes |
+| P2 | No marketplace checkout on Flutter (browse + coupons only) | Merchant value is points, not GMV | User merchant routes |
 | P2 | Expo vs Flutter product split (prototype marketplace/maintenance vs live ack-only) | Stakeholders demo features that store apps do not have | `WORKSPACE-PROTOTYPES.md` |
 | P2 | Guest vs auth inconsistency (user) | Deep links to merchant detail force login; catalog does not | `app_router.dart` |
 | P3 | No deposits, maintenance tickets, or chat on Flutter or Nest | Core rental ops missing | No APIs |

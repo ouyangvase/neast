@@ -31,7 +31,7 @@ import type {
   UserCouponCount,
   UserCouponListResponse,
   UserProfile,
-  VoucherStatus,
+  CouponStatus,
   WalletBalance,
   WalletTopupListResponse,
 } from '@neast/types';
@@ -157,7 +157,7 @@ export const getMerchantCoupons = (merchantId: number) =>
 
 export const getMyCouponCount = () => api.get<UserCouponCount>('coupon/my-count');
 
-export const getMyCoupons = (page: number, limit: number, status: VoucherStatus) =>
+export const getMyCoupons = (page: number, limit: number, status: CouponStatus) =>
   api.get<UserCouponListResponse>('coupon/my-list', { page, limit, status });
 
 export const getLatestCoupon = () => api.get<CouponLatestItem | null>('coupon/latest');

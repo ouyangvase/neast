@@ -8,13 +8,13 @@ return [
             'topic' => 'Rent payment due in 7 days ⏰',
             'content' => 'Your rent is due in 7 days. Pay with NEAST to stay on track and earn your rewards.',
         ],
-        'voucher_expiring' => [
-            'topic' => 'Your voucher expires in 1 month 🎁',
-            'content' => 'Don\'t forget! Your voucher expires in 1 month. Redeem it before it\'s gone.',
+        'coupon_expiring' => [
+            'topic' => 'Your coupon expires in 1 month 🎁',
+            'content' => 'Don\'t forget! Your coupon expires in 1 month. Redeem it before it\'s gone.',
         ],
-        'voucher_expiring_15_days' => [
-            'topic' => 'Your voucher expires in 15 days ⚠️',
-            'content' => 'Just a reminder! You have 15 days left to use your voucher. Redeem it now.',
+        'coupon_expiring_15_days' => [
+            'topic' => 'Your coupon expires in 15 days ⚠️',
+            'content' => 'Just a reminder! You have 15 days left to use your coupon. Redeem it now.',
         ],
         'new_merchant_nearby' => [
             'topic' => 'New merchant near you 📍',

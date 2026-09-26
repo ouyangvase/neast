@@ -17,11 +17,11 @@ import { rentHistoryStatusMeta, rentStatusMeta, type StatusMeta } from '@/lib/fo
 import type { RentHistoryEntry } from '@/lib/types';
 import { useSelectionStore } from '@/stores/selection';
 
-/** `Y-m` and `Y-m-d` from the rent list, shown as `Jan 2026 – 31 Dec 2026`. */
-function leaseLabel(firstPayMonth: string, expireDate: string): string {
-  const [fromYear, fromMonth] = firstPayMonth.split('-');
-  const [toYear, toMonth, toDay] = expireDate.split('-');
-  return `${MONTH_NAMES_SHORT[Number(fromMonth) - 1]} ${fromYear} – ${Number(toDay)} ${MONTH_NAMES_SHORT[Number(toMonth) - 1]} ${toYear}`;
+/** `Y-m` agreement months, shown as `Jan 2026 – Dec 2026`. */
+function agreementLabel(agreementStart: string, agreementEnd: string): string {
+  const [fromYear, fromMonth] = agreementStart.split('-');
+  const [toYear, toMonth] = agreementEnd.split('-');
+  return `${MONTH_NAMES_SHORT[Number(fromMonth) - 1]} ${fromYear} – ${MONTH_NAMES_SHORT[Number(toMonth) - 1]} ${toYear}`;
 }
 
 /** One tenancy on the Pay Rent tab. `summary` is the static card on tenancy details. */
@@ -70,7 +70,7 @@ export function TenancyCard({ rent, summary = false }: { rent: RentListItem; sum
           {rent.landlord_name}
         </Text>
         <Text style={styles.meta} numberOfLines={1}>
-          {leaseLabel(rent.first_pay_month, rent.expire_date)}
+          {agreementLabel(rent.agreement_start, rent.agreement_end)}
         </Text>
         {summary ? null : (
           <View style={styles.actions}>

@@ -30,7 +30,7 @@ import { fontFamilies, textStyles } from '@neast/ui-mobile';
 import { appThemes, getAppTheme, type AppId, type AppTheme } from '@neast/ui-mobile';
 
 const theme = getAppTheme('owner'); // 'user' | 'owner' | 'merchant'
-theme.colors; // core palette (brandBlue #0851AA, actionGreen #4ADB77, error #FF4444, …)
+theme.colors; // core palette (brandBlue #0851AA, actionGreen #4ADB77, error #E03C3C, …)
 theme.accents; // per-app accent set (user gold tier / owner blue+tan / merchant corporate blue)
 theme.gradients.header; // readonly [string, string] — pass to GradientHeader
 ```
@@ -68,7 +68,7 @@ All components are controlled, navigation-agnostic, and accept `style` overrides
 | `PhoneField`             | `dialCode`, `onDialCodePress`, `phone`, `onPhoneChange`                                                               | `getFullPhoneNumber('+60','123')` → `'60123'` (no `+`, per API) |
 | `CountryCodePicker`      | `visible`, `codes: string[]`, `onSelect`, `selectedCode`, `onClose`                                                   | bottom-sheet dial-code list                                     |
 | `BottomSheet`            | `visible`, `onClose`, `title`, `maxHeight`, `dismissOnBackdrop`                                                       | slide-up modal sheet                                            |
-| `CountdownConfirmDialog` | `visible`, `title`, `countdownSeconds=10`, `onConfirm`, `onCancel`, `danger`                                          | delete-account (10s) / terminate (5s)                           |
+| `ConfirmDialog`          | `visible`, `title`, `message`, `confirmText`, `onConfirm`, `onCancel`, `danger`, `countdownSeconds`                  | dim backdrop; countdown optional (delete 10s, terminate 5s)     |
 | `Toast` + `<ToastHost/>` | `Toast.show/success/error/warning(msg)`                                                                               | mount host once; 1.5s global debounce                           |
 | `Skeleton`               | `width`, `height`, `radius`                                                                                           | pulsing placeholder                                             |
 | `EmptyState`             | `image`, `title`, `message`, `actionLabel`, `onAction`                                                                |                                                                 |

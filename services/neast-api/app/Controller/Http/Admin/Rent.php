@@ -42,29 +42,9 @@ class Rent extends AbstractController
     }
 
     #[RequestMapping(path: 'id/{id}/payment-schedule-preview', methods: ['GET'])]
-    public function paymentSchedulePreview(int $id, RequestInterface $request): ResponseInterface
+    public function paymentSchedulePreview(int $id): ResponseInterface
     {
-        $leaseMonthsInput = $request->input('lease_months', null);
-        $leaseMonths = ($leaseMonthsInput !== null && $leaseMonthsInput !== '')
-            ? (int) $leaseMonthsInput
-            : null;
-
-        if ($leaseMonths !== null) {
-            $validator = di(ValidatorFactory::class)->make(
-                ['lease_months' => $leaseMonths],
-                ['lease_months' => 'integer|min:1'],
-                [
-                    'lease_months.integer' => 'Invalid lease term',
-                    'lease_months.min' => 'Lease term must be at least 1 month',
-                ]
-            );
-
-            if ($validator->fails()) {
-                return $this->error($validator->errors()->first());
-            }
-        }
-
-        return $this->success($this->service->paymentSchedulePreview($id, $leaseMonths));
+        return $this->success($this->service->paymentSchedulePreview($id));
     }
 
     #[RequestMapping(path: 'id/{id}/audit', methods: ['PUT'])]
@@ -82,7 +62,6 @@ class Rent extends AbstractController
             $rules['landlord_bank_account'] = 'nullable|string|max:64';
             $rules['landlord_account_name'] = 'nullable|string|max:128';
             $rules['property_id'] = 'nullable|integer|min:1';
-            $rules['lease_months'] = 'required|integer|min:1';
         }
 
         $validator = di(ValidatorFactory::class)->make($params, $rules, [
@@ -92,9 +71,6 @@ class Rent extends AbstractController
             'landlord_bank_account.max' => 'Landlord bank account is too long',
             'landlord_account_name.max' => 'Landlord account name is too long',
             'property_id.integer' => 'Invalid property',
-            'lease_months.required' => 'Lease term is required',
-            'lease_months.integer' => 'Invalid lease term',
-            'lease_months.min' => 'Lease term must be at least 1 month',
         ]);
 
         if ($validator->fails()) {

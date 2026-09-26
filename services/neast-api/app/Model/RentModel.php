@@ -15,9 +15,11 @@ use Hyperf\Database\Model\SoftDeletes;
  * @property string $amount 还款金额
  * @property string $file 凭证文件URL
  * @property int $paid_at 交租日(每月几号)
- * @property string|null $first_pay_month 首次交租月份
- * @property int $lease_months 租期月份数
- * @property string|null $expire_date 房租到期时间
+ * @property string|null $agreement_start 租约开始月份
+ * @property string|null $agreement_end 租约结束月份
+ * @property string|null $first_pay_month NEAST首次交租月份
+ * @property int $lease_months NEAST交租月份数
+ * @property string|null $expire_date 租约结束月最后一天
  * @property int|null $property_id 房产ID
  * @property string $property_name 房产名称(未绑定时用户填写)
  * @property int|null $landlord_id 房东ID
@@ -64,6 +66,8 @@ class RentModel extends Model
         'amount',
         'file',
         'paid_at',
+        'agreement_start',
+        'agreement_end',
         'first_pay_month',
         'lease_months',
         'expire_date',
@@ -97,6 +101,8 @@ class RentModel extends Model
         'terminated_by' => 'integer',
         'terminated_at' => 'datetime:Y-m-d H:i:s',
         'paid_at' => 'integer',
+        'agreement_start' => 'date:Y-m-d',
+        'agreement_end' => 'date:Y-m-d',
         'first_pay_month' => 'date:Y-m-d',
         'lease_months' => 'integer',
         'expire_date' => 'date:Y-m-d',

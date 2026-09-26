@@ -28,7 +28,7 @@ Spec source: `docs/users.md` (30 routes, 49 endpoints, 4 tabs).
 | 17  | `/reward/tier`             | `app/reward/tier.tsx`                                                    | ✅ current progress + tier list (icons id 1–5)                                                                   |
 | 18  | `/coupon`                  | `app/coupon/index.tsx`                                                   | ✅ category chips + paginated list (guest-browsable)                                                             |
 | 19  | `/coupon/detail`           | `app/coupon/detail.tsx`                                                  | ✅ redeem / use-now QR / fully-redeemed; coupon via selection store (go_router `extra` parity)   |
-| 20  | `/coupon/my-vouchers`      | `app/coupon/my-vouchers.tsx`                                             | ✅ active/used/expired tabs; active → QR dialog                                                                  |
+| 20  | `/coupon/my-coupons`       | `app/coupon/my-coupons.tsx`                                              | ✅ active/used/expired tabs; active → QR dialog                                                                  |
 | 21  | `/merchant/:id`            | `app/merchant/[id].tsx`                                                  | ✅ detail, coupon sheet, external map, share, nearest alternative                                                |
 | 22  | `/merchants`               | `app/merchants/index.tsx`                                                | ✅ `?kind=all\|recommended\|nearby&header=`                                                                      |
 | 23  | `/merchants/map`           | `app/merchants/map.tsx`                                                  | ✅ react-native-maps + OSM `UrlTile`, category chips incl. hardcoded "5X Points" (id=5), collapsible deals sheet |
@@ -77,7 +77,7 @@ thin composition of `src/features/home/components/`, top → bottom:
 6. **PropertyPromo** — "Find a home" / "View properties" → `/properties`
    (shared `ComingSoon`: navy header, cream “Coming soon” label, message; no photo).
 
-Removed from home: Today's Reward card, My Vouchers card, old `PromoCarousel`,
+Removed from home: Today's Reward card, My Coupons card, old `PromoCarousel`,
 `GuestLoginPlaceholder` (guest sign-in now lives in AmountCard). Home renders
 `dashboard.banners` again.
 
@@ -94,8 +94,8 @@ Removed from home: Today's Reward card, My Vouchers card, old `PromoCarousel`,
    `/personal-data` (guests: `/login`). Value rows open `/wallet` and
    `/account/tent-score`. Guests read "Sign in" and go to `/login`. Privacy and Terms
    stay on `/rich-text`.
-4. Logged in only, still in that table: Log Out (confirm alert) and Delete Account
-   (10s countdown).
+4. Logged in only, still in that table: Log Out and Delete Account, both
+   `ConfirmDialog`. Delete waits 10s before the button enables.
 
 ## Endpoints (49)
 
@@ -110,7 +110,7 @@ App-level wrappers live in `src/lib/endpoints.ts`; upload/push/refresh are insid
 | 4   | `POST /app/auth/refresh-token`    | `@neast/types` client (single-flight, business-400) | automatic                                                      |
 | 5   | `GET /app/user/profile`           | `getUserProfile`                                    | `useUserProfile` (Account, Home, personal-data, my-qr)         |
 | 6   | `POST /app/user/profile`          | `updateUserProfile`                                 | `app/full-data.tsx`, `app/personal-data/index.tsx`             |
-| 7   | `POST /app/user/delete-account`   | `deleteAccount`                                     | `AccountTab` (10s CountdownConfirmDialog)                      |
+| 7   | `POST /app/user/delete-account`   | `deleteAccount`                                     | `AccountTab` (ConfirmDialog, 10s countdown)                    |
 | 8   | `GET /app/user/tent-score`        | `getTentScore`                                      | `AccountTab` snapshot, `app/account/tent-score.tsx`            |
 | 9   | `GET /app/config`                 | —                                                   | API remains; user app no longer calls it                       |
 | 10  | `GET /app/home/dashboard`         | `getHomeDashboard`                                  | `HomeTab`                                                      |
@@ -133,8 +133,8 @@ App-level wrappers live in `src/lib/endpoints.ts`; upload/push/refresh are insid
 | 27  | `GET /app/coupon/categories`      | `getCouponCategories`                               | `coupon`                                                       |
 | 28  | `GET /app/coupon/list`            | `getCouponList`                                     | `coupon`                             |
 | 29  | `GET /app/coupon/merchant-list`   | `getMerchantCoupons`                                | `merchant/[id]` coupon sheet                                   |
-| 30  | `GET /app/coupon/my-count`        | `getMyCouponCount`                                  | wrapped; unused (dropped from home with the My Vouchers card)  |
-| 31  | `GET /app/coupon/my-list`         | `getMyCoupons`                                      | `coupon/my-vouchers`                                           |
+| 30  | `GET /app/coupon/my-count`        | `getMyCouponCount`                                  | wrapped; unused (dropped from home with the My Coupons card)  |
+| 31  | `GET /app/coupon/my-list`         | `getMyCoupons`                                      | `coupon/my-coupons`                                            |
 | 32  | `GET /app/coupon/latest`          | `getLatestCoupon`                                   | wrapped; unused (home dashboard carries `todayReward`)         |
 | 33  | `POST /app/coupon/redeem`         | `redeemCoupon`                                      | `useCouponActions` (confirm → redeem → QR)                     |
 | 34  | `GET /app/merchant/list`          | `getMerchantList`                                   | `merchants?kind=all`                                           |

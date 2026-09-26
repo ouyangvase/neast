@@ -215,7 +215,13 @@ export interface LandlordRentDetail {
   amount: string;
   /** Rent payday as an integer day-of-month (1–31) — a JSON number, not a date. */
   paid_at: number;
+  /** `Y-m`. */
+  agreement_start: string;
+  /** `Y-m`. */
+  agreement_end: string;
+  /** `Y-m`. First month billed on NEAST. */
   first_pay_month: string;
+  /** Months from `first_pay_month` through `agreement_end`, inclusive. */
   lease_months: number;
   expire_date: string;
   created_at: string;
