@@ -1,22 +1,23 @@
 import { useState, type ReactNode } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { DAY_OPTIONS, LEASE_MONTH_OPTIONS } from '@neast/constant';
 import {
   BottomSheet,
   Card,
   coreColors,
+  DocumentIcon,
   spacing,
   TextField,
   textStyles,
   Toast,
+  UploadIcon,
   UploadProgressDialog,
   userHomeColors,
 } from '@neast/ui-mobile';
 
 import {
-  LEASE_MONTH_OPTIONS,
   monthOptionLabel,
   monthOptionValue,
   ordinalDay,
@@ -25,8 +26,6 @@ import {
 } from '../../lib/format';
 import { pickDocumentFile, pickImageFile } from '../../lib/pickers';
 import { useFileUpload } from '../../hooks/use-upload';
-
-const DAY_OPTIONS = Array.from({ length: 31 }, (_, index) => index + 1);
 
 export interface TenancyFormValues {
   amount: string;
@@ -40,10 +39,12 @@ export interface TenancyFormValues {
 export function TenancyForm({
   leading,
   submitting,
+  submitLabel = 'Submit',
   onSubmit,
 }: {
   leading: ReactNode;
   submitting: boolean;
+  submitLabel?: string;
   onSubmit: (values: TenancyFormValues) => void;
 }) {
   const insets = useSafeAreaInsets();
@@ -123,11 +124,11 @@ export function TenancyForm({
           onPress={() => setLeasePickerVisible(true)}
         />
         <Card style={styles.agreementCard} onPress={() => setAgreementPickerVisible(true)}>
-          <Ionicons
-            name={agreementName ? 'document-attach-outline' : 'cloud-upload-outline'}
-            size={24}
-            color={coreColors.brandBlue}
-          />
+          {agreementName ? (
+            <DocumentIcon size={24} color={coreColors.brandBlue} />
+          ) : (
+            <UploadIcon size={24} color={coreColors.brandBlue} />
+          )}
           <View style={styles.agreementText}>
             <Text style={styles.agreementTitle}>Tenancy agreement</Text>
             <Text style={styles.agreementSubtitle}>
@@ -150,7 +151,7 @@ export function TenancyForm({
         {submitting ? (
           <ActivityIndicator color={userHomeColors.surface} />
         ) : (
-          <Text style={styles.submitText}>Submit</Text>
+          <Text style={styles.submitText}>{submitLabel}</Text>
         )}
       </Pressable>
 

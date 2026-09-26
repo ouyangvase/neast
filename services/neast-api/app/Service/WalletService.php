@@ -299,6 +299,7 @@ class WalletService
 
     /**
      * H5 IPN 回调：验签并入账，返回 echo 文本。
+     * 00 与 11 回 SUCCESS，其余回 error，供 Fiuu 重试。
      */
     public function handleH5Notify(array $params): string
     {
@@ -309,56 +310,19 @@ class WalletService
             return 'error';
         }
 
-        $orderId = trim((string) ($params['orderid'] ?? ''));
-        $tranId = trim((string) ($params['tranID'] ?? ''));
-        $amount = trim((string) ($params['amount'] ?? ''));
-        $channel = trim((string) ($params['channel'] ?? ''));
-
-        if ($orderId === '') {
-            return 'error';
-        }
-
         try {
-            $isRentOrder = str_starts_with($orderId, 'TR');
-            $isMerchantTopup = str_starts_with($orderId, 'TM');
-            $isSettlementOrder = str_starts_with($orderId, 'TS');
-
-            if ($status === '00') {
-                if ($isRentOrder) {
-                    $this->rentPaymentService->completePayByOrderId($orderId, $tranId, $amount, $channel);
-                } elseif ($isMerchantTopup) {
-                    $this->merchantWalletService->completeTopupByOrderId($orderId, $tranId, $amount, $channel);
-                } elseif ($isSettlementOrder) {
-                    $this->settlementService->completePayByOrderId($orderId, $tranId, $amount, $channel);
-                } else {
-                    $this->completeTopupByOrderId($orderId, $tranId, $amount, $channel);
-                }
-
-                return 'SUCCESS';
-            }
-
-            if ($status === '11') {
-                if ($isRentOrder) {
-                    $this->rentPaymentService->markPayFailed($orderId, $tranId, $channel);
-                } elseif ($isMerchantTopup) {
-                    $this->merchantWalletService->markTopupFailed($orderId, $tranId, $channel);
-                } elseif ($isSettlementOrder) {
-                    $this->settlementService->markPayFailed($orderId, $tranId, $channel);
-                } else {
-                    $this->markTopupFailed($orderId, $tranId, $channel);
-                }
-            }
+            $this->applyH5PaymentResult($status, $params);
         } catch (\Throwable $exception) {
             $this->logger->error('Fiuu H5 notify failed: ' . $exception->getMessage());
 
             return 'error';
         }
 
-        return $status === '11' ? 'SUCCESS' : 'error';
+        return $status === '00' || $status === '11' ? 'SUCCESS' : 'error';
     }
 
     /**
-     * H5 Return 回调：验签后返回跳转状态 success|pending|failed。
+     * H5 Return 回调：验签并入账后返回跳转状态 success|pending|failed。
      */
     public function resolveH5ReturnStatus(array $params): string
     {
@@ -366,6 +330,14 @@ class WalletService
 
         $status = $this->verifyH5PaymentParams($params);
         if ($status === 'invalid') {
+            return 'failed';
+        }
+
+        try {
+            $this->applyH5PaymentResult($status, $params);
+        } catch (\Throwable $exception) {
+            $this->logger->error('Fiuu H5 return failed: ' . $exception->getMessage());
+
             return 'failed';
         }
 
@@ -378,6 +350,85 @@ class WalletService
         }
 
         return 'failed';
+    }
+
+    /** Amount shown on the local dev pay page. */
+    public function devOrderAmount(string $orderId): string
+    {
+        return $this->payableH5Order(trim($orderId))['amount'];
+    }
+
+    /** Settle a pending H5 order the same way a Fiuu status-00 return does. */
+    public function settleDevOrder(string $orderId, string $channel): void
+    {
+        $orderId = trim($orderId);
+        $order = $this->payableH5Order($orderId);
+        $channel = trim($channel);
+
+        if ($order['kind'] === 'user') {
+            $this->completeTopupByOrderId($orderId, 'local', $order['amount'], $channel);
+
+            return;
+        }
+
+        if ($order['kind'] === 'rent') {
+            $this->rentPaymentService->completePayByOrderId($orderId, 'local', $order['amount'], $channel);
+
+            return;
+        }
+
+        if ($order['kind'] === 'merchant') {
+            $this->merchantWalletService->completeTopupByOrderId($orderId, 'local', $order['amount'], $channel);
+
+            return;
+        }
+
+        $this->settlementService->completePayByOrderId($orderId, 'local', $order['amount'], $channel);
+    }
+
+    /**
+     * 00 入账，11 标记失败。22 与其它状态不写库。
+     *
+     * @param array<string, mixed> $params
+     */
+    private function applyH5PaymentResult(string $status, array $params): void
+    {
+        if ($status !== '00' && $status !== '11') {
+            return;
+        }
+
+        $orderId = trim((string) ($params['orderid'] ?? ''));
+        $tranId = trim((string) ($params['tranID'] ?? ''));
+        $amount = trim((string) ($params['amount'] ?? ''));
+        $channel = trim((string) ($params['channel'] ?? ''));
+
+        $isRentOrder = str_starts_with($orderId, 'TR');
+        $isMerchantTopup = str_starts_with($orderId, 'TM');
+        $isSettlementOrder = str_starts_with($orderId, 'TS');
+
+        if ($status === '00') {
+            if ($isRentOrder) {
+                $this->rentPaymentService->completePayByOrderId($orderId, $tranId, $amount, $channel);
+            } elseif ($isMerchantTopup) {
+                $this->merchantWalletService->completeTopupByOrderId($orderId, $tranId, $amount, $channel);
+            } elseif ($isSettlementOrder) {
+                $this->settlementService->completePayByOrderId($orderId, $tranId, $amount, $channel);
+            } else {
+                $this->completeTopupByOrderId($orderId, $tranId, $amount, $channel);
+            }
+
+            return;
+        }
+
+        if ($isRentOrder) {
+            $this->rentPaymentService->markPayFailed($orderId, $tranId, $channel);
+        } elseif ($isMerchantTopup) {
+            $this->merchantWalletService->markTopupFailed($orderId, $tranId, $channel);
+        } elseif ($isSettlementOrder) {
+            $this->settlementService->markPayFailed($orderId, $tranId, $channel);
+        } else {
+            $this->markTopupFailed($orderId, $tranId, $channel);
+        }
     }
 
     /**
@@ -552,6 +603,57 @@ class WalletService
         }
 
         throw new AppException('Unknown payment status');
+    }
+
+    /**
+     * Pending order the pay page can settle.
+     *
+     * @return array{kind: 'user'|'rent'|'merchant'|'settlement', amount: string}
+     */
+    private function payableH5Order(string $orderId): array
+    {
+        if ($orderId === '') {
+            throw new AppException('Invalid payment request');
+        }
+
+        $topup = UserTopupModel::query()->where('order_id', $orderId)->first();
+        if ($topup) {
+            if ((int) $topup->status !== UserTopupModel::STATUS_PENDING) {
+                throw new AppException('The order has been paid');
+            }
+
+            return ['kind' => 'user', 'amount' => $this->formatAmount($topup->amount)];
+        }
+
+        $rentHistory = RentHistoryModel::query()
+            ->where('order_id', $orderId)
+            ->where('status', RentHistoryModel::STATUS_PENDING)
+            ->first();
+        if ($rentHistory) {
+            return ['kind' => 'rent', 'amount' => $this->formatAmount($rentHistory->amount)];
+        }
+
+        $merchantTopup = MerchantTopupModel::query()->where('order_id', $orderId)->first();
+        if ($merchantTopup) {
+            if ((int) $merchantTopup->status !== MerchantTopupModel::STATUS_PENDING) {
+                throw new AppException('The order has been paid');
+            }
+
+            return ['kind' => 'merchant', 'amount' => $this->formatAmount($merchantTopup->amount)];
+        }
+
+        $merchantBill = MerchantBillModel::query()
+            ->where('order_id', $orderId)
+            ->where('is_paid', 0)
+            ->first();
+        if ($merchantBill) {
+            return [
+                'kind' => 'settlement',
+                'amount' => $this->formatAmount($merchantBill->pay_amount ?? $merchantBill->amount),
+            ];
+        }
+
+        throw new AppException('Payment order not found');
     }
 
     /**

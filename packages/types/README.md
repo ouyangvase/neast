@@ -91,8 +91,9 @@ workers, `/merchant` = 256KB × 8 workers. Cancellation rejects with
   `normalizePhoneDigits`, `joinPhoneAccount`, `toDate`.
 - Pagination (TanStack Query): `createPaginatedQuery({ queryKey, fetchPage })`
   slots straight into `useInfiniteQuery`; `flattenPaginatedPages(data.pages)`.
-- Constants: `PAYMENT_METHODS`, `FIUU_CHANNELS`, `FPX_BANKS` (17),
-  `NEARBY_MERCHANT_RADIUS_KM`, `DEFAULT_API_BASE_URL`.
+- Constants: `PAYMENT_METHODS`, `FIUU_CHANNELS`, `FPX_BANKS` (17) are defined in
+  `@neast/constant` and re-exported here. Also `NEARBY_MERCHANT_RADIUS_KM`,
+  `DEFAULT_API_BASE_URL`.
 
 ## Contract types
 

@@ -1,38 +1,10 @@
+import { MONTH_NAMES_LONG, MONTH_NAMES_SHORT } from '@neast/constant';
+
 /**
  * Display formatters ported from the Flutter apps (`date_format_utils.dart`,
  * `price_extension.dart`). Hermes ships without full ICU, so grouping and
  * month names are done manually — no `Intl` / `toLocaleString` here.
  */
-
-const MONTH_NAMES_SHORT = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
-] as const;
-
-const MONTH_NAMES_LONG = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-] as const;
 
 /**
  * Parse the backend's date strings into a `Date`.

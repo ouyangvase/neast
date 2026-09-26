@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   iosBg: {
-    backgroundColor: '#4A78BD',
+    backgroundColor: coreColors.splashBlue,
   },
   androidBg: {
     backgroundColor: coreColors.white,

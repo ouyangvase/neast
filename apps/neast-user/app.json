@@ -110,7 +110,9 @@
         {
           "locationWhenInUsePermission": "Allow NEAST to use your location to show nearby merchants and deals."
         }
-      ]
+      ],
+      "expo-sharing",
+      "expo-asset"
     ],
     "extra": {
       "router": {},

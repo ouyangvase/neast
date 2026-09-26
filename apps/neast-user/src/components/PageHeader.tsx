@@ -5,14 +5,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BrandHeader, userHomeColors } from '@neast/ui-mobile';
 
 /** Centered title and left back control on the navy bar used by tab subpages. */
-export function PageHeader({ title }: { title: string }) {
+export function PageHeader({ title, onBack }: { title: string; onBack?: () => void }) {
   const insets = useSafeAreaInsets();
 
   return (
     <View style={[styles.bar, { paddingTop: insets.top }]}>
       <BrandHeader
         title={title}
-        onBack={() => router.back()}
+        onBack={onBack ?? (() => router.back())}
         backgroundColor={userHomeColors.navy}
         chevronColor={userHomeColors.surface}
         titleStyle={styles.title}

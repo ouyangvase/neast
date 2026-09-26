@@ -1,5 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { MONTH_NAMES_LONG } from '@neast/constant';
+
 import { coreColors } from '../tokens/colors';
 import { radii, spacing } from '../tokens/layout';
 import { textStyles } from '../tokens/typography';
@@ -10,21 +12,6 @@ export interface MonthValue {
   /** 1–12. */
   month: number;
 }
-
-const MONTH_NAMES = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-] as const;
 
 /** Rolling N months ending at `from` (default: now), newest first. */
 export function getRollingMonths(count = 12, from: Date = new Date()): MonthValue[] {
@@ -43,7 +30,7 @@ export function getRollingMonths(count = 12, from: Date = new Date()): MonthValu
 }
 
 export function formatMonthLabel({ year, month }: MonthValue): string {
-  return `${MONTH_NAMES[month - 1] ?? month} ${year}`;
+  return `${MONTH_NAMES_LONG[month - 1]} ${year}`;
 }
 
 export interface MonthPickerProps {

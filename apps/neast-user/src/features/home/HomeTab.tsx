@@ -68,7 +68,14 @@ export function HomeTab() {
   return (
     <View style={styles.container}>
       <ScrollView
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[userHomeColors.emptyGrey]}
+            tintColor={userHomeColors.emptyGrey}
+          />
+        }
         contentContainerStyle={styles.scrollContent}
       >
         <ImageBackground

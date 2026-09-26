@@ -1,12 +1,12 @@
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
-import { coreColors, EmptyState, Skeleton, spacing } from '@neast/ui-mobile';
+import { EmptyState, Skeleton, spacing, userHomeColors } from '@neast/ui-mobile';
 
 /** Centered spinner for first-load states. */
 export function LoadingState() {
   return (
     <View style={styles.center}>
-      <ActivityIndicator size="large" color={coreColors.actionGreen} />
+      <ActivityIndicator size="large" color={userHomeColors.emptyGrey} />
     </View>
   );
 }

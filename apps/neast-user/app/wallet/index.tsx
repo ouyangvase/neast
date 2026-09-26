@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 
+import { PRESET_AMOUNTS } from '@neast/constant';
 import { formatRinggit, formatSimpleDate, type WalletTopupItem } from '@neast/types';
 import {
   Button,
@@ -23,8 +24,6 @@ import { topupStatusMeta } from '../../src/lib/format';
 import { usePaginatedList } from '../../src/hooks/use-paginated';
 import { PageHeader } from '../../src/components/PageHeader';
 import { Screen } from '../../src/components/Screen';
-
-const PRESET_AMOUNTS = [500, 1000, 1500, 2000];
 
 /** Wallet (wallet_screen parity): balance, preset/custom top-up, monthly records. */
 export default function WalletRoute() {

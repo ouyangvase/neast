@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -25,6 +26,8 @@ export interface ButtonProps {
   disabled?: boolean;
   /** Stretch to fill the parent width. Default: true. */
   fullWidth?: boolean;
+  /** Shown before the label. Hidden while loading. */
+  icon?: ReactNode;
   style?: StyleProp<ViewStyle>;
   textStyle?: StyleProp<TextStyle>;
 }
@@ -37,6 +40,7 @@ export function Button({
   loading = false,
   disabled = false,
   fullWidth = true,
+  icon,
   style,
   textStyle,
 }: ButtonProps) {
@@ -63,11 +67,14 @@ export function Button({
           }
         />
       ) : (
-        <Text
-          style={[styles.label, styles[`label_${variant}`], styles[`labelSize_${size}`], textStyle]}
-        >
-          {title}
-        </Text>
+        <>
+          {icon}
+          <Text
+            style={[styles.label, styles[`label_${variant}`], styles[`labelSize_${size}`], textStyle]}
+          >
+            {title}
+          </Text>
+        </>
       )}
     </Pressable>
   );
@@ -79,6 +86,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
+    gap: 8,
   },
   fullWidth: {
     alignSelf: 'stretch',

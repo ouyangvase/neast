@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useMutation } from '@tanstack/react-query';
 
+import { ID_TYPE_LABELS } from '@neast/constant';
 import type { IdType } from '@neast/types';
 import {
   BottomSheet,
@@ -19,11 +20,6 @@ import { navigateAfterAuth } from '../src/lib/auth';
 import { updateUserProfile } from '../src/lib/endpoints';
 import { DatePickerField, toYmd } from '../src/components/DatePickerField';
 import { Screen } from '../src/components/Screen';
-
-const ID_TYPE_LABELS: Record<IdType, string> = {
-  id_card: 'ID Card',
-  passport: 'Passport',
-};
 
 /**
  * First-profile form (full_data_screen parity): shown once after signup.

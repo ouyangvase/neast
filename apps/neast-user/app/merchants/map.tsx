@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import MapView, { Marker, UrlTile } from 'react-native-maps';
 
+import { FIVE_X_POINTS_CATEGORY } from '@neast/constant';
 import { type NearbyMerchantItem } from '@neast/types';
 import { Card, coreColors, radii, spacing, textStyles } from '@neast/ui-mobile';
 
@@ -14,8 +15,6 @@ import { PageHeader } from '../../src/components/PageHeader';
 import { Screen } from '../../src/components/Screen';
 
 const OSM_TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
-/** Flutter parity: hardcoded promo chip prepended to server categories. */
-const FIVE_X_POINTS_CATEGORY = { id: 5, name: '5X Points' };
 
 /** Merchant map (merchant_map_screen parity): OSM tiles, category chips, deals sheet. */
 export default function MerchantsMapRoute() {

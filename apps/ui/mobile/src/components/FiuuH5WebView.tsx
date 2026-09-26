@@ -18,6 +18,8 @@ export interface FiuuH5WebViewProps {
   /** `paymentUrl` returned by the top-up / pay create endpoints. */
   url: string;
   title?: string;
+  /** Draw the built-in bar. Set false when the screen supplies its own header. */
+  showHeader?: boolean;
   /**
    * Fired once, after the 2.5s grace period, when the return URL contains
    * `/pay_success.html` / `pay_pending` / `pay_failed`.
@@ -120,6 +122,7 @@ function openExternalScheme(url: string) {
 export function FiuuH5WebView({
   url,
   title = 'Payment',
+  showHeader = true,
   onResult,
   onCancel,
   gracePeriodMs = 2500,
@@ -174,22 +177,25 @@ export function FiuuH5WebView({
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Pressable
-          onPress={onCancel}
-          accessibilityRole="button"
-          accessibilityLabel="Back"
-          hitSlop={12}
-          style={styles.back}
-        >
-          <Chevron direction="left" />
-        </Pressable>
-        <Text style={styles.title} numberOfLines={1}>
-          {title}
-        </Text>
-        <View style={styles.back} />
-      </View>
+      {showHeader ? (
+        <View style={styles.header}>
+          <Pressable
+            onPress={onCancel}
+            accessibilityRole="button"
+            accessibilityLabel="Back"
+            hitSlop={12}
+            style={styles.back}
+          >
+            <Chevron direction="left" />
+          </Pressable>
+          <Text style={styles.title} numberOfLines={1}>
+            {title}
+          </Text>
+          <View style={styles.back} />
+        </View>
+      ) : null}
       <WebView
+        style={styles.web}
         source={{ uri: url }}
         userAgent={USER_AGENT}
         javaScriptEnabled
@@ -206,6 +212,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: coreColors.white,
+  },
+  web: {
+    flex: 1,
   },
   header: {
     flexDirection: 'row',

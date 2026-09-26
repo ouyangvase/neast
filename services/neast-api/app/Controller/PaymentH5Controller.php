@@ -12,6 +12,8 @@ use Hyperf\HttpServer\Annotation\RequestMapping;
 use Hyperf\HttpServer\Contract\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
+use function Hyperf\Support\env;
+
 /**
  * Fiuu H5 支付公开页与回调
  */
@@ -22,9 +24,41 @@ class PaymentH5Controller extends AbstractController
     protected WalletService $walletService;
 
     #[RequestMapping(path: '/pay.html', methods: ['GET'])]
-    public function payPage(): ResponseInterface
+    public function payPage(RequestInterface $request): ResponseInterface
     {
-        return $this->renderHtml('pay.html');
+        if ((string) env('APP_ENV', 'dev') !== 'dev') {
+            return $this->renderHtml('pay.html');
+        }
+
+        $orderId = trim((string) $request->input('order_sn', ''));
+        $channel = trim((string) $request->input('code', ''));
+
+        try {
+            $amount = $this->walletService->devOrderAmount($orderId);
+        } catch (AppException $exception) {
+            return $this->response->raw($exception->getMessage())->withStatus(404);
+        }
+
+        return $this->renderDevPayPage($amount, $orderId, $channel);
+    }
+
+    #[RequestMapping(path: '/wallet/topup/dev-return', methods: ['POST'])]
+    public function devReturn(RequestInterface $request): ResponseInterface
+    {
+        if ((string) env('APP_ENV', 'dev') !== 'dev') {
+            return $this->response->raw('Not Found')->withStatus(404);
+        }
+
+        $orderId = trim((string) $request->input('order_sn', ''));
+        $channel = trim((string) $request->input('code', ''));
+
+        try {
+            $this->walletService->settleDevOrder($orderId, $channel);
+        } catch (AppException $exception) {
+            return $this->response->raw($exception->getMessage())->withStatus(400);
+        }
+
+        return $this->response->redirect(payment_h5_base_url() . '/pay_success.html');
     }
 
     #[RequestMapping(path: '/pay_success.html', methods: ['GET'])]
@@ -87,6 +121,28 @@ class PaymentH5Controller extends AbstractController
         };
 
         return $this->response->redirect($target);
+    }
+
+    private function renderDevPayPage(string $amount, string $orderId, string $channel): ResponseInterface
+    {
+        $templatePath = BASE_PATH . '/storage/html/pay_dev.html';
+        if (! is_file($templatePath)) {
+            return $this->response->raw('Not Found')->withStatus(404);
+        }
+
+        $html = str_replace(
+            ['__AMOUNT__', '__ORDER_SN__', '__CHANNEL__'],
+            [
+                htmlspecialchars($amount, ENT_QUOTES, 'UTF-8'),
+                htmlspecialchars($orderId, ENT_QUOTES, 'UTF-8'),
+                htmlspecialchars($channel, ENT_QUOTES, 'UTF-8'),
+            ],
+            (string) file_get_contents($templatePath)
+        );
+
+        return $this->response
+            ->raw($html)
+            ->withHeader('Content-Type', 'text/html; charset=utf-8');
     }
 
     private function renderHtml(string $filename): ResponseInterface

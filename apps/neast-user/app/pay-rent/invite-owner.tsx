@@ -3,7 +3,7 @@ import { Linking, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Redirect } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { Button, TextField, Toast, userHomeColors } from '@neast/ui-mobile';
+import { Button, MailIcon, TextField, Toast, userHomeColors, WhatsAppIcon } from '@neast/ui-mobile';
 
 import { apiErrorMessage } from '../../src/lib/api';
 import { saveOwnerContact } from '../../src/lib/endpoints';
@@ -77,25 +77,50 @@ export default function InviteOwnerRoute() {
         contentContainerStyle={styles.content}
       >
         <View style={styles.card}>
-          <Text style={styles.label}>Relationship to property</Text>
-          <Text style={styles.relationship}>Owner</Text>
-          <TextField label="Owner name" value={name} onChangeText={setName} />
+          <Text style={styles.cardTitle}>Invite the owner</Text>
+          <Text style={styles.cardCopy}>Add their contact and send an invite.</Text>
+          <TextField
+            label="Name"
+            value={name}
+            onChangeText={setName}
+            placeholder="Owner's name"
+          />
           <TextField
             label="Email"
             value={email}
             onChangeText={setEmail}
+            placeholder="name@email.com"
             keyboardType="email-address"
             autoCapitalize="none"
           />
-          <TextField label="Phone" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+          <TextField
+            label="Phone"
+            value={phone}
+            onChangeText={setPhone}
+            placeholder="Phone number"
+            keyboardType="phone-pad"
+          />
         </View>
-        <Button title="Email" onPress={() => void send('email')} loading={saveMutation.isPending} />
-        <Button
-          title="WhatsApp"
-          variant="outline"
-          onPress={() => void send('whatsapp')}
-          loading={saveMutation.isPending}
-        />
+        <View style={styles.actions}>
+          <Button
+            title="Email"
+            variant="secondary"
+            fullWidth={false}
+            style={styles.action}
+            icon={<MailIcon size={20} color={userHomeColors.surface} />}
+            onPress={() => void send('email')}
+            loading={saveMutation.isPending}
+          />
+          <Button
+            title="WhatsApp"
+            variant="secondary"
+            fullWidth={false}
+            style={styles.action}
+            icon={<WhatsAppIcon size={20} />}
+            onPress={() => void send('whatsapp')}
+            loading={saveMutation.isPending}
+          />
+        </View>
       </ScrollView>
     </Screen>
   );
@@ -117,15 +142,23 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 12,
   },
-  label: {
-    color: userHomeColors.textSecondary,
-    fontSize: 12,
-    lineHeight: 17,
-  },
-  relationship: {
+  cardTitle: {
     color: userHomeColors.textPrimary,
-    fontSize: 15,
-    lineHeight: 21,
-    fontWeight: '600',
+    fontSize: 17,
+    lineHeight: 22,
+    fontWeight: '700',
+  },
+  cardCopy: {
+    color: userHomeColors.textSecondary,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  actions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  action: {
+    flex: 1,
+    backgroundColor: userHomeColors.navy,
   },
 });

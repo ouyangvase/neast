@@ -102,11 +102,11 @@ App-level wrappers live in `src/lib/endpoints.ts`; upload/push/refresh are insid
 | 14  | `GET /app/rent/history/list`      | `getRentHistory`                                    | `PayRentTab`, history screens, payment polling                 |
 | 15  | `POST /app/rent/invite`           | `sendRentInvite`                                    | `pay-rent/invite-owner` — **mock-only**, failure tolerated     |
 | 16  | `POST /app/rent/pay/wallet`       | `payRentByWallet`                                   | `pay-rent/payment`                                             |
-| 18  | `POST /app/rent/pay/create`       | `createRentPayment`                                 | `pay-rent/payment`                                             |
+| 18  | `POST /app/rent/pay/create`       | —                                                   | API only; pay rent tops up the wallet, then `pay/wallet`      |
 | 19  | `PUT /app/rent/id/{id}/terminate` | `terminateRent`                                     | `pay-rent/detail`                                              |
 | 20  | `GET /app/wallet/balance`         | `getWalletBalance`                                  | `wallet`, `pay-rent/payment`, `AccountTab`                     |
 | 21  | `GET /app/wallet/topup/list`      | `getWalletTopups`                                   | `wallet` (month filter)                                        |
-| 22  | `POST /app/wallet/topup/create`   | `createWalletTopup`                                 | `wallet/payment`                                               |
+| 22  | `POST /app/wallet/topup/create`   | `createWalletTopup`                                 | `wallet/payment`, `pay-rent/payment` (when balance is short)   |
 | 23  | `GET /app/payment/quote`          | `getPaymentQuote`                                   | `wallet/payment`, `pay-rent/payment` (local fallback on error) |
 | 24  | `GET /app/points/dashboard`       | `getPointsDashboard`                                | `points`                                                       |
 | 25  | `GET /app/points/logs`            | `getPointsLogs`                                     | `points/history`                                               |

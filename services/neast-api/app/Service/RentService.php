@@ -489,6 +489,9 @@ class RentService
             $rent->property_name = $propertyName;
             $rent->status = RentModel::STATUS_PENDING;
             $rent->owner_name = trim((string) ($params['owner_name'] ?? ''));
+            $rent->landlord_bank = trim((string) ($params['landlord_bank'] ?? ''));
+            $rent->landlord_bank_account = trim((string) ($params['landlord_bank_account'] ?? ''));
+            $rent->landlord_account_name = trim((string) ($params['landlord_account_name'] ?? ''));
         }
 
         $rent->save();

@@ -147,23 +147,19 @@ class RentPaymentService
      */
     public function payByWallet(int $userId, int $rentId, string $paymentMethod): array
     {
-        $paymentMethod = strtolower(trim($paymentMethod));
         if ($paymentMethod !== self::PAYMENT_METHOD_WALLET) {
             throw new AppException('Invalid payment method');
         }
 
         return Db::transaction(function () use ($userId, $rentId, $paymentMethod) {
             [$history, $rent] = $this->findPendingPaymentContext($userId, $rentId);
-            $amount = $this->resolveBaseAmount($history, $rent);
+            $amount = (string) $rent->amount;
 
             $this->deductWalletBalance($userId, $amount);
 
             $history->status = RentHistoryModel::STATUS_PAID;
             $history->user_paid_at = date('Y-m-d H:i:s');
             $history->payment_method = $paymentMethod;
-            if (bccomp((string) $history->amount, '0', 2) <= 0) {
-                $history->amount = $amount;
-            }
             $history->save();
 
             $history->load([
@@ -235,12 +231,7 @@ class RentPaymentService
             throw new AppException('Insufficient wallet balance');
         }
 
-        $newBalance = bcsub((string) $user->balance, $amount, 2);
-        if (bccomp($newBalance, '0', 2) < 0) {
-            throw new AppException('Insufficient wallet balance');
-        }
-
-        $user->balance = $newBalance;
+        $user->balance = bcsub((string) $user->balance, $amount, 2);
         $user->save();
     }
 

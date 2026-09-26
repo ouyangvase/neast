@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 
+import { VOUCHER_STATUS_TABS } from '@neast/constant';
 import type { UserCouponItem, VoucherStatus } from '@neast/types';
 import { coreColors, RefreshList, spacing, textStyles } from '@neast/ui-mobile';
 
@@ -11,12 +12,6 @@ import { useSelectionStore } from '../../src/stores/selection';
 import { CouponCard, CouponQrDialog, useCouponActions } from '../../src/features/coupon/components';
 import { PageHeader } from '../../src/components/PageHeader';
 import { Screen } from '../../src/components/Screen';
-
-const STATUS_TABS: { key: VoucherStatus; label: string }[] = [
-  { key: 'active', label: 'Active' },
-  { key: 'used', label: 'Used' },
-  { key: 'expired', label: 'Expired' },
-];
 
 /** My vouchers (my_vouchers_screen parity): active / used / expired tabs. */
 export default function MyVouchersRoute() {
@@ -42,7 +37,7 @@ export default function MyVouchersRoute() {
     <Screen edges={[]}>
       <PageHeader title="My Vouchers" />
       <View style={styles.tabs}>
-        {STATUS_TABS.map((tab) => (
+        {VOUCHER_STATUS_TABS.map((tab) => (
           <Pressable
             key={tab.key}
             style={[styles.tab, status === tab.key && styles.tabActive]}

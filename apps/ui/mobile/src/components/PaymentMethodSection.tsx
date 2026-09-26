@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import {
   Image,
   Pressable,
@@ -25,6 +26,8 @@ export interface PaymentMethod {
   feeLabel?: string;
   icon?: ImageSourcePropType;
   disabled?: boolean;
+  /** Rendered inside this method's card, under the label row. */
+  below?: ReactNode;
 }
 
 export interface PaymentMethodSectionProps {
@@ -46,35 +49,40 @@ export function PaymentMethodSection({
   return (
     <View style={style}>
       {title ? <Text style={styles.title}>{title}</Text> : null}
-      <View style={styles.list}>
+      <View>
         {methods.map((method) => {
           const selected = method.id === selectedId;
           return (
-            <Pressable
+            <View
               key={method.id}
               style={[
                 styles.row,
                 selected && styles.rowSelected,
                 method.disabled && styles.rowDisabled,
               ]}
-              onPress={() => !method.disabled && onSelect(method.id)}
-              accessibilityRole="radio"
-              accessibilityState={{ selected, disabled: method.disabled }}
             >
-              {method.icon ? (
-                <Image source={method.icon} style={styles.icon} resizeMode="contain" />
-              ) : null}
-              <View style={styles.texts}>
-                <Text style={styles.label}>{method.label}</Text>
-                {method.description ? (
-                  <Text style={styles.description}>{method.description}</Text>
+              <Pressable
+                style={styles.header}
+                onPress={() => !method.disabled && onSelect(method.id)}
+                accessibilityRole="radio"
+                accessibilityState={{ selected, disabled: method.disabled }}
+              >
+                {method.icon ? (
+                  <Image source={method.icon} style={styles.icon} resizeMode="contain" />
                 ) : null}
-              </View>
-              {method.feeLabel ? <Text style={styles.fee}>{method.feeLabel}</Text> : null}
-              <View style={[styles.radio, selected && styles.radioSelected]}>
-                {selected ? <View style={styles.radioDot} /> : null}
-              </View>
-            </Pressable>
+                <View style={styles.texts}>
+                  <Text style={styles.label}>{method.label}</Text>
+                  {method.description ? (
+                    <Text style={styles.description}>{method.description}</Text>
+                  ) : null}
+                </View>
+                {method.feeLabel ? <Text style={styles.fee}>{method.feeLabel}</Text> : null}
+                <View style={[styles.radio, selected && styles.radioSelected]}>
+                  {selected ? <View style={styles.radioDot} /> : null}
+                </View>
+              </Pressable>
+              {method.below}
+            </View>
           );
         })}
       </View>
@@ -87,19 +95,17 @@ const styles = StyleSheet.create({
     ...textStyles.heading3,
     marginBottom: spacing.md,
   },
-  list: {
-    borderRadius: radii.card,
-    overflow: 'hidden',
-  },
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
     backgroundColor: coreColors.white,
     borderWidth: 1,
     borderColor: coreColors.borderLight,
     borderRadius: radii.button,
-    padding: spacing.md,
     marginBottom: spacing.sm,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.md,
     gap: spacing.md,
   },
   rowSelected: {

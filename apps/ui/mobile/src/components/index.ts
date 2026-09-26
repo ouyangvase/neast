@@ -30,3 +30,6 @@ export * from './BetaTag';
 export * from './UploadProgressDialog';
 export * from './ImagePreview';
 export * from './Chevron';
+export * from './JourneyBar';
+export * from './SlidePayButton';
+export * from './icons';

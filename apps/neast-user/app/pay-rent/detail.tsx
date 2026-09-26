@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 
+import { MONTH_INDEX, MONTH_NAMES_SHORT } from '@neast/constant';
 import { formatRinggit, RENT_HISTORY_STATUS, RENT_STATUS, type RentPayStatus } from '@neast/types';
 import { Chevron, spacing, userHomeColors } from '@neast/ui-mobile';
 
@@ -16,26 +17,6 @@ import { ErrorState } from '../../src/components/StateViews';
 import { PageHeader } from '../../src/components/PageHeader';
 import { Screen } from '../../src/components/Screen';
 import { TenancyCard } from '../../src/features/pay-rent/components';
-
-const UPCOMING_BLUE = '#A7C4F5';
-const EMPTY_GREY = '#9CA3AF';
-
-const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-const MONTH_INDEX: Record<string, number> = {
-  january: 1,
-  february: 2,
-  march: 3,
-  april: 4,
-  may: 5,
-  june: 6,
-  july: 7,
-  august: 8,
-  september: 9,
-  october: 10,
-  november: 11,
-  december: 12,
-};
 
 type MonthTone = RentPayStatus | 'empty';
 
@@ -57,9 +38,9 @@ function toneColor(tone: MonthTone): string {
     case 'late':
       return userHomeColors.royalBlue;
     case 'upcoming':
-      return UPCOMING_BLUE;
+      return userHomeColors.upcomingBlue;
     default:
-      return EMPTY_GREY;
+      return userHomeColors.emptyGrey;
   }
 }
 
@@ -120,6 +101,21 @@ export default function PayRentDetailRoute() {
         <TenancyCard rent={rent} summary />
 
         <View style={[styles.card, styles.payCard]}>
+          <Text style={styles.label}>{year}</Text>
+          <View style={styles.grid}>
+            {months.map((tone, index) => (
+              <View key={MONTH_NAMES_SHORT[index]} style={styles.month}>
+                <HouseIcon width={22} height={22} color={toneColor(tone)} />
+                <Text style={styles.monthLabel}>{MONTH_NAMES_SHORT[index]}</Text>
+              </View>
+            ))}
+          </View>
+          <View style={styles.legend}>
+            <Legend tone="on_time" label="On time" />
+            <Legend tone="late" label="Late" />
+            <Legend tone="upcoming" label="Upcoming" />
+            <Legend tone="empty" label="No record" />
+          </View>
           <View style={styles.infoLines}>
             <InfoLine title="Rental Amount" value={formatRinggit(rent.amount)} />
             <InfoLine
@@ -141,24 +137,6 @@ export default function PayRentDetailRoute() {
           ) : null}
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.label}>{year}</Text>
-          <View style={styles.grid}>
-            {months.map((tone, index) => (
-              <View key={MONTH_LABELS[index]} style={styles.month}>
-                <HouseIcon width={22} height={22} color={toneColor(tone)} />
-                <Text style={styles.monthLabel}>{MONTH_LABELS[index]}</Text>
-              </View>
-            ))}
-          </View>
-          <View style={styles.legend}>
-            <Legend tone="on_time" label="On time" />
-            <Legend tone="late" label="Late" />
-            <Legend tone="upcoming" label="Upcoming" />
-            <Legend tone="empty" label="No record" />
-          </View>
-        </View>
-
         <View style={[styles.card, styles.recentCard]}>
           <View style={styles.cardHeader}>
             <Text style={styles.recentTitle}>Recent payments</Text>
@@ -177,7 +155,9 @@ export default function PayRentDetailRoute() {
         </View>
       </ScrollView>
       {rent.owner_linked ? (
-        <View style={[styles.ownerButton, styles.ownerButtonLinked, { bottom: insets.bottom + 16 }]}>
+        <View
+          style={[styles.ownerButton, styles.ownerButtonLinked, { bottom: insets.bottom + 16 }]}
+        >
           <Text style={styles.ownerButtonText}>Connected with owner</Text>
         </View>
       ) : (
@@ -284,23 +264,23 @@ const styles = StyleSheet.create({
   recentPeriod: {
     flex: 1,
     color: userHomeColors.textSecondary,
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: 13,
+    lineHeight: 18,
     fontWeight: '600',
   },
   recentStatus: {
     width: 72,
     color: userHomeColors.textPrimary,
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: 13,
+    lineHeight: 18,
     fontWeight: '700',
     textAlign: 'center',
   },
   recentAmount: {
     width: 108,
     color: userHomeColors.textPrimary,
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: 13,
+    lineHeight: 18,
     fontWeight: '700',
     textAlign: 'right',
   },
@@ -333,7 +313,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   ownerButtonLinked: {
-    backgroundColor: EMPTY_GREY,
+    backgroundColor: userHomeColors.emptyGrey,
   },
   ownerButtonText: {
     color: userHomeColors.surface,

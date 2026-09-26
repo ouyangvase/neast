@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<meta charset="utf-8">
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
+
+		body {
+			width: 100vw;
+			min-height: 100vh;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			background: #F6F9F6;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+		}
+
+		.container {
+			text-align: center;
+			padding: 20px;
+			width: 100%;
+			max-width: 360px;
+		}
+
+		.label {
+			color: #666;
+			font-size: 15px;
+			line-height: 1.6;
+			margin-bottom: 8px;
+		}
+
+		.amount {
+			color: #0851AA;
+			font-size: 28px;
+			font-weight: 700;
+			margin-bottom: 28px;
+		}
+
+		button {
+			width: 100%;
+			min-height: 46px;
+			border: 0;
+			border-radius: 11px;
+			background: #00135C;
+			color: #fff;
+			font-size: 14px;
+			font-weight: 600;
+		}
+	</style>
+	<title>Payment</title>
+</head>
+
+<body>
+	<div class="container">
+		<p class="label">Amount</p>
+		<p class="amount">RM __AMOUNT__</p>
+		<form method="post" action="/wallet/topup/dev-return">
+			<input type="hidden" name="order_sn" value="__ORDER_SN__" />
+			<input type="hidden" name="code" value="__CHANNEL__" />
+			<button type="submit">Simulate successful payment</button>
+		</form>
+	</div>
+</body>
+
+</html>

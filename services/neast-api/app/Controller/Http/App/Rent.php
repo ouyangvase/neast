@@ -68,6 +68,9 @@ class Rent extends AbstractController
             'property_id' => 'nullable|integer|min:1',
             'property_name' => 'nullable|string|max:128',
             'owner_name' => 'nullable|string|max:128',
+            'landlord_bank' => 'required_without:property_id|string|max:128',
+            'landlord_bank_account' => 'required_without:property_id|string|max:64',
+            'landlord_account_name' => 'required_without:property_id|string|max:128',
         ], [
             'amount.required' => 'Rental amount is required',
             'amount.numeric' => 'Invalid rental amount',
@@ -87,6 +90,12 @@ class Rent extends AbstractController
             'property_id.min' => 'Invalid property',
             'property_name.max' => 'Property name is too long',
             'owner_name.max' => 'Owner name is too long',
+            'landlord_bank.required_without' => 'Bank name is required',
+            'landlord_bank.max' => 'Bank name is too long',
+            'landlord_bank_account.required_without' => 'Account number is required',
+            'landlord_bank_account.max' => 'Account number is too long',
+            'landlord_account_name.required_without' => 'Account holder is required',
+            'landlord_account_name.max' => 'Account holder is too long',
         ]);
 
         if ($validator->fails()) {

@@ -1,9 +1,8 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Circle, Path } from 'react-native-svg';
 
-import { Toast, userHomeColors } from '@neast/ui-mobile';
+import { BellIcon, ScanIcon, Toast, userHomeColors } from '@neast/ui-mobile';
 
 import { apiErrorMessage } from '../../../lib/api';
 import { openScanner } from '../../../lib/callbacks';
@@ -73,46 +72,6 @@ export function HomeHeader({ firstName, isLoggedIn, hasUnread }: HomeHeaderProps
         </View>
       </View>
     </View>
-  );
-}
-
-function BellIcon() {
-  return (
-    <Svg width={24} height={24} viewBox="0 0 24 24">
-      <Circle cx={12} cy={12} r={12} fill="#0851AA" />
-      <Path
-        d="M12 6.2a3.2 3.2 0 0 0-3.2 3.2v1.5c0 .5-.2 1-.5 1.4l-.7.8c-.4.4-.1 1.1.5 1.1h7.8c.6 0 .9-.7.5-1.1l-.7-.8c-.3-.4-.5-.9-.5-1.4V9.4A3.2 3.2 0 0 0 12 6.2Z"
-        fill={userHomeColors.surface}
-      />
-      <Path
-        d="M10.6 15.6a1.4 1.4 0 0 0 2.8 0"
-        stroke={userHomeColors.surface}
-        strokeWidth={1.2}
-        strokeLinecap="round"
-        fill="none"
-      />
-    </Svg>
-  );
-}
-
-function ScanIcon() {
-  return (
-    <Svg width={24} height={24} viewBox="0 0 24 24">
-      <Circle cx={12} cy={12} r={12} fill="#0851AA" />
-      <Path
-        d="M7.2 9.4V8.1c0-.5.4-.9.9-.9h1.3M14.6 7.2h1.3c.5 0 .9.4.9.9v1.3M16.8 14.6v1.3c0 .5-.4.9-.9.9h-1.3M9.4 16.8H8.1c-.5 0-.9-.4-.9-.9v-1.3"
-        stroke={userHomeColors.surface}
-        strokeWidth={1.4}
-        strokeLinecap="round"
-        fill="none"
-      />
-      <Path
-        d="M8 12h8"
-        stroke={userHomeColors.surface}
-        strokeWidth={1.4}
-        strokeLinecap="round"
-      />
-    </Svg>
   );
 }
 

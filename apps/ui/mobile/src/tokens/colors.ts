@@ -39,6 +39,8 @@ export const coreColors = {
 
   white: '#FFFFFF',
   black: '#000000',
+  /** iOS splash background for the user and merchant apps. */
+  splashBlue: '#4A78BD',
 } as const;
 
 export type CoreColorToken = keyof typeof coreColors;
@@ -92,6 +94,10 @@ export const userHomeColors = {
   textOnNavyAlt: '#D8E3FF',
   /** Light-blue text on navy, softest. */
   textOnNavyMuted: '#C7D8FF',
+  /** Rent-month house icon when the period is upcoming. */
+  upcomingBlue: '#A7C4F5',
+  /** Muted grey for an empty rent month and a linked-owner button. */
+  emptyGrey: '#9CA3AF',
 } as const;
 
 /** neast-owner accents — soft blue gradients + warm tan highlights. */

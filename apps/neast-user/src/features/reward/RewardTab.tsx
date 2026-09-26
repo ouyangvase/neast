@@ -71,6 +71,8 @@ export function RewardTab() {
           <RefreshControl
             refreshing={dashboard.isRefetching}
             onRefresh={() => dashboard.refetch()}
+            colors={[userHomeColors.emptyGrey]}
+            tintColor={userHomeColors.emptyGrey}
           />
         }
         contentContainerStyle={styles.scrollContent}

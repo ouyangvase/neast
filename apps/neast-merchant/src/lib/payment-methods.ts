@@ -1,14 +1,6 @@
+import { PAYMENT_METHOD_LABELS } from '@neast/constant';
 import { FIUU_CHANNELS, PAYMENT_METHODS, PAYMENT_METHOD_WALLET } from '@neast/types';
 import type { PaymentMethod } from '@neast/ui-mobile';
-
-/** wallet_config.dart parity: method id → display label. */
-const METHOD_LABELS: Record<string, string> = {
-  fpx: 'FPX Online Banking',
-  tng: "Touch 'n Go eWallet",
-  grab: 'GrabPay',
-  visa: 'Credit / Debit Card',
-  wallet: 'Wallet Balance',
-};
 
 /** Fiuu channel for a method; FPX resolves per-bank via the picked channel. */
 export function fiuuChannelFor(method: string, fpxChannel?: string): string | undefined {
@@ -52,13 +44,13 @@ export function buildPaymentMethodOptions(
 ): PaymentMethod[] {
   const methods: PaymentMethod[] = PAYMENT_METHODS.map((id) => ({
     id,
-    label: METHOD_LABELS[id] ?? id.toUpperCase(),
+    label: PAYMENT_METHOD_LABELS[id],
     feeLabel: feeLabel(fees, id),
   }));
   if (options.includeWallet) {
     methods.unshift({
       id: PAYMENT_METHOD_WALLET,
-      label: METHOD_LABELS.wallet ?? 'Wallet',
+      label: PAYMENT_METHOD_LABELS.wallet,
       description: options.walletBalance ? `Balance RM${options.walletBalance}` : undefined,
       feeLabel: 'No fee',
     });

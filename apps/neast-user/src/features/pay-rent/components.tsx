@@ -2,22 +2,21 @@ import { useEffect, useRef } from 'react';
 import { Animated, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 
+import { MONTH_NAMES_SHORT } from '@neast/constant';
 import { formatRinggit, type RentListItem } from '@neast/types';
-import { Chevron, StatusTag, userHomeColors } from '@neast/ui-mobile';
+import { Chevron, StatusTag, SuccessMark, textStyles, userHomeColors } from '@neast/ui-mobile';
 
 import propertyPlaceholder from '../../../assets/images/home/property-hero-generated.png';
 
-import { rentHistoryStatusMeta } from '../../lib/format';
+import { rentHistoryStatusMeta, type StatusMeta } from '../../lib/format';
 import type { RentHistoryEntry } from '../../lib/types';
 import { useSelectionStore } from '../../stores/selection';
-
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 /** `Y-m` and `Y-m-d` from the rent list, shown as `Jan 2026 – 31 Dec 2026`. */
 function leaseLabel(firstPayMonth: string, expireDate: string): string {
   const [fromYear, fromMonth] = firstPayMonth.split('-');
   const [toYear, toMonth, toDay] = expireDate.split('-');
-  return `${MONTHS[Number(fromMonth) - 1]} ${fromYear} – ${Number(toDay)} ${MONTHS[Number(toMonth) - 1]} ${toYear}`;
+  return `${MONTH_NAMES_SHORT[Number(fromMonth) - 1]} ${fromYear} – ${Number(toDay)} ${MONTH_NAMES_SHORT[Number(toMonth) - 1]} ${toYear}`;
 }
 
 /** One tenancy on the Pay Rent tab. `summary` is the static card on tenancy details. */
@@ -118,7 +117,9 @@ export function AddTenancyCard() {
         <Image source={propertyPlaceholder} resizeMode="cover" style={styles.image} />
       </View>
       <View style={styles.soonSide}>
-        <Animated.Text style={[styles.soonLabel, { opacity: pulse }]}>Add new tenancy now</Animated.Text>
+        <Animated.Text style={[styles.soonLabel, { opacity: pulse }]}>
+          Add new tenancy now
+        </Animated.Text>
       </View>
     </Pressable>
   );
@@ -151,6 +152,27 @@ export function ComingSoonTenancyCard() {
   );
 }
 
+/** Completed-payment header: green check, amount, and period. Status pill is optional. */
+export function PaymentSuccessHero({
+  amount,
+  period,
+  status,
+}: {
+  amount: string;
+  period: string;
+  status?: StatusMeta;
+}) {
+  return (
+    <View style={styles.hero}>
+      <SuccessMark />
+      <Text style={styles.heroTitle}>Payment successful</Text>
+      <Text style={styles.heroAmount}>{amount}</Text>
+      <Text style={styles.heroPeriod}>{period}</Text>
+      {status ? <StatusTag label={status.label} status={status.tag} /> : null}
+    </View>
+  );
+}
+
 /** Rent history row on the history list. */
 export function HistoryRow({ entry, onPress }: { entry: RentHistoryEntry; onPress?: () => void }) {
   const status = rentHistoryStatusMeta(entry.status);
@@ -160,17 +182,17 @@ export function HistoryRow({ entry, onPress }: { entry: RentHistoryEntry; onPres
       onPress={onPress}
       style={({ pressed }) => [styles.historyCard, pressed && onPress && styles.pressed]}
     >
-      <View style={styles.historyTop}>
+      <View style={styles.historyBody}>
         <Text style={styles.historyPeriod} numberOfLines={1}>
           {entry.rental_period}
         </Text>
-        <StatusTag label={status.label} status={status.tag} />
+        <Text style={styles.historyAmount}>{formatRinggit(entry.amount)}</Text>
+        <Text style={styles.historyMeta} numberOfLines={1}>
+          {entry.property_address} · {entry.payment_no}
+        </Text>
       </View>
-      <Text style={styles.historyAmount}>{formatRinggit(entry.amount)}</Text>
-      <Text style={styles.historyMeta} numberOfLines={1}>
-        {entry.property_address}
-        {entry.payment_no ? ` · ${entry.payment_no}` : ''}
-      </Text>
+      <StatusTag label={status.label} status={status.tag} style={styles.historyStatus} />
+      <Chevron direction="right" color={userHomeColors.textSecondary} size={8} />
     </Pressable>
   );
 }
@@ -273,24 +295,43 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     fontWeight: '600',
   },
+  hero: {
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 8,
+  },
+  heroTitle: {
+    ...textStyles.heading3,
+    color: userHomeColors.textPrimary,
+  },
+  heroAmount: {
+    ...textStyles.displayLarge,
+    color: userHomeColors.textPrimary,
+  },
+  heroPeriod: {
+    ...textStyles.bodySmall,
+    color: userHomeColors.textSecondary,
+  },
   historyCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginHorizontal: 14,
     marginBottom: 8,
     backgroundColor: userHomeColors.surface,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: userHomeColors.border,
-    padding: 16,
-    gap: 4,
-  },
-  historyTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    padding: 12,
     gap: 8,
   },
-  historyPeriod: {
+  historyBody: {
     flex: 1,
+    gap: 2,
+  },
+  historyStatus: {
+    alignSelf: 'center',
+  },
+  historyPeriod: {
     color: userHomeColors.textPrimary,
     fontSize: 15,
     lineHeight: 21,
@@ -298,8 +339,8 @@ const styles = StyleSheet.create({
   },
   historyAmount: {
     color: userHomeColors.textPrimary,
-    fontSize: 20,
-    lineHeight: 26,
+    fontSize: 16,
+    lineHeight: 22,
     fontWeight: '700',
   },
   historyMeta: {

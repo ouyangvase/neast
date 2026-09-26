@@ -12,6 +12,7 @@
     "export": "expo export --platform android"
   },
   "dependencies": {
+    "@neast/constant": "workspace:*",
     "@neast/types": "workspace:*",
     "@neast/ui-mobile": "workspace:*",
     "@tanstack/react-query": "^5.62.0",

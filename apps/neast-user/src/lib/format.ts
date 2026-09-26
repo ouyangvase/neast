@@ -1,3 +1,4 @@
+import { MONTH_NAMES_LONG } from '@neast/constant';
 import {
   PAYMENT_METHODS,
   RENT_HISTORY_STATUS,
@@ -100,21 +101,6 @@ export interface MonthOption {
   month: number;
 }
 
-const MONTH_NAMES = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-] as const;
-
 /** Next 12 months starting from the current one (first-pay-month picker). */
 export function upcomingMonths(): MonthOption[] {
   const now = new Date();
@@ -133,15 +119,13 @@ export function upcomingMonths(): MonthOption[] {
 }
 
 export function monthOptionLabel({ year, month }: MonthOption): string {
-  return `${MONTH_NAMES[month - 1] ?? month} ${year}`;
+  return `${MONTH_NAMES_LONG[month - 1]} ${year}`;
 }
 
 /** `Y-m` wire format for first_pay_month. */
 export function monthOptionValue({ year, month }: MonthOption): string {
   return `${year}-${month < 10 ? `0${month}` : month}`;
 }
-
-export const LEASE_MONTH_OPTIONS = [3, 6, 12, 18, 24, 36] as const;
 
 /** Local quote fallback (buildLocalPaymentQuote parity) using /app/config fee percents. */
 export function buildLocalPaymentQuote(amount: string, fees: Record<string, number>): PaymentQuote {

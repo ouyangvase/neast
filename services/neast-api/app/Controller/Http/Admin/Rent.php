@@ -78,9 +78,9 @@ class Rent extends AbstractController
         ];
 
         if ($result === 'approved') {
-            $rules['landlord_bank'] = 'required|string|max:128';
-            $rules['landlord_bank_account'] = 'required|string|max:64';
-            $rules['landlord_account_name'] = 'required|string|max:128';
+            $rules['landlord_bank'] = 'nullable|string|max:128';
+            $rules['landlord_bank_account'] = 'nullable|string|max:64';
+            $rules['landlord_account_name'] = 'nullable|string|max:128';
             $rules['property_id'] = 'nullable|integer|min:1';
             $rules['lease_months'] = 'required|integer|min:1';
         }
@@ -88,9 +88,9 @@ class Rent extends AbstractController
         $validator = di(ValidatorFactory::class)->make($params, $rules, [
             'result.required' => 'Please select a review result',
             'result.in' => 'Invalid review result',
-            'landlord_bank.required' => 'Please enter landlord bank',
-            'landlord_bank_account.required' => 'Please enter landlord bank account',
-            'landlord_account_name.required' => 'Please enter landlord account name',
+            'landlord_bank.max' => 'Landlord bank is too long',
+            'landlord_bank_account.max' => 'Landlord bank account is too long',
+            'landlord_account_name.max' => 'Landlord account name is too long',
             'property_id.integer' => 'Invalid property',
             'lease_months.required' => 'Lease term is required',
             'lease_months.integer' => 'Invalid lease term',

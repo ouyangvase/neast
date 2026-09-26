@@ -8,7 +8,7 @@ import {
   type FlatListProps,
 } from 'react-native';
 
-import { coreColors } from '../tokens/colors';
+import { userHomeColors } from '../tokens/colors';
 import { spacing } from '../tokens/layout';
 import { textStyles } from '../tokens/typography';
 import { EmptyState } from './EmptyState';
@@ -59,7 +59,7 @@ export function RefreshList<T>({
       ListFooterComponent
     ) : loadingMore ? (
       <View style={styles.footer}>
-        <ActivityIndicator color={coreColors.actionGreen} />
+        <ActivityIndicator color={userHomeColors.emptyGrey} />
       </View>
     ) : !hasMore && data.length > 0 ? (
       <View style={styles.footer}>
@@ -86,8 +86,8 @@ export function RefreshList<T>({
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[coreColors.actionGreen]}
-            tintColor={coreColors.actionGreen}
+            colors={[userHomeColors.emptyGrey]}
+            tintColor={userHomeColors.emptyGrey}
           />
         ) : undefined
       }

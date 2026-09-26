@@ -1,8 +1,8 @@
+import type { ReactNode } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
-import { Card, coreColors, spacing, textStyles } from '@neast/ui-mobile';
+import { Card, coreColors, EditIcon, QrCodeIcon, spacing, textStyles } from '@neast/ui-mobile';
 
 import { PageHeader } from '../../../src/components/PageHeader';
 import { Screen } from '../../../src/components/Screen';
@@ -16,13 +16,13 @@ export default function AddTenancyChoiceRoute() {
         <ChoiceCard
           title="Connect with owner"
           subtitle="Scan the owner's QR code"
-          icon="qr-code-outline"
+          icon={<QrCodeIcon size={40} color={coreColors.brandBlue} />}
           onPress={() => router.push('/pay-rent/create/connect')}
         />
         <ChoiceCard
           title="Add manually"
           subtitle="Enter the property and owner yourself"
-          icon="create-outline"
+          icon={<EditIcon size={40} color={coreColors.brandBlue} />}
           onPress={() => router.push('/pay-rent/create/manual')}
         />
       </View>
@@ -38,12 +38,12 @@ function ChoiceCard({
 }: {
   title: string;
   subtitle: string;
-  icon: 'qr-code-outline' | 'create-outline';
+  icon: ReactNode;
   onPress: () => void;
 }) {
   return (
     <Card style={styles.card} onPress={onPress}>
-      <Ionicons name={icon} size={40} color={coreColors.brandBlue} />
+      {icon}
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.subtitle}>{subtitle}</Text>
     </Card>

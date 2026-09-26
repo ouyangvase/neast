@@ -32,7 +32,12 @@ export function PayRentTab() {
       <ScrollView
         refreshControl={
           isLoggedIn ? (
-            <RefreshControl refreshing={rents.isRefetching} onRefresh={() => void rents.refetch()} />
+            <RefreshControl
+              refreshing={rents.isRefetching}
+              onRefresh={() => void rents.refetch()}
+              colors={[userHomeColors.emptyGrey]}
+              tintColor={userHomeColors.emptyGrey}
+            />
           ) : undefined
         }
         contentContainerStyle={styles.scrollContent}

@@ -1,16 +1,17 @@
 import { useMemo } from 'react';
+import { StyleSheet } from 'react-native';
 import { router } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 
-import { RefreshList } from '@neast/ui-mobile';
+import { RefreshList, spacing } from '@neast/ui-mobile';
 
-import { getRentHistory } from '../../src/lib/endpoints';
-import { isPaidHistory, type RentHistoryEntry } from '../../src/lib/types';
-import { useSelectionStore } from '../../src/stores/selection';
-import { ErrorState } from '../../src/components/StateViews';
-import { PageHeader } from '../../src/components/PageHeader';
-import { Screen } from '../../src/components/Screen';
-import { HistoryRow } from '../../src/features/pay-rent/components';
+import { getRentHistory } from '../../../src/lib/endpoints';
+import { isPaidHistory, type RentHistoryEntry } from '../../../src/lib/types';
+import { useSelectionStore } from '../../../src/stores/selection';
+import { ErrorState } from '../../../src/components/StateViews';
+import { PageHeader } from '../../../src/components/PageHeader';
+import { Screen } from '../../../src/components/Screen';
+import { HistoryRow } from '../../../src/features/pay-rent/components';
 
 /** Paid history for the selected tenancy. */
 export default function TenancyRecentPaymentsRoute() {
@@ -49,12 +50,13 @@ export default function TenancyRecentPaymentsRoute() {
         onRefresh={() => void history.refetch()}
         emptyTitle="No payments"
         emptyMessage="Paid months for this tenancy will show up here."
+        contentContainerStyle={styles.list}
         renderItem={({ item }) => (
           <HistoryRow
             entry={item}
             onPress={() => {
               useSelectionStore.getState().setHistory(item);
-              router.push('/pay-rent/history/detail');
+              router.push('/pay-rent/recent/detail');
             }}
           />
         )}
@@ -62,3 +64,10 @@ export default function TenancyRecentPaymentsRoute() {
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  list: {
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.lg,
+  },
+});

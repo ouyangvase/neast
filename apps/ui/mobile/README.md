@@ -84,7 +84,7 @@ All components are controlled, navigation-agnostic, and accept `style` overrides
 | `RefreshList<T>`         | `data`, `refreshing`, `onRefresh`, `onLoadMore`, `hasMore`, `loadingMore`, `renderItem`, …FlatList props              | AppRefresher equivalent                                         |
 | `QrCodeView`             | `value`, `size`, `color`, `logo`                                                                                      | wraps react-native-qrcode-svg                                   |
 | `QrScannerScreen`        | `onScanned(value)`, `onClose`, `title`                                                                                | expo-camera, scan-line overlay, permission gate; fires once     |
-| `FiuuH5WebView`          | `url`, `title`, `onResult('success'\|'pending'\|'failed')`, `onCancel`, `gracePeriodMs=2500`                          | see below                                                       |
+| `FiuuH5WebView`          | `url`, `title`, `showHeader=true`, `onResult('success'\|'pending'\|'failed')`, `onCancel`, `gracePeriodMs=2500`       | see below                                                       |
 | `RichText`               | `html`, `contentPadding`, `baseStyle`, `tagsStyles`                                                                   | wraps react-native-render-html                                  |
 | `TabBar`                 | `items: TabBarItem[]`, `activeKey`, `onChange`                                                                        | selected `#0F172A` / unselected `#B0B0B0`; `showBeta` per item  |
 | `BetaTag`                | `label='Beta'`                                                                                                        |                                                                 |
@@ -100,7 +100,8 @@ All components are controlled, navigation-agnostic, and accept `style` overrides
 - Result detection is purely URL-substring based: `/pay_success.html` → `success`,
   `pay_pending` → `pending`, `pay_failed` → `failed`, reported once after a 2.5s grace period.
   There is no server polling — callers re-fetch state on `success`/`pending`.
-- Header back button and Android hardware back fire `onCancel`.
+- `showHeader` defaults to true. Set it false when the screen draws its own header.
+- Header back button (when shown) and Android hardware back fire `onCancel`.
 
 ## Shared assets
 

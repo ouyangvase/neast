@@ -8,7 +8,6 @@ import type {
   CouponLatestItem,
   CouponListResponse,
   CreateRentBody,
-  CreateRentPaymentResponse,
   CreateRentResponse,
   CreateTopupBody,
   CreateTopupResponse,
@@ -105,23 +104,11 @@ export const saveOwnerContact = (
     body,
   );
 
-/** Owner payout bank fields, collected at pay time when the owner is unbound. */
-export interface OwnerBankFields {
-  owner_bank_name?: string;
-  owner_bank_account?: string;
-  owner_account_holder?: string;
-}
-
-export const payRentByWallet = (rentId: number, owner: OwnerBankFields = {}) =>
+export const payRentByWallet = (rentId: number) =>
   api.post<RentHistoryEntry>('rent/pay/wallet', {
     rent_id: rentId,
     payment_method: 'wallet',
-    ...owner,
   });
-
-export const createRentPayment = (
-  body: { rent_id: number; payment_method: string; payment_channel?: string } & OwnerBankFields,
-) => api.post<CreateRentPaymentResponse>('rent/pay/create', body);
 
 export const terminateRent = (id: number, reason?: string) =>
   api.put(`rent/id/${id}/terminate`, { reason });

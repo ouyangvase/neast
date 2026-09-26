@@ -1,147 +1,121 @@
-import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { Redirect, router } from 'expo-router';
+import { useEffect, useLayoutEffect, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Redirect, router, useNavigation } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { formatRinggit, type FpxBank, type PaymentQuote } from '@neast/types';
+import { formatRinggit, type FpxBank } from '@neast/types';
 import {
-  Button,
   Card,
-  coreColors,
+  Chevron,
   FpxBankPicker,
+  JourneyBar,
   PaymentMethodSection,
+  SlidePayButton,
   spacing,
   TextField,
-  textStyles,
   Toast,
+  userHomeColors,
 } from '@neast/ui-mobile';
 
 import { apiErrorMessage } from '../../src/lib/api';
 import { openH5WebView } from '../../src/lib/callbacks';
 import {
-  createRentPayment,
+  createWalletTopup,
   getPaymentQuote,
-  getRentHistory,
   getWalletBalance,
   payRentByWallet,
 } from '../../src/lib/endpoints';
-import { buildLocalPaymentQuote, totalForMethod } from '../../src/lib/format';
-import { isPaidHistory, type RentHistoryEntry } from '../../src/lib/types';
-import { useAppConfig } from '../../src/hooks/use-profile';
 import { buildPaymentMethodOptions, fiuuChannelFor } from '../../src/lib/payment-methods';
 import { useSelectionStore } from '../../src/stores/selection';
 import { PageHeader } from '../../src/components/PageHeader';
 import { Screen } from '../../src/components/Screen';
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
 /**
- * `_waitForPaidHistory` parity: poll the rent history until the new entry is
- * paid/settled (≤5 tries, 1s apart), then hand it to the status screen.
- */
-async function waitForPaidHistory(rentId: number): Promise<RentHistoryEntry | null> {
-  for (let attempt = 0; attempt < 5; attempt += 1) {
-    const page = await getRentHistory({ rent_id: rentId, page: 1, limit: 10 });
-    const paid = page.items.find((item) => isPaidHistory(item));
-    if (paid) {
-      return paid;
-    }
-    await sleep(1000);
-  }
-  return null;
-}
-
-/**
- * Rent payment (pay_rent_payment_screen parity): wallet balance or Fiuu H5;
- * owner-bank fields collected when the owner is unbound.
+ * Rent is always paid from wallet credit. A short balance is topped up first
+ * (default rent − balance); a covered balance skips the provider.
  */
 export default function PayRentPaymentRoute() {
+  const insets = useSafeAreaInsets();
+  const navigation = useNavigation();
   const rent = useSelectionStore((state) => state.rent);
   const queryClient = useQueryClient();
-  const appConfig = useAppConfig();
 
-  const [method, setMethod] = useState('wallet');
+  const [method, setMethod] = useState('fpx');
   const [bank, setBank] = useState<FpxBank | null>(null);
   const [bankPickerVisible, setBankPickerVisible] = useState(false);
-  const [ownerBankName, setOwnerBankName] = useState('');
-  const [ownerBankAccount, setOwnerBankAccount] = useState('');
-  const [ownerAccountHolder, setOwnerAccountHolder] = useState('');
+  const [topupAmount, setTopupAmount] = useState('');
+  const [topupEdited, setTopupEdited] = useState(false);
   const [processing, setProcessing] = useState(false);
 
   const balance = useQuery({ queryKey: ['wallet-balance'], queryFn: getWalletBalance });
+
+  const shortfall =
+    rent && balance.isSuccess ? Number(rent.amount) - Number(balance.data.balance) : null;
+  const toppingUp = shortfall !== null && shortfall > 0;
+
   const quote = useQuery({
-    queryKey: ['payment-quote', rent?.amount ?? '0'],
-    queryFn: () => getPaymentQuote(rent!.amount),
-    enabled: !!rent,
+    queryKey: ['payment-quote', topupAmount],
+    queryFn: () => getPaymentQuote(topupAmount),
+    enabled: toppingUp && Number(topupAmount) >= 1.01,
   });
 
-  if (!rent) {
-    // No deep-link entry point for this screen — bounce back to the tab shell.
-    return <Redirect href="/" />;
-  }
+  useEffect(() => {
+    if (shortfall === null || shortfall <= 0 || topupEdited) return;
+    setTopupAmount(Math.max(shortfall, 1.01).toFixed(2));
+  }, [shortfall, topupEdited]);
 
-  const effectiveQuote: PaymentQuote | undefined =
-    quote.data ??
-    (quote.isError
-      ? buildLocalPaymentQuote(rent.amount, appConfig.data?.payment_processing_fees ?? {})
-      : undefined);
+  useLayoutEffect(() => {
+    navigation.setOptions({ gestureEnabled: false });
+  }, [navigation]);
 
-  const ownerUnbound = !rent.landlord_id;
-  const ownerFields = ownerUnbound
-    ? {
-        owner_bank_name: ownerBankName.trim() || undefined,
-        owner_bank_account: ownerBankAccount.trim() || undefined,
-        owner_account_holder: ownerAccountHolder.trim() || undefined,
-      }
-    : {};
-
-  const finishWithHistory = async () => {
+  const payFromWallet = async () => {
     setProcessing(true);
     try {
-      const entry = await waitForPaidHistory(rent.id);
+      const entry = await payRentByWallet(rent!.id);
       await queryClient.invalidateQueries({ queryKey: ['rent-list'] });
       await queryClient.invalidateQueries({ queryKey: ['rent-history'] });
-      if (entry) {
-        useSelectionStore.getState().setHistory(entry);
-        router.replace('/pay-rent/history/detail');
-      } else {
-        Toast.info('Payment is being processed');
-        router.back();
-      }
+      await queryClient.invalidateQueries({ queryKey: ['wallet-balance'] });
+      useSelectionStore.getState().setHistory(entry);
+      router.replace('/pay-rent/history/detail');
+    } catch (error) {
+      Toast.error(apiErrorMessage(error));
     } finally {
       setProcessing(false);
     }
   };
 
-  const payMutation = useMutation({
-    mutationFn: async () => {
-      if (method === 'wallet') {
-        await payRentByWallet(rent.id, ownerFields);
-        return { h5: false as const };
+  const applyTopup = async () => {
+    setProcessing(true);
+    try {
+      const wallet = await getWalletBalance();
+      queryClient.setQueryData(['wallet-balance'], wallet);
+      if (Number(wallet.balance) >= Number(rent!.amount)) {
+        await payFromWallet();
+        return;
       }
-      const order = await createRentPayment({
-        rent_id: rent.id,
+      setTopupEdited(false);
+      Toast.info('Wallet topped up. Add more credit to cover this rent.');
+    } catch (error) {
+      Toast.error(apiErrorMessage(error));
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const topupMutation = useMutation({
+    mutationFn: () =>
+      createWalletTopup({
+        amount: topupAmount,
         payment_method: method,
         payment_channel: fiuuChannelFor(method, bank?.channel),
-        ...ownerFields,
-      });
-      return { h5: true as const, paymentUrl: order.payment_url };
-    },
-    onSuccess: (result) => {
-      if (!result.h5) {
-        void finishWithHistory();
-        return;
-      }
-      if (!result.paymentUrl) {
-        // Already-paid race — poll for the paid entry instead.
-        void finishWithHistory();
-        return;
-      }
-      openH5WebView(result.paymentUrl, 'Rent Payment', {
-        onResult: (h5Result) => {
-          if (h5Result === 'success') {
-            void finishWithHistory();
-          } else if (h5Result === 'pending') {
+      }),
+    onSuccess: (order) => {
+      openH5WebView(order.payment_url, 'Wallet Top-Up', {
+        onResult: (result) => {
+          if (result === 'success') {
+            void applyTopup();
+          } else if (result === 'pending') {
             Toast.info('Payment is pending');
           } else {
             Toast.error('Payment failed');
@@ -153,86 +127,115 @@ export default function PayRentPaymentRoute() {
     onError: (error) => Toast.error(apiErrorMessage(error)),
   });
 
+  if (!rent) {
+    return <Redirect href="/" />;
+  }
+
+  const coverHint =
+    shortfall !== null && shortfall > 0 && topupAmount !== '' && Number(topupAmount) < shortfall
+      ? `At least ${formatRinggit(shortfall)} covers this rent.`
+      : null;
+
   const submit = () => {
+    if (!toppingUp) {
+      void payFromWallet();
+      return true;
+    }
+    if (Number(topupAmount) < 1.01) {
+      Toast.error('Amount must be at least 1.01');
+      return false;
+    }
     if (method === 'fpx' && !bank) {
       setBankPickerVisible(true);
-      return;
+      return false;
     }
-    payMutation.mutate();
+    topupMutation.mutate();
+    return true;
   };
 
-  const total =
-    method === 'wallet' ? rent.amount : totalForMethod(effectiveQuote, method, rent.amount);
+  const total = toppingUp ? quote.data?.methods[method]?.total_amount : rent.amount;
 
   return (
     <Screen edges={[]}>
       <PageHeader title="Pay Rent" />
-      <View style={styles.body}>
-        <Card style={styles.summaryCard}>
-          <Text style={styles.property} numberOfLines={1}>
-            {rent.property_name}
-          </Text>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Rent amount</Text>
-            <Text style={styles.summaryValue}>{formatRinggit(rent.amount)}</Text>
-          </View>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Total to pay</Text>
-            <Text style={styles.summaryTotal}>{formatRinggit(total)}</Text>
-          </View>
-          {rent.earn_points > 0 ? (
-            <Text style={styles.pointsHint}>Earn {rent.earn_points} points on this payment</Text>
-          ) : null}
-        </Card>
-
-        <PaymentMethodSection
-          methods={buildPaymentMethodOptions(effectiveQuote, {
-            includeWallet: true,
-            walletBalance: balance.data?.balance,
-          })}
-          selectedId={method}
-          onSelect={(id) => {
-            setMethod(id);
-            if (id === 'fpx' && !bank) {
-              setBankPickerVisible(true);
-            }
-          }}
-        />
-
-        {method === 'fpx' ? (
-          <Button
-            title={bank ? `Bank: ${bank.name}` : 'Select Bank'}
-            variant="outline"
-            onPress={() => setBankPickerVisible(true)}
-          />
-        ) : null}
-
-        {ownerUnbound ? (
-          <Card style={styles.ownerCard}>
-            <Text style={styles.ownerTitle}>Owner payout details</Text>
-            <Text style={styles.ownerHint}>
-              The owner hasn&apos;t linked their account yet — tell us where to send the payout.
+      <JourneyBar steps={['Top up', 'Pay']} activeIndex={balance.isSuccess && !toppingUp ? 1 : 0} />
+      <View style={styles.flex}>
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={[styles.body, { paddingBottom: insets.bottom + 78 }]}
+        >
+          <Card style={styles.summaryCard}>
+            <Text style={styles.property} numberOfLines={1}>
+              {rent.property_name}
             </Text>
-            <TextField label="Bank name" value={ownerBankName} onChangeText={setOwnerBankName} />
-            <TextField
-              label="Account number"
-              value={ownerBankAccount}
-              onChangeText={setOwnerBankAccount}
-              keyboardType="number-pad"
-            />
-            <TextField
-              label="Account holder"
-              value={ownerAccountHolder}
-              onChangeText={setOwnerAccountHolder}
-            />
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Rent amount</Text>
+              <Text style={styles.summaryValue}>{formatRinggit(rent.amount)}</Text>
+            </View>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Wallet credit</Text>
+              <Text style={styles.summaryValue}>
+                {balance.isSuccess ? formatRinggit(balance.data.balance) : '—'}
+              </Text>
+            </View>
           </Card>
-        ) : null}
 
-        <Button
-          title={`Pay ${formatRinggit(total)}`}
-          onPress={submit}
-          loading={payMutation.isPending || processing}
-          style={styles.payButton}
+          {toppingUp ? (
+            <>
+              <TextField
+                label="Top-up amount (RM)"
+                value={topupAmount}
+                onChangeText={(value) => {
+                  setTopupEdited(true);
+                  setTopupAmount(value);
+                }}
+                keyboardType="decimal-pad"
+                right={
+                  coverHint ? (
+                    <Text numberOfLines={1} style={styles.amountHint}>
+                      {coverHint}
+                    </Text>
+                  ) : null
+                }
+              />
+              <PaymentMethodSection
+                methods={buildPaymentMethodOptions(quote.data).map((item) =>
+                  item.id === 'fpx'
+                    ? {
+                        ...item,
+                        below: (
+                          <Pressable
+                            accessibilityRole="button"
+                            onPress={() => {
+                              setMethod('fpx');
+                              setBankPickerVisible(true);
+                            }}
+                            style={styles.bankRow}
+                          >
+                            <Text style={styles.bankText}>{bank ? bank.name : 'Select bank'}</Text>
+                            <Chevron direction="right" color={userHomeColors.navy} size={8} />
+                          </Pressable>
+                        ),
+                      }
+                    : item,
+                )}
+                selectedId={method}
+                onSelect={(id) => {
+                  setMethod(id);
+                  if (id === 'fpx' && !bank) {
+                    setBankPickerVisible(true);
+                  }
+                }}
+              />
+            </>
+          ) : null}
+        </ScrollView>
+        <SlidePayButton
+          title={total ? `Slide to pay ${formatRinggit(total)}` : 'Slide to pay'}
+          bottom={insets.bottom + 16}
+          disabled={!balance.isSuccess || !total}
+          loading={topupMutation.isPending || processing || balance.isLoading}
+          onConfirm={submit}
         />
       </View>
 
@@ -247,8 +250,10 @@ export default function PayRentPaymentRoute() {
 }
 
 const styles = StyleSheet.create({
-  body: {
+  flex: {
     flex: 1,
+  },
+  body: {
     padding: spacing.lg,
     gap: spacing.lg,
   },
@@ -256,7 +261,10 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   property: {
-    ...textStyles.heading3,
+    color: userHomeColors.textPrimary,
+    fontSize: 15,
+    lineHeight: 20,
+    fontWeight: '600',
   },
   summaryRow: {
     flexDirection: 'row',
@@ -264,31 +272,37 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   summaryLabel: {
-    ...textStyles.body,
-    color: coreColors.textSecondary,
-  },
-  summaryValue: {
-    ...textStyles.body,
+    flex: 1,
+    color: userHomeColors.textSecondary,
+    fontSize: 12,
+    lineHeight: 16,
     fontWeight: '600',
   },
-  summaryTotal: {
-    ...textStyles.heading3,
-    color: coreColors.brandBlue,
+  summaryValue: {
+    flexShrink: 1,
+    color: userHomeColors.textPrimary,
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: '700',
+    textAlign: 'right',
   },
-  pointsHint: {
-    ...textStyles.caption,
-    color: coreColors.darkGreen,
+  amountHint: {
+    textAlign: 'right',
+    color: userHomeColors.textSecondary,
+    fontSize: 12,
+    lineHeight: 16,
   },
-  ownerCard: {
-    gap: spacing.md,
+  bankRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.md,
   },
-  ownerTitle: {
-    ...textStyles.heading3,
-  },
-  ownerHint: {
-    ...textStyles.caption,
-  },
-  payButton: {
-    marginTop: 'auto',
+  bankText: {
+    color: userHomeColors.navy,
+    fontSize: 15,
+    lineHeight: 20,
+    fontWeight: '700',
   },
 });

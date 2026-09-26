@@ -148,6 +148,10 @@ export interface CreateRentBody {
   property_name: string;
   property_id?: number;
   owner_name?: string;
+  /** Required when `property_id` is omitted (owner is not a NEAST user). */
+  landlord_bank?: string;
+  landlord_bank_account?: string;
+  landlord_account_name?: string;
 }
 
 /**

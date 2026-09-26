@@ -1,5 +1,5 @@
 {
-  "name": "@neast/types",
+  "name": "@neast/constant",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -14,19 +14,7 @@
     "typecheck": "tsc -p tsconfig.json",
     "lint": "eslint ."
   },
-  "dependencies": {
-    "@neast/constant": "workspace:*",
-    "expo-secure-store": "~56.0.4",
-    "zustand": "5.0.15"
-  },
-  "peerDependencies": {
-    "react": ">=18.2.0"
-  },
   "devDependencies": {
-    "@types/node": "^20.0.0",
-    "@types/react": "19.2.2",
-    "eslint": "^9.0.0",
-    "react": "19.2.3",
     "typescript": "^5.6.0"
   }
 }
