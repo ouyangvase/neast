@@ -11,6 +11,7 @@ import metallicBackground from '@assets/images/home/neast-metallic-background.pn
 
 import { getRentList } from '@/lib/endpoints';
 import { ListSkeleton } from '@/components/StateViews';
+import { AddTenancyDialog } from './add-tenancy-dialog';
 import { AddTenancyCard, ComingSoonTenancyCard, TenancyCard } from './components';
 
 /** Pay Rent tab: tenancy stack and add tenancy. */
@@ -19,6 +20,7 @@ export function PayRentTab() {
   const isLoggedIn = useIsLoggedIn();
 
   const [limitVisible, setLimitVisible] = useState(false);
+  const [addVisible, setAddVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const rents = useQuery({
     queryKey: ['rent-list'],
@@ -72,7 +74,7 @@ export function PayRentTab() {
                   <ComingSoonTenancyCard />
                 </>
               ) : (
-                <AddTenancyCard />
+                <AddTenancyCard onPress={() => setAddVisible(true)} />
               )}
             </>
           )}
@@ -89,12 +91,13 @@ export function PayRentTab() {
             setLimitVisible(true);
             return;
           }
-          router.push('/pay-rent/create');
+          setAddVisible(true);
         }}
         style={({ pressed }) => [styles.addButton, pressed && styles.pressed]}
       >
         <Text style={styles.addButtonText}>Add tenancy</Text>
       </Pressable>
+      <AddTenancyDialog visible={addVisible} onClose={() => setAddVisible(false)} />
       <ComingSoonDialog
         visible={limitVisible}
         message="You already have a tenancy. Adding another home is coming soon."

@@ -112,14 +112,14 @@ export function TenancyCard({ rent, summary = false }: { rent: RentListItem; sum
   );
 }
 
-/** Empty Pay Rent slot. Opens tenancy create, or login when signed out. */
+/** Empty Pay Rent slot. The parent decides what the tap does. */
 export function AddTenancyCard({
   label = 'Add new tenancy now',
   onPress,
 }: {
   label?: string;
-  onPress?: () => void;
-} = {}) {
+  onPress: () => void;
+}) {
   const pulse = useRef(new Animated.Value(0.45)).current;
 
   useEffect(() => {
@@ -136,7 +136,7 @@ export function AddTenancyCard({
   return (
     <Pressable
       accessibilityRole="button"
-      onPress={onPress ?? (() => router.push('/pay-rent/create'))}
+      onPress={onPress}
       style={({ pressed }) => [styles.card, styles.soonCard, pressed && styles.pressed]}
     >
       <View style={styles.placeholderFrame}>
@@ -292,8 +292,8 @@ const styles = StyleSheet.create({
     paddingVertical: 1,
   },
   statusLabel: {
-    fontSize: 10,
-    lineHeight: 12,
+    fontSize: 8,
+    lineHeight: 10,
   },
   copy: {
     flex: 1,

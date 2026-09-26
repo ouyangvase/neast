@@ -26,7 +26,18 @@ export default function VerifyRoute() {
   const account = contact ?? '';
 
   const [code, setCode] = useState(
-    __DEV__ && (account === '60123456789' || account === '60111111111') ? '123456' : '',
+    __DEV__ &&
+      (account === '60123456789' ||
+        account === '60111111111' ||
+        account === '60222222222' ||
+        account === '60333333333' ||
+        account === '60444444444' ||
+        account === '60555555555' ||
+        account === '60666666666' ||
+        account === '60777777777' ||
+        account === '60888888888')
+      ? '123456'
+      : '',
   );
   const [hasError, setHasError] = useState(false);
   const countdown = useCountdown(60);
