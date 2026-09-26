@@ -5,12 +5,12 @@ import { router } from 'expo-router';
 import type { CouponListItem } from '@neast/types';
 import { coreColors, radii, RefreshList, spacing, textStyles } from '@neast/ui-mobile';
 
-import { getCouponCategories, getCouponList } from '../../src/lib/endpoints';
-import { usePaginatedList } from '../../src/hooks/use-paginated';
-import { useSelectionStore } from '../../src/stores/selection';
-import { CouponCard } from '../../src/features/coupon/components';
-import { PageHeader } from '../../src/components/PageHeader';
-import { Screen } from '../../src/components/Screen';
+import { getCouponCategories, getCouponList } from '@/lib/endpoints';
+import { usePaginatedList } from '@/hooks/use-paginated';
+import { useSelectionStore } from '@/stores/selection';
+import { CouponCard } from '@/features/coupon/components';
+import { PageHeader } from '@/components/PageHeader';
+import { Screen } from '@/components/Screen';
 import { useQuery } from '@tanstack/react-query';
 
 /** Coupon catalog (coupon_screen parity): category chips + paginated list. */

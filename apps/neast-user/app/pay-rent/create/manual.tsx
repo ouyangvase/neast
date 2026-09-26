@@ -1,33 +1,39 @@
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
+import type { CreateRentBody } from '@neast/types';
 import { JourneyBar, TextField, Toast, userHomeColors } from '@neast/ui-mobile';
 
-import { apiErrorMessage } from '../../../src/lib/api';
-import { createRent } from '../../../src/lib/endpoints';
-import { PageHeader } from '../../../src/components/PageHeader';
-import { Screen } from '../../../src/components/Screen';
-import { TenancyForm, type TenancyFormValues } from '../../../src/features/pay-rent/tenancy-form';
+import { apiErrorMessage } from '@/lib/api';
+import { createRent, updateRent } from '@/lib/endpoints';
+import { PageHeader } from '@/components/PageHeader';
+import { Screen } from '@/components/Screen';
+import { TenancyForm, type TenancyFormValues } from '@/features/pay-rent/tenancy-form';
+import { useSelectionStore } from '@/stores/selection';
 
 /** Manual path: tenancy details, then the non-NEAST owner's payout bank. */
 export default function ManualTenancyRoute() {
   const queryClient = useQueryClient();
+  const params = useLocalSearchParams<{ rentId?: string }>();
+  const stored = useSelectionStore((state) => state.rent);
+  const editing = params.rentId && stored?.id === Number(params.rentId) ? stored : null;
   const [step, setStep] = useState(0);
-  const [propertyName, setPropertyName] = useState('');
-  const [ownerName, setOwnerName] = useState('');
+  const [propertyName, setPropertyName] = useState(editing?.property_name ?? '');
+  const [ownerName, setOwnerName] = useState(editing?.owner_name ?? '');
   const [details, setDetails] = useState<TenancyFormValues | null>(null);
-  const [bankName, setBankName] = useState('');
-  const [bankAccount, setBankAccount] = useState('');
-  const [accountHolder, setAccountHolder] = useState('');
+  const [bankName, setBankName] = useState(editing?.landlord_bank ?? '');
+  const [bankAccount, setBankAccount] = useState(editing?.landlord_bank_account ?? '');
+  const [accountHolder, setAccountHolder] = useState(editing?.landlord_account_name ?? '');
 
-  const createMutation = useMutation({
-    mutationFn: createRent,
+  const saveMutation = useMutation({
+    mutationFn: (body: CreateRentBody) =>
+      editing ? updateRent(editing.id, body) : createRent(body),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['rent-list'] });
-      Toast.success('Tenancy submitted for review');
+      Toast.success(editing ? 'Tenancy updated' : 'Tenancy submitted for review');
       router.back();
     },
     onError: (error) => Toast.error(apiErrorMessage(error)),
@@ -47,7 +53,7 @@ export default function ManualTenancyRoute() {
       Toast.error('Please enter the account holder');
       return;
     }
-    createMutation.mutate({
+    saveMutation.mutate({
       ...details,
       property_name: propertyName.trim(),
       owner_name: ownerName.trim(),
@@ -59,12 +65,26 @@ export default function ManualTenancyRoute() {
 
   return (
     <Screen edges={[]}>
-      <PageHeader title="Add manually" onBack={step === 1 ? () => setStep(0) : undefined} />
+      <PageHeader
+        title={editing ? 'Edit tenancy' : 'Add manually'}
+        onBack={step === 1 ? () => setStep(0) : undefined}
+      />
       <JourneyBar steps={['Details', 'Payout']} activeIndex={step} />
       <View style={step === 0 ? styles.step : styles.hidden}>
         <TenancyForm
           submitting={false}
           submitLabel="Next"
+          initial={
+            editing
+              ? {
+                  amount: editing.amount,
+                  paidAt: Number(editing.paid_at),
+                  firstPayMonth: editing.first_pay_month,
+                  leaseMonths: editing.lease_months,
+                  file: editing.file,
+                }
+              : undefined
+          }
           leading={
             <>
               <TextField label="Property name" value={propertyName} onChangeText={setPropertyName} />
@@ -93,7 +113,8 @@ export default function ManualTenancyRoute() {
           onBankName={setBankName}
           onBankAccount={setBankAccount}
           onAccountHolder={setAccountHolder}
-          submitting={createMutation.isPending}
+          submitting={saveMutation.isPending}
+          submitLabel={editing ? 'Save' : 'Submit'}
           onSubmit={submit}
         />
       ) : null}
@@ -109,6 +130,7 @@ function PayoutStep({
   onBankAccount,
   onAccountHolder,
   submitting,
+  submitLabel,
   onSubmit,
 }: {
   bankName: string;
@@ -118,6 +140,7 @@ function PayoutStep({
   onBankAccount: (value: string) => void;
   onAccountHolder: (value: string) => void;
   submitting: boolean;
+  submitLabel: string;
   onSubmit: () => void;
 }) {
   const insets = useSafeAreaInsets();
@@ -151,7 +174,7 @@ function PayoutStep({
         {submitting ? (
           <ActivityIndicator color={userHomeColors.surface} />
         ) : (
-          <Text style={styles.submitText}>Submit</Text>
+          <Text style={styles.submitText}>{submitLabel}</Text>
         )}
       </Pressable>
     </View>

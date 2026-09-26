@@ -16,8 +16,8 @@ import {
   userAccentColors,
 } from '@neast/ui-mobile';
 
-import { apiErrorMessage } from '../../lib/api';
-import { redeemCoupon } from '../../lib/endpoints';
+import { apiErrorMessage } from '@/lib/api';
+import { redeemCoupon } from '@/lib/endpoints';
 
 type AnyCoupon = CouponListItem | UserCouponItem;
 

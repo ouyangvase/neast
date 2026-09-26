@@ -3,9 +3,9 @@ import { router, useLocalSearchParams, useNavigation } from 'expo-router';
 
 import { FiuuH5WebView } from '@neast/ui-mobile';
 
-import { clearH5Callbacks, getH5Callbacks } from '../src/lib/callbacks';
-import { PageHeader } from '../src/components/PageHeader';
-import { Screen } from '../src/components/Screen';
+import { clearH5Callbacks, getH5Callbacks } from '@/lib/callbacks';
+import { PageHeader } from '@/components/PageHeader';
+import { Screen } from '@/components/Screen';
 
 /**
  * Fiuu H5 payment page (wallet_pay_h5_webview_page parity). Callers stash
@@ -19,10 +19,6 @@ export default function PayH5WebViewRoute() {
     navigation.setOptions({ gestureEnabled: false });
   }, [navigation]);
 
-  if (!params.url) {
-    return null;
-  }
-
   const cancel = () => {
     const callbacks = getH5Callbacks();
     clearH5Callbacks();
@@ -32,7 +28,7 @@ export default function PayH5WebViewRoute() {
 
   return (
     <Screen edges={['bottom']}>
-      <PageHeader title={params.title ?? 'Payment'} onBack={cancel} />
+      <PageHeader title={params.title} onBack={cancel} />
       <FiuuH5WebView
         showHeader={false}
         url={params.url}

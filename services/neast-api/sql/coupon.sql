@@ -8,6 +8,8 @@ CREATE TABLE `t_coupon` (
   `discount_amount` decimal(10, 2) unsigned NOT NULL DEFAULT '0.00' COMMENT '优惠金额',
   `usage_condition` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '使用条件',
   `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态 0停用 1启用',
+  `origin` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'admin' COMMENT '来源 admin管理员 merchant商家',
+  `review_status` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'approved' COMMENT '审核 pending待审 approved通过 rejected拒绝',
   `redeem_limit` int unsigned DEFAULT NULL COMMENT '兑换次数 NULL表示不限制',
   `category_id` int unsigned NOT NULL DEFAULT '0' COMMENT '优惠券分类ID',
   `image` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '列表展示图片',

@@ -7,11 +7,11 @@ import {
   getMerchantList,
   getNearbyMerchantList,
   getRecommendedMerchants,
-} from '../../src/lib/endpoints';
-import { useDeviceLocation } from '../../src/lib/location';
-import { usePaginatedList } from '../../src/hooks/use-paginated';
-import { MerchantCard } from '../../src/features/merchant/components';
-import { Screen } from '../../src/components/Screen';
+} from '@/lib/endpoints';
+import { useDeviceLocation } from '@/lib/location';
+import { usePaginatedList } from '@/hooks/use-paginated';
+import { MerchantCard } from '@/features/merchant/components';
+import { Screen } from '@/components/Screen';
 
 type ListKind = 'all' | 'recommended' | 'nearby';
 

@@ -1,10 +1,10 @@
 import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 
-import { coreColors } from '../tokens/colors';
-import { spacing } from '../tokens/layout';
-import { textStyles } from '../tokens/typography';
+import { SuccessMark } from './icons';
+import { coreColors } from '@ui/tokens/colors';
+import { spacing } from '@ui/tokens/layout';
+import { textStyles } from '@ui/tokens/typography';
 
 /** Step labels with the current index. The connector fills when the index changes. */
 export function JourneyBar({ steps, activeIndex }: { steps: string[]; activeIndex: number }) {
@@ -39,13 +39,13 @@ export function JourneyBar({ steps, activeIndex }: { steps: string[]; activeInde
             const current = index === activeIndex;
             return (
               <View key={label} style={styles.node}>
-                <View style={[styles.dot, reached && styles.dotReached, current && styles.dotCurrent]}>
-                  {index < activeIndex ? (
-                    <Ionicons name="checkmark" size={16} color={coreColors.white} />
-                  ) : (
+                {index < activeIndex ? (
+                  <SuccessMark size={28} />
+                ) : (
+                  <View style={[styles.dot, reached && styles.dotReached, current && styles.dotCurrent]}>
                     <Text style={[styles.dotText, reached && styles.dotTextReached]}>{index + 1}</Text>
-                  )}
-                </View>
+                  </View>
+                )}
               </View>
             );
           })}

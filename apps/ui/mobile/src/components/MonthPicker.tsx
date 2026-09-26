@@ -2,9 +2,9 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { MONTH_NAMES_LONG } from '@neast/constant';
 
-import { coreColors } from '../tokens/colors';
-import { radii, spacing } from '../tokens/layout';
-import { textStyles } from '../tokens/typography';
+import { coreColors } from '@ui/tokens/colors';
+import { radii, spacing } from '@ui/tokens/layout';
+import { textStyles } from '@ui/tokens/typography';
 import { BottomSheet } from './BottomSheet';
 
 export interface MonthValue {

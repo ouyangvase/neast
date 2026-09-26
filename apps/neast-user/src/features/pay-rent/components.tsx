@@ -6,11 +6,11 @@ import { MONTH_NAMES_SHORT } from '@neast/constant';
 import { formatRinggit, type RentListItem } from '@neast/types';
 import { Chevron, StatusTag, SuccessMark, textStyles, userHomeColors } from '@neast/ui-mobile';
 
-import propertyPlaceholder from '../../../assets/images/home/property-hero-generated.png';
+import propertyPlaceholder from '@assets/images/home/property-hero-generated.png';
 
-import { rentHistoryStatusMeta, type StatusMeta } from '../../lib/format';
-import type { RentHistoryEntry } from '../../lib/types';
-import { useSelectionStore } from '../../stores/selection';
+import { rentHistoryStatusMeta, rentStatusMeta, type StatusMeta } from '@/lib/format';
+import type { RentHistoryEntry } from '@/lib/types';
+import { useSelectionStore } from '@/stores/selection';
 
 /** `Y-m` and `Y-m-d` from the rent list, shown as `Jan 2026 – 31 Dec 2026`. */
 function leaseLabel(firstPayMonth: string, expireDate: string): string {
@@ -22,15 +22,26 @@ function leaseLabel(firstPayMonth: string, expireDate: string): string {
 /** One tenancy on the Pay Rent tab. `summary` is the static card on tenancy details. */
 export function TenancyCard({ rent, summary = false }: { rent: RentListItem; summary?: boolean }) {
   const setRent = useSelectionStore((state) => state.setRent);
+  const status = rentStatusMeta(rent.status);
 
   const body = (
     <>
-      <View style={[styles.imageFrame, summary && styles.summaryImageFrame]}>
-        <Image
-          source={rent.property_image ? { uri: rent.property_image } : propertyPlaceholder}
-          resizeMode="cover"
-          style={styles.image}
-        />
+      <View style={[styles.photo, summary && styles.summaryPhoto]}>
+        <View style={[styles.imageFrame, summary && styles.summaryImageFrame]}>
+          <Image
+            source={rent.property_image ? { uri: rent.property_image } : propertyPlaceholder}
+            resizeMode="cover"
+            style={styles.image}
+          />
+        </View>
+        {summary ? null : (
+          <StatusTag
+            label={status.label}
+            status={status.tag}
+            style={styles.statusTag}
+            labelStyle={styles.statusLabel}
+          />
+        )}
       </View>
       <View style={[styles.copy, summary && styles.summaryCopy]}>
         <View style={styles.titleRow}>
@@ -70,7 +81,16 @@ export function TenancyCard({ rent, summary = false }: { rent: RentListItem; sum
           </View>
         )}
       </View>
-      {summary ? null : <Chevron direction="right" color={userHomeColors.textSecondary} size={8} />}
+      {summary ? (
+        <StatusTag
+          label={status.label}
+          status={status.tag}
+          style={styles.summaryStatus}
+          labelStyle={styles.statusLabel}
+        />
+      ) : (
+        <Chevron direction="right" color={userHomeColors.textSecondary} size={8} />
+      )}
     </>
   );
 
@@ -92,8 +112,14 @@ export function TenancyCard({ rent, summary = false }: { rent: RentListItem; sum
   );
 }
 
-/** Empty Pay Rent slot. Opens tenancy create. */
-export function AddTenancyCard() {
+/** Empty Pay Rent slot. Opens tenancy create, or login when signed out. */
+export function AddTenancyCard({
+  label = 'Add new tenancy now',
+  onPress,
+}: {
+  label?: string;
+  onPress?: () => void;
+} = {}) {
   const pulse = useRef(new Animated.Value(0.45)).current;
 
   useEffect(() => {
@@ -110,16 +136,14 @@ export function AddTenancyCard() {
   return (
     <Pressable
       accessibilityRole="button"
-      onPress={() => router.push('/pay-rent/create')}
+      onPress={onPress ?? (() => router.push('/pay-rent/create'))}
       style={({ pressed }) => [styles.card, styles.soonCard, pressed && styles.pressed]}
     >
-      <View style={styles.imageFrame}>
+      <View style={styles.placeholderFrame}>
         <Image source={propertyPlaceholder} resizeMode="cover" style={styles.image} />
       </View>
       <View style={styles.soonSide}>
-        <Animated.Text style={[styles.soonLabel, { opacity: pulse }]}>
-          Add new tenancy now
-        </Animated.Text>
+        <Animated.Text style={[styles.soonLabel, { opacity: pulse }]}>{label}</Animated.Text>
       </View>
     </Pressable>
   );
@@ -142,7 +166,7 @@ export function ComingSoonTenancyCard() {
 
   return (
     <View style={[styles.card, styles.soonCard]}>
-      <View style={styles.imageFrame}>
+      <View style={styles.placeholderFrame}>
         <Image source={propertyPlaceholder} resizeMode="cover" style={styles.image} />
       </View>
       <View style={styles.soonSide}>
@@ -210,7 +234,24 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: userHomeColors.border,
   },
+  photo: {
+    width: 104,
+    height: 104,
+  },
+  summaryPhoto: {
+    width: 72,
+    height: 72,
+  },
   imageFrame: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: userHomeColors.border,
+    overflow: 'hidden',
+    backgroundColor: userHomeColors.lightBlue,
+  },
+  placeholderFrame: {
     width: 104,
     height: 104,
     borderRadius: 12,
@@ -227,8 +268,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   summaryImageFrame: {
-    width: 72,
-    height: 72,
     borderRadius: 10,
   },
   summaryCopy: {
@@ -239,6 +278,22 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: '100%',
+  },
+  statusTag: {
+    position: 'absolute',
+    top: 4,
+    left: 4,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+  },
+  summaryStatus: {
+    alignSelf: 'center',
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+  },
+  statusLabel: {
+    fontSize: 10,
+    lineHeight: 12,
   },
   copy: {
     flex: 1,
@@ -361,6 +416,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 20,
     fontWeight: '700',
+    textAlign: 'center',
   },
   pressed: {
     opacity: 0.7,

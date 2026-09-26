@@ -16,11 +16,11 @@ import {
   Toast,
 } from '@neast/ui-mobile';
 
-import { apiErrorMessage } from '../src/lib/api';
-import { getRentDetail, terminateRent } from '../src/lib/endpoints';
-import { useFileViewer } from '../src/hooks/use-file-viewer';
-import { ErrorState, LoadingState } from '../src/components/StateViews';
-import { Screen } from '../src/components/Screen';
+import { apiErrorMessage } from '@/lib/api';
+import { getRentDetail, terminateRent } from '@/lib/endpoints';
+import { useFileViewer } from '@/hooks/use-file-viewer';
+import { ErrorState, LoadingState } from '@/components/StateViews';
+import { Screen } from '@/components/Screen';
 
 /** Tenant lease detail (portfolio_tenant_detail_screen parity): lease view + terminate. */
 export default function PortfolioTenantDetailRoute() {

@@ -3,10 +3,10 @@ import { StyleSheet, Text, View } from 'react-native';
 import { formatThousands, type PointsLogItem } from '@neast/types';
 import { coreColors, RefreshList, spacing, textStyles } from '@neast/ui-mobile';
 
-import { getPointsLogs } from '../../src/lib/endpoints';
-import { usePaginatedList } from '../../src/hooks/use-paginated';
-import { PageHeader } from '../../src/components/PageHeader';
-import { Screen } from '../../src/components/Screen';
+import { getPointsLogs } from '@/lib/endpoints';
+import { usePaginatedList } from '@/hooks/use-paginated';
+import { PageHeader } from '@/components/PageHeader';
+import { Screen } from '@/components/Screen';
 
 /** Points history (points_history_screen parity): paginated earn/spend log. */
 export default function PointsHistoryRoute() {

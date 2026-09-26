@@ -4,7 +4,7 @@ import RenderHTML, {
   type RenderHTMLProps,
 } from 'react-native-render-html';
 
-import { coreColors } from '../tokens/colors';
+import { coreColors } from '@ui/tokens/colors';
 
 export interface RichTextProps {
   /** Agreement / legal HTML (from the agreement detail endpoint). */

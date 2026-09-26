@@ -15,11 +15,11 @@ import {
   Toast,
 } from '@neast/ui-mobile';
 
-import { apiErrorMessage } from '../src/lib/api';
-import { navigateAfterAuth } from '../src/lib/auth';
-import { updateUserProfile } from '../src/lib/endpoints';
-import { DatePickerField, toYmd } from '../src/components/DatePickerField';
-import { Screen } from '../src/components/Screen';
+import { apiErrorMessage } from '@/lib/api';
+import { navigateAfterAuth } from '@/lib/auth';
+import { updateUserProfile } from '@/lib/endpoints';
+import { DatePickerField, toYmd } from '@/components/DatePickerField';
+import { Screen } from '@/components/Screen';
 
 /**
  * First-profile form (full_data_screen parity): shown once after signup.

@@ -32,3 +32,38 @@ FROM DUAL
 WHERE NOT EXISTS (
   SELECT 1 FROM `t_user` WHERE `account` = '60123456789'
 );
+
+-- Fresh login user: completed profile, no tenancy. Idempotent.
+INSERT INTO `t_user` (
+  `account`,
+  `email`,
+  `password`,
+  `first_name`,
+  `last_name`,
+  `id_type`,
+  `id_number`,
+  `address`,
+  `invitation_code`,
+  `status`,
+  `tent_score`,
+  `created_at`,
+  `updated_at`
+)
+SELECT
+  '60111111111',
+  'fresh.tenant@neast.local',
+  '',
+  'Fresh',
+  'Tenant',
+  'id_card',
+  '910202145678',
+  'Johor Bahru',
+  'FRESH1002',
+  1,
+  500,
+  NOW(),
+  NOW()
+FROM DUAL
+WHERE NOT EXISTS (
+  SELECT 1 FROM `t_user` WHERE `account` = '60111111111'
+);

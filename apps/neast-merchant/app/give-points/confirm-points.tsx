@@ -18,14 +18,14 @@ import {
   useUiTheme,
 } from '@neast/ui-mobile';
 
-import successImage from '../../assets/images/give_points/success.png';
+import successImage from '@assets/images/give_points/success.png';
 
-import { apiErrorMessage } from '../../src/lib/api';
-import { getConfirmPointsArgs, openScanner } from '../../src/lib/callbacks';
-import { confirmGivePoints, getGivePointsCustomer } from '../../src/lib/endpoints';
-import { useMerchantInfo } from '../../src/hooks/use-merchant';
-import { Screen } from '../../src/components/Screen';
-import { SuccessDialog } from '../../src/components/SuccessDialog';
+import { apiErrorMessage } from '@/lib/api';
+import { getConfirmPointsArgs, openScanner } from '@/lib/callbacks';
+import { confirmGivePoints, getGivePointsCustomer } from '@/lib/endpoints';
+import { useMerchantInfo } from '@/hooks/use-merchant';
+import { Screen } from '@/components/Screen';
+import { SuccessDialog } from '@/components/SuccessDialog';
 
 /**
  * Confirm points (confirm_points_screen parity) — Step 2: identify the

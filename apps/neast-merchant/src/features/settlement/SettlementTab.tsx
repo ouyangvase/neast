@@ -12,14 +12,14 @@ import {
   textStyles,
 } from '@neast/ui-mobile';
 
-import howChargesImage from '../../../assets/images/settlement/how-charges.png';
-import stat1Icon from '../../../assets/images/settlement/stat1.png';
-import stat2Icon from '../../../assets/images/settlement/stat2.png';
-import stat3Icon from '../../../assets/images/settlement/stat3.png';
+import howChargesImage from '@assets/images/settlement/how-charges.png';
+import stat1Icon from '@assets/images/settlement/stat1.png';
+import stat2Icon from '@assets/images/settlement/stat2.png';
+import stat3Icon from '@assets/images/settlement/stat3.png';
 
-import { Screen } from '../../components/Screen';
-import { getSettlementOverview } from '../../lib/endpoints';
-import { settlementDueLabel } from '../../lib/format';
+import { Screen } from '@/components/Screen';
+import { getSettlementOverview } from '@/lib/endpoints';
+import { settlementDueLabel } from '@/lib/format';
 
 /**
  * Settlement tab (settlement_screen parity): overview stats, "How charges"

@@ -25,6 +25,7 @@ use Hyperf\Database\Model\SoftDeletes;
  * @property string $owner_email 未绑定房东时租客填写的邮箱
  * @property string $owner_phone 未绑定房东时租客填写的手机号
  * @property int $status 状态 0待审核 1审核通过 2驳回 3待绑定 4已终止
+ * @property string $rejected_by 驳回来源 admin|owner
  * @property string|null $terminated_at 终止时间
  * @property int|null $terminated_by 终止操作人(admin id)
  * @property string $terminate_reason 终止原因
@@ -49,6 +50,10 @@ class RentModel extends Model
 
     public const STATUS_TERMINATED = 4;
 
+    public const REJECTED_BY_ADMIN = 'admin';
+
+    public const REJECTED_BY_OWNER = 'owner';
+
     protected ?string $table = 't_rent';
 
     protected array $fillable = [
@@ -66,6 +71,7 @@ class RentModel extends Model
         'owner_email',
         'owner_phone',
         'status',
+        'rejected_by',
         'terminated_at',
         'terminated_by',
         'terminate_reason',

@@ -51,11 +51,14 @@ class RentService
 
         $items = $rents
             ->map(function (RentModel $rent) use ($multiplier, $payableRentIds, $dueDatesByRentId) {
+                $nextUnpaid = $this->nextUnpaidScheduleDate($rent);
+                $dueDate = $dueDatesByRentId[(int) $rent->id] ?? $nextUnpaid;
+
                 return $this->formatAppListItem(
                     $rent,
                     $multiplier,
-                    in_array((int) $rent->id, $payableRentIds, true),
-                    $dueDatesByRentId[(int) $rent->id] ?? null
+                    in_array((int) $rent->id, $payableRentIds, true) || $nextUnpaid !== null,
+                    $dueDate
                 );
             })
             ->all();
@@ -67,6 +70,33 @@ class RentService
             'limit' => $limit,
             'rent_points_multiplier' => $multiplier,
         ];
+    }
+
+    /** Earliest lease month that is not paid or settled. */
+    public function nextUnpaidScheduleDate(RentModel $rent): ?string
+    {
+        $leaseMonths = (int) $rent->lease_months;
+        if ($leaseMonths < 1 || $rent->first_pay_month === null) {
+            return null;
+        }
+
+        $covered = [];
+        $dates = RentHistoryModel::query()
+            ->where('rent_id', $rent->id)
+            ->whereIn('status', [RentHistoryModel::STATUS_PAID, RentHistoryModel::STATUS_SETTLED])
+            ->pluck('last_paid_date');
+        foreach ($dates as $date) {
+            $covered[substr((string) $date, 0, 7)] = true;
+        }
+
+        foreach ($this->buildPaymentSchedule($rent, $leaseMonths) as $item) {
+            $month = substr($item['last_paid_date'], 0, 7);
+            if (! isset($covered[$month])) {
+                return $item['last_paid_date'];
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -87,13 +117,11 @@ class RentService
         }
 
         $multiplier = (float) ($this->pointsSettingService->get()['rent_points_multiplier'] ?? 1);
-        $dueDate = $this->historyService->extractDateOnly((string) ($history->last_paid_date ?? ''));
-
         return $this->formatAppListItem(
             $rent,
             $multiplier,
             true,
-            $dueDate !== '' ? $dueDate : null
+            $this->historyService->extractDateOnly((string) $history->last_paid_date)
         );
     }
 
@@ -189,6 +217,7 @@ class RentService
 
         if ($result === 'rejected') {
             $rent->status = RentModel::STATUS_REJECTED;
+            $rent->rejected_by = RentModel::REJECTED_BY_ADMIN;
             $rent->save();
             return;
         }
@@ -500,6 +529,89 @@ class RentService
     }
 
     /**
+     * App 端修改未审核通过的租约。
+     *
+     * @param array<string, mixed> $params
+     * @return array<string, mixed>
+     */
+    public function appUpdate(int $userId, int $rentId, array $params): array
+    {
+        $rent = RentModel::query()
+            ->where('id', $rentId)
+            ->where('user_id', $userId)
+            ->first();
+
+        if (! $rent) {
+            throw new AppException('Rent not found');
+        }
+
+        $status = (int) $rent->status;
+        if (! in_array($status, [
+            RentModel::STATUS_PENDING,
+            RentModel::STATUS_REJECTED,
+            RentModel::STATUS_PENDING_BIND,
+        ], true)) {
+            throw new AppException('Only a pending or rejected tenancy can be edited');
+        }
+
+        $paidAt = $this->normalizePaidDay($params['paid_at']);
+        $submittedMonth = (string) $params['first_pay_month'];
+        $storedDate = $rent->first_pay_month->format('Y-m-d');
+        $firstPayMonth = $submittedMonth === substr($storedDate, 0, 7)
+            ? $storedDate
+            : $this->normalizeFirstPayMonth($submittedMonth, $paidAt);
+        $leaseMonths = (int) $params['lease_months'];
+        $propertyChanged = false;
+
+        if ((int) $rent->property_id > 0) {
+            $propertyId = (int) $params['property_id'];
+            if ($propertyId !== (int) $rent->property_id) {
+                $property = LandlordPropertyModel::query()->find($propertyId);
+                if (! $property) {
+                    throw new AppException('Property not found');
+                }
+
+                $landlord = LandlordModel::query()->find((int) $property->landlord_id);
+                if (! $landlord) {
+                    throw new AppException('Landlord not found');
+                }
+
+                $this->applyLandlordBankDetailToRent($rent, $landlord);
+                $rent->property_id = $propertyId;
+                $rent->landlord_id = (int) $property->landlord_id;
+                $rent->property_name = (string) $property->name;
+                $propertyChanged = true;
+            }
+        } else {
+            $rent->property_name = trim((string) $params['property_name']);
+            $rent->owner_name = trim((string) $params['owner_name']);
+            $rent->landlord_bank = trim((string) $params['landlord_bank']);
+            $rent->landlord_bank_account = trim((string) $params['landlord_bank_account']);
+            $rent->landlord_account_name = trim((string) $params['landlord_account_name']);
+        }
+
+        $rent->amount = $params['amount'];
+        $rent->file = (string) $params['file'];
+        $rent->paid_at = $paidAt;
+        $rent->first_pay_month = $firstPayMonth;
+        $rent->lease_months = $leaseMonths;
+        $rent->expire_date = $this->calculateExpireDate($leaseMonths, Carbon::parse((string) $rent->created_at));
+
+        if ($propertyChanged) {
+            $rent->status = RentModel::STATUS_PENDING_BIND;
+        } elseif ($status === RentModel::STATUS_REJECTED) {
+            $rent->status = $rent->rejected_by === RentModel::REJECTED_BY_OWNER
+                ? RentModel::STATUS_PENDING_BIND
+                : RentModel::STATUS_PENDING;
+        }
+
+        $rent->rejected_by = '';
+        $rent->save();
+
+        return $this->formatAppItem($rent);
+    }
+
+    /**
      * 未绑定房东的租约：保存租客填写的房东姓名、邮箱、手机号。
      *
      * @param array<string, mixed> $params
@@ -619,7 +731,10 @@ class RentService
         }
         $amount = (float) $rent->amount;
         $file = (string) $rent->file;
-        $dueLabels = $this->historyService->formatRentDueLabels($nextPayableDueDate);
+        $dueLabels = $this->historyService->formatRentDueLabels(
+            $nextPayableDueDate,
+            (string) ($rent->created_at ?? '')
+        );
         $propertyImage = (string) ($rent->property?->image ?? '');
 
         return [
@@ -632,8 +747,12 @@ class RentService
             'lease_months' => (int) ($rent->lease_months ?? 0),
             'expire_date' => $rent->expire_date?->format('Y-m-d') ?? '',
             'status' => $rent->status,
+            'property_id' => $rent->property_id ? (int) $rent->property_id : null,
             'landlord_id' => $landlordId,
             'landlord_name' => $landlordName,
+            'owner_name' => (string) ($rent->owner_name ?? ''),
+            'landlord_bank' => (string) ($rent->landlord_bank ?? ''),
+            'landlord_bank_account' => (string) ($rent->landlord_bank_account ?? ''),
             'landlord_account_name' => (string) ($rent->landlord_account_name ?? ''),
             'owner_email' => (string) ($rent->owner_email ?? ''),
             'owner_phone' => (string) ($rent->owner_phone ?? ''),
@@ -643,7 +762,7 @@ class RentService
             'earn_points' => (int) round($amount * $multiplier),
             'created_at' => $rent->created_at?->format('Y-m-d H:i:s') ?? '',
             'can_pay' => (int) $rent->status === RentModel::STATUS_APPROVED && $hasPayablePending,
-            'due_text' => $dueLabels['due_text'],
+            'due_status' => $dueLabels['due_status'],
             'date_label' => $dueLabels['date_label'],
         ];
     }

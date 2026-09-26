@@ -3,7 +3,7 @@ import { Animated, Easing, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Circle, Path } from 'react-native-svg';
 
-import { coreColors, userHomeColors } from '../tokens/colors';
+import { coreColors, userHomeColors } from '@ui/tokens/colors';
 
 interface IconProps {
   size?: number;
@@ -35,9 +35,9 @@ export function UploadIcon({ size = 24, color }: IconProps) {
   return <Ionicons name="cloud-upload-outline" size={size} color={color} />;
 }
 
-export function BellIcon() {
+export function BellIcon({ size = 24 }: { size?: number }) {
   return (
-    <Svg width={24} height={24} viewBox="0 0 24 24">
+    <Svg width={size} height={size} viewBox="0 0 24 24">
       <Circle cx={12} cy={12} r={12} fill={coreColors.brandBlue} />
       <Path
         d="M12 6.2a3.2 3.2 0 0 0-3.2 3.2v1.5c0 .5-.2 1-.5 1.4l-.7.8c-.4.4-.1 1.1.5 1.1h7.8c.6 0 .9-.7.5-1.1l-.7-.8c-.3-.4-.5-.9-.5-1.4V9.4A3.2 3.2 0 0 0 12 6.2Z"
@@ -55,7 +55,9 @@ export function BellIcon() {
 }
 
 /** Soft green disc with a filled check, for a completed payment. */
-export function SuccessMark() {
+export function SuccessMark({ size = 112 }: { size?: number }) {
+  const inner = size * (72 / 112);
+  const icon = size * (40 / 112);
   const disc = useRef(new Animated.Value(0)).current;
   const tick = useRef(new Animated.Value(0)).current;
   const pulse = useRef(new Animated.Value(1)).current;
@@ -101,10 +103,20 @@ export function SuccessMark() {
 
   return (
     <Animated.View style={{ transform: [{ scale: pulse }] }}>
-      <Animated.View style={[styles.successOuter, { transform: [{ scale: disc }] }]}>
-        <View style={styles.successInner}>
+      <Animated.View
+        style={[
+          styles.successOuter,
+          { width: size, height: size, borderRadius: size / 2, transform: [{ scale: disc }] },
+        ]}
+      >
+        <View
+          style={[
+            styles.successInner,
+            { width: inner, height: inner, borderRadius: inner / 2 },
+          ]}
+        >
           <Animated.View style={{ opacity: tick, transform: [{ scale: tick }] }}>
-            <Ionicons name="checkmark" size={40} color={coreColors.white} />
+            <Ionicons name="checkmark" size={icon} color={coreColors.white} />
           </Animated.View>
         </View>
       </Animated.View>
@@ -112,9 +124,9 @@ export function SuccessMark() {
   );
 }
 
-export function ScanIcon() {
+export function ScanIcon({ size = 24 }: { size?: number }) {
   return (
-    <Svg width={24} height={24} viewBox="0 0 24 24">
+    <Svg width={size} height={size} viewBox="0 0 24 24">
       <Circle cx={12} cy={12} r={12} fill={coreColors.brandBlue} />
       <Path
         d="M7.2 9.4V8.1c0-.5.4-.9.9-.9h1.3M14.6 7.2h1.3c.5 0 .9.4.9.9v1.3M16.8 14.6v1.3c0 .5-.4.9-.9.9h-1.3M9.4 16.8H8.1c-.5 0-.9-.4-.9-.9v-1.3"

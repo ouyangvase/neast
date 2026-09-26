@@ -4,10 +4,10 @@ import { useQuery } from '@tanstack/react-query';
 
 import { RichText, spacing } from '@neast/ui-mobile';
 
-import { getAgreement } from '../src/lib/endpoints';
-import { ErrorState, LoadingState } from '../src/components/StateViews';
-import { PageHeader } from '../src/components/PageHeader';
-import { Screen } from '../src/components/Screen';
+import { getAgreement } from '@/lib/endpoints';
+import { ErrorState, LoadingState } from '@/components/StateViews';
+import { PageHeader } from '@/components/PageHeader';
+import { Screen } from '@/components/Screen';
 
 /** Agreement HTML page (rich_text_screen parity) — Privacy Policy / Terms. */
 export default function RichTextRoute() {

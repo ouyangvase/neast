@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Animated, PanResponder, StyleSheet, Text, View } from 'react-native';
 
-import { userHomeColors } from '../tokens/colors';
+import { userHomeColors } from '@ui/tokens/colors';
 import { Chevron } from './Chevron';
 
 export function SlidePayButton({

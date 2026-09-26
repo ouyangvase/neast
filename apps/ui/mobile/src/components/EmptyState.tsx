@@ -5,12 +5,13 @@ import {
   View,
   type ImageSourcePropType,
   type StyleProp,
+  type TextStyle,
   type ViewStyle,
 } from 'react-native';
 
-import { coreColors } from '../tokens/colors';
-import { spacing } from '../tokens/layout';
-import { textStyles } from '../tokens/typography';
+import { coreColors } from '@ui/tokens/colors';
+import { spacing } from '@ui/tokens/layout';
+import { textStyles } from '@ui/tokens/typography';
 import { Button } from './Button';
 
 export interface EmptyStateProps {
@@ -18,6 +19,7 @@ export interface EmptyStateProps {
   image?: ImageSourcePropType;
   title: string;
   message?: string;
+  messageStyle?: StyleProp<TextStyle>;
   /** When both are set, a primary action button is shown. */
   actionLabel?: string;
   onAction?: () => void;
@@ -29,6 +31,7 @@ export function EmptyState({
   image,
   title,
   message,
+  messageStyle,
   actionLabel,
   onAction,
   style,
@@ -37,7 +40,7 @@ export function EmptyState({
     <View style={[styles.container, style]}>
       {image ? <Image source={image} style={styles.image} resizeMode="contain" /> : null}
       <Text style={styles.title}>{title}</Text>
-      {message ? <Text style={styles.message}>{message}</Text> : null}
+      {message ? <Text style={[styles.message, messageStyle]}>{message}</Text> : null}
       {actionLabel && onAction ? (
         <Button title={actionLabel} onPress={onAction} fullWidth={false} style={styles.action} />
       ) : null}

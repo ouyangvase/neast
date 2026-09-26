@@ -14,11 +14,11 @@ import {
   Toast,
 } from '@neast/ui-mobile';
 
-import referBanner from '../assets/images/refer/refer-banner.png';
+import referBanner from '@assets/images/refer/refer-banner.png';
 
-import { getReferDashboard } from '../src/lib/endpoints';
-import { ErrorState, LoadingState } from '../src/components/StateViews';
-import { Screen } from '../src/components/Screen';
+import { getReferDashboard } from '@/lib/endpoints';
+import { ErrorState, LoadingState } from '@/components/StateViews';
+import { Screen } from '@/components/Screen';
 
 /** Refer & earn (refer_screen parity): stats, invite code copy, share H5 link. */
 export default function ReferRoute() {

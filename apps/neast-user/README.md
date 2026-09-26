@@ -14,10 +14,11 @@ pnpm --filter neast-user start
 
 ### Backend URL
 
-Local runs call the Docker API (MySQL + Redis) at `http://127.0.0.1:9512`.
-Start it from the monorepo root with `docker compose up`. An Android emulator
-needs `EXPO_PUBLIC_API_URL=http://10.0.2.2:9512`. On a physical device use your
-machine's LAN IP, e.g. `EXPO_PUBLIC_API_URL=http://192.168.1.10:9512`.
+Local runs call the Docker API (MySQL + Redis). Start it from the monorepo
+root with `docker compose up`. With `EXPO_PUBLIC_API_URL` unset, iOS uses
+`http://127.0.0.1:9512` and Android uses `http://10.0.2.2:9512`. On a physical
+device set your machine's LAN IP, e.g.
+`EXPO_PUBLIC_API_URL=http://192.168.1.10:9512`.
 
 ## Scripts
 

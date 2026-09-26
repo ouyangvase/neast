@@ -14,10 +14,10 @@ import {
   useUiTheme,
 } from '@neast/ui-mobile';
 
-import { getBindRequestList } from '../src/lib/endpoints';
-import { useSelectionStore } from '../src/stores/selection';
-import { ErrorState, ListSkeleton } from '../src/components/StateViews';
-import { Screen } from '../src/components/Screen';
+import { getBindRequestList } from '@/lib/endpoints';
+import { useSelectionStore } from '@/stores/selection';
+import { ErrorState, ListSkeleton } from '@/components/StateViews';
+import { Screen } from '@/components/Screen';
 
 /** Bind request list (bind_request_list_screen parity): pending tenant bind applications. */
 export default function BindRequestListRoute() {

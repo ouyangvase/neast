@@ -5,15 +5,15 @@ import { useQuery } from '@tanstack/react-query';
 
 import { BottomSheet, coreColors, spacing, textStyles, Toast } from '@neast/ui-mobile';
 
-import { getMerchantCoupons, getMerchantDetail } from '../../src/lib/endpoints';
-import { merchantShareUrl } from '../../src/lib/deep-links';
-import { useDeviceLocation } from '../../src/lib/location';
-import { useSelectionStore } from '../../src/stores/selection';
-import { couponValidityLabel } from '../../src/features/coupon/components';
-import { distanceLabel, MerchantCard } from '../../src/features/merchant/components';
-import { ErrorState, LoadingState } from '../../src/components/StateViews';
-import { PageHeader } from '../../src/components/PageHeader';
-import { Screen } from '../../src/components/Screen';
+import { getMerchantCoupons, getMerchantDetail } from '@/lib/endpoints';
+import { merchantShareUrl } from '@/lib/deep-links';
+import { useDeviceLocation } from '@/lib/location';
+import { useSelectionStore } from '@/stores/selection';
+import { couponValidityLabel } from '@/features/coupon/components';
+import { distanceLabel, MerchantCard } from '@/features/merchant/components';
+import { ErrorState, LoadingState } from '@/components/StateViews';
+import { PageHeader } from '@/components/PageHeader';
+import { Screen } from '@/components/Screen';
 
 /** Merchant detail (merchant_detail_screen parity): info, coupons, map, share, nearest. */
 export default function MerchantDetailRoute() {

@@ -11,10 +11,10 @@ import {
   textStyles,
 } from '@neast/ui-mobile';
 
-import { useFileViewer } from '../src/hooks/use-file-viewer';
-import { useSelectionStore } from '../src/stores/selection';
-import { ErrorState } from '../src/components/StateViews';
-import { Screen } from '../src/components/Screen';
+import { useFileViewer } from '@/hooks/use-file-viewer';
+import { useSelectionStore } from '@/stores/selection';
+import { ErrorState } from '@/components/StateViews';
+import { Screen } from '@/components/Screen';
 
 /**
  * Rent detail (rent_detail_screen parity): lease view for a home due/overdue

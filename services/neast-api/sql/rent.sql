@@ -16,6 +16,7 @@ CREATE TABLE `t_rent` (
   `owner_email` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '未绑定房东时租客填写的邮箱',
   `owner_phone` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '未绑定房东时租客填写的手机号',
   `status` tinyint NOT NULL DEFAULT '0' COMMENT '状态 0待审核 1审核通过 2驳回 3待绑定',
+  `rejected_by` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '驳回来源 admin|owner',
   `landlord_bank` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '房东银行',
   `landlord_bank_account` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '房东银行账号',
   `landlord_account_name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '房东账号名称',

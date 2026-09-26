@@ -82,6 +82,25 @@ class Coupon extends AbstractController
         return $this->success();
     }
 
+    #[RequestMapping(path: 'id/{id}/review', methods: ['PUT'])]
+    public function review(int $id, RequestInterface $request): ResponseInterface
+    {
+        $params = $request->all();
+
+        $validator = di(ValidatorFactory::class)->make($params, [
+            'result' => 'required|in:approved,rejected',
+        ], [
+            'result.required' => 'Please select a review result',
+            'result.in' => 'Invalid review result',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->error($validator->errors()->first());
+        }
+
+        return $this->success($this->service->review($id, (string) $params['result']));
+    }
+
     private function couponRules(): array
     {
         return [

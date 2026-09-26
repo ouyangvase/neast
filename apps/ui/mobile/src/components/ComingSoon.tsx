@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { userHomeColors } from '../tokens/colors';
+import { userHomeColors } from '@ui/tokens/colors';
 import { BrandHeader } from './BrandHeader';
 
 export interface ComingSoonProps {

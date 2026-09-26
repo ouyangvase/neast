@@ -69,6 +69,9 @@ class LandlordBindRequestService
         $rent->status = $result === 'rejected'
             ? RentModel::STATUS_REJECTED
             : RentModel::STATUS_PENDING;
+        if ($result === 'rejected') {
+            $rent->rejected_by = RentModel::REJECTED_BY_OWNER;
+        }
         $rent->save();
     }
 

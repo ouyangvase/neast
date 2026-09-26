@@ -15,15 +15,15 @@ import {
   UploadProgressDialog,
 } from '@neast/ui-mobile';
 
-import photoUpload from '../assets/images/property/photo-upload.png';
-import docUpload from '../assets/images/property/doc-upload.png';
-import successImage from '../assets/images/property/success.png';
+import photoUpload from '@assets/images/property/photo-upload.png';
+import docUpload from '@assets/images/property/doc-upload.png';
+import successImage from '@assets/images/property/success.png';
 
-import { apiErrorMessage } from '../src/lib/api';
-import { createProperty } from '../src/lib/endpoints';
-import { pickDocumentFile, pickImageFile } from '../src/lib/pickers';
-import { useFileUpload } from '../src/hooks/use-upload';
-import { Screen } from '../src/components/Screen';
+import { apiErrorMessage } from '@/lib/api';
+import { createProperty } from '@/lib/endpoints';
+import { pickDocumentFile, pickImageFile } from '@/lib/pickers';
+import { useFileUpload } from '@/hooks/use-upload';
+import { Screen } from '@/components/Screen';
 
 interface UploadedFile {
   path: string;

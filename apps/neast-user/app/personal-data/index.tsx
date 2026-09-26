@@ -3,10 +3,10 @@ import { router } from 'expo-router';
 
 import { Card, Chevron, coreColors, spacing, textStyles } from '@neast/ui-mobile';
 
-import { useUserProfile } from '../../src/hooks/use-profile';
-import { ErrorState, LoadingState } from '../../src/components/StateViews';
-import { PageHeader } from '../../src/components/PageHeader';
-import { Screen } from '../../src/components/Screen';
+import { useUserProfile } from '@/hooks/use-profile';
+import { ErrorState, LoadingState } from '@/components/StateViews';
+import { PageHeader } from '@/components/PageHeader';
+import { Screen } from '@/components/Screen';
 
 /** Personal data (personal_data_screen parity): read-only profile field list. */
 export default function PersonalDataRoute() {

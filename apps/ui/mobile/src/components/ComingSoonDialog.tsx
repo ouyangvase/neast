@@ -1,7 +1,7 @@
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { BlurView } from 'expo-blur';
 
-import { userHomeColors } from '../tokens/colors';
+import { userHomeColors } from '@ui/tokens/colors';
 
 export interface ComingSoonDialogProps {
   visible: boolean;

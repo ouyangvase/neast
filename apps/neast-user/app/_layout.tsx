@@ -8,10 +8,10 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { sessionStore, useIsLoggedIn, useSessionStatus } from '@neast/types';
 import { ToastHost, UiThemeProvider } from '@neast/ui-mobile';
 
-import '../src/lib/auth'; // registers the session-expired logout handler
-import { isMerchantDetailPath } from '../src/lib/deep-links';
-import { queryClient } from '../src/lib/query';
-import { stashPendingRoute } from '../src/stores/pending-route';
+import '@/lib/auth'; // registers the session-expired logout handler
+import { isMerchantDetailPath } from '@/lib/deep-links';
+import { queryClient } from '@/lib/query';
+import { stashPendingRoute } from '@/stores/pending-route';
 
 void SplashScreen.preventAutoHideAsync();
 

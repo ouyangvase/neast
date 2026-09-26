@@ -4,9 +4,9 @@ import { useQuery } from '@tanstack/react-query';
 
 import { GradientHeader, RichText, spacing, useUiTheme } from '@neast/ui-mobile';
 
-import { getAgreement } from '../src/lib/endpoints';
-import { ErrorState, LoadingState } from '../src/components/StateViews';
-import { Screen } from '../src/components/Screen';
+import { getAgreement } from '@/lib/endpoints';
+import { ErrorState, LoadingState } from '@/components/StateViews';
+import { Screen } from '@/components/Screen';
 
 /** Agreement HTML page (rich_text_screen parity) — Legal. */
 export default function RichTextRoute() {

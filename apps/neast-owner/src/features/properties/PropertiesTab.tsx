@@ -12,12 +12,12 @@ import {
   textStyles,
 } from '@neast/ui-mobile';
 
-import housePlaceholder from '../../../assets/images/house-eg.png';
+import housePlaceholder from '@assets/images/house-eg.png';
 
-import { Screen } from '../../components/Screen';
-import { getPropertyList } from '../../lib/endpoints';
-import { usePaginatedList } from '../../hooks/use-paginated';
-import { ListSkeleton } from '../../components/StateViews';
+import { Screen } from '@/components/Screen';
+import { getPropertyList } from '@/lib/endpoints';
+import { usePaginatedList } from '@/hooks/use-paginated';
+import { ListSkeleton } from '@/components/StateViews';
 import { useAddPropertyGate } from './AddPropertyGate';
 
 /** Properties tab (properties_screen parity): paginated list + per-property QR dialog. */

@@ -24,17 +24,17 @@ import {
   Toast,
 } from '@neast/ui-mobile';
 
-import { Screen } from '../../components/Screen';
-import bankIcon from '../../../assets/images/coin.png';
-import aboutIcon from '../../../assets/images/account/about_us.png';
-import termsIcon from '../../../assets/images/account/terms_and_conditions.png';
-import privacyIcon from '../../../assets/images/account/privacy_policy.png';
-import deleteIcon from '../../../assets/images/account/delete_account.png';
-import logoutIcon from '../../../assets/images/account/log_out.png';
+import { Screen } from '@/components/Screen';
+import bankIcon from '@assets/images/coin.png';
+import aboutIcon from '@assets/images/account/about_us.png';
+import termsIcon from '@assets/images/account/terms_and_conditions.png';
+import privacyIcon from '@assets/images/account/privacy_policy.png';
+import deleteIcon from '@assets/images/account/delete_account.png';
+import logoutIcon from '@assets/images/account/log_out.png';
 
-import { apiErrorMessage } from '../../lib/api';
-import { performLogout } from '../../lib/auth';
-import { deleteAccount, getLandlordInfo } from '../../lib/endpoints';
+import { apiErrorMessage } from '@/lib/api';
+import { performLogout } from '@/lib/auth';
+import { deleteAccount, getLandlordInfo } from '@/lib/endpoints';
 
 interface MenuItem {
   key: string;

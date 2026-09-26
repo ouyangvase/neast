@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 
-import { coreColors } from '../tokens/colors';
-import { radii, spacing } from '../tokens/layout';
-import { textStyles } from '../tokens/typography';
+import { coreColors } from '@ui/tokens/colors';
+import { radii, spacing } from '@ui/tokens/layout';
+import { textStyles } from '@ui/tokens/typography';
 
 export type ToastType = 'info' | 'success' | 'error' | 'warning';
 

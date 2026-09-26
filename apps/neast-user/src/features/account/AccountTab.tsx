@@ -1,48 +1,49 @@
 import { useState } from 'react';
-import { Alert, ImageBackground, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { router } from 'expo-router';
+import {
+  Alert,
+  ImageBackground,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
+import { router, type Href } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { formatRinggit, useIsLoggedIn } from '@neast/types';
 import {
-  Card,
   Chevron,
   coreColors,
   CountdownConfirmDialog,
-  GuestLoginPlaceholder,
   spacing,
-  textStyles,
   Toast,
   userHomeColors,
 } from '@neast/ui-mobile';
 
-import metallicBackground from '../../../assets/images/home/neast-metallic-background.png';
+import metallicBackground from '@assets/images/home/neast-metallic-background.png';
 
-import MenuInfoIcon from '../../../assets/images/account/1.svg';
-import MenuBellIcon from '../../../assets/images/account/2.svg';
-import MenuPrivacyIcon from '../../../assets/images/account/3.svg';
-import MenuTermsIcon from '../../../assets/images/account/4.svg';
-import MenuLogoutIcon from '../../../assets/images/account/5.svg';
-import MenuDeleteIcon from '../../../assets/images/account/del.svg';
-import MenuWalletIcon from '../../../assets/images/account/wallet.svg';
+import { apiErrorMessage } from '@/lib/api';
+import { performLogout } from '@/lib/auth';
+import { deleteAccount, getTentScore, getWalletBalance } from '@/lib/endpoints';
+import { useUserProfile } from '@/hooks/use-profile';
 
-import { apiErrorMessage } from '../../lib/api';
-import { performLogout } from '../../lib/auth';
-import { deleteAccount, getHasUnread, getWalletBalance } from '../../lib/endpoints';
-import { useUserProfile } from '../../hooks/use-profile';
+type IonName = keyof typeof Ionicons.glyphMap;
 
 interface MenuItem {
   key: string;
   label: string;
-  icon: React.ComponentType<{ width?: number; height?: number; color?: string }>;
+  icon: IonName;
   onPress: () => void;
   trailing?: string;
   danger?: boolean;
-  showDot?: boolean;
 }
 
-/** Account tab (account_screen parity): profile header + menu card. */
+/** Account tab: identity header, My QR card, then a full-width settings table. */
 export function AccountTab() {
   const insets = useSafeAreaInsets();
   const isLoggedIn = useIsLoggedIn();
@@ -55,9 +56,9 @@ export function AccountTab() {
     enabled: isLoggedIn,
   });
 
-  const unread = useQuery({
-    queryKey: ['has-unread'],
-    queryFn: getHasUnread,
+  const tentScore = useQuery({
+    queryKey: ['tent-score'],
+    queryFn: getTentScore,
     enabled: isLoggedIn,
   });
 
@@ -69,163 +70,229 @@ export function AccountTab() {
     onError: (error) => Toast.error(apiErrorMessage(error)),
   });
 
-  if (!isLoggedIn) {
-    return (
-      <View style={styles.container}>
-        <TabBackdrop title="Account" paddingTop={insets.top + 8} />
-        <View style={styles.sheet}>
-          <GuestLoginPlaceholder
-            title="Log in to your account"
-            message="Manage your profile, wallet and notifications."
-            onLoginPress={() => router.push('/login')}
-          />
-        </View>
-      </View>
-    );
-  }
+  const open = (href: Href) => {
+    router.push(isLoggedIn ? href : '/login');
+  };
 
-  const name = [profile.data?.firstName, profile.data?.lastName].filter(Boolean).join(' ').trim();
-  const initial = (profile.data?.firstName ?? profile.data?.account ?? 'N').charAt(0).toUpperCase();
-
-  const menu: MenuItem[] = [
-    {
-      key: 'personal',
-      label: 'Personal Information',
-      icon: MenuInfoIcon,
-      onPress: () => router.push('/personal-data'),
-    },
-    {
-      key: 'notifications',
-      label: 'Notifications',
-      icon: MenuBellIcon,
-      onPress: () => router.push('/notification'),
-      showDot: unread.data?.has_unread ?? false,
-    },
+  const rows: MenuItem[] = [
     {
       key: 'wallet',
       label: 'Wallet',
-      icon: MenuWalletIcon,
-      onPress: () => router.push('/wallet'),
-      trailing: balance.data ? formatRinggit(balance.data.balance) : undefined,
+      icon: 'wallet-outline',
+      trailing: isLoggedIn
+        ? balance.data
+          ? formatRinggit(balance.data.balance)
+          : undefined
+        : 'Sign in',
+      onPress: () => open('/wallet'),
+    },
+    {
+      key: 'score',
+      label: 'TENT score',
+      icon: 'ribbon-outline',
+      trailing: isLoggedIn
+        ? tentScore.data
+          ? String(tentScore.data.score)
+          : undefined
+        : 'Sign in',
+      onPress: () => open('/account/tent-score'),
+    },
+    {
+      key: 'personal',
+      label: 'Personal Information',
+      icon: 'person-outline',
+      onPress: () => open('/personal-data'),
     },
     {
       key: 'privacy',
       label: 'Privacy & Security',
-      icon: MenuPrivacyIcon,
+      icon: 'shield-checkmark-outline',
       onPress: () => router.push({ pathname: '/rich-text', params: { title: 'Privacy Policy' } }),
     },
     {
       key: 'terms',
       label: 'Terms & Conditions',
-      icon: MenuTermsIcon,
+      icon: 'document-text-outline',
       onPress: () =>
         router.push({ pathname: '/rich-text', params: { title: 'Terms and Conditions' } }),
     },
-    {
-      key: 'delete',
-      label: 'Delete Account',
-      icon: MenuDeleteIcon,
-      onPress: () => setDeleteVisible(true),
-      danger: true,
-    },
-    {
-      key: 'logout',
-      label: 'Log Out',
-      icon: MenuLogoutIcon,
-      onPress: () => {
-        Alert.alert('Log out', 'Are you sure you want to log out?', [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Log Out',
-            style: 'destructive',
-            onPress: () => {
-              void performLogout();
-            },
-          },
-        ]);
-      },
-    },
   ];
+
+  if (isLoggedIn) {
+    rows.push(
+      {
+        key: 'logout',
+        label: 'Log Out',
+        icon: 'log-out-outline',
+        onPress: () => {
+          Alert.alert('Log out', 'Are you sure you want to log out?', [
+            { text: 'Cancel', style: 'cancel' },
+            {
+              text: 'Log Out',
+              style: 'destructive',
+              onPress: () => {
+                void performLogout();
+              },
+            },
+          ]);
+        },
+      },
+      {
+        key: 'delete',
+        label: 'Delete Account',
+        icon: 'trash-outline',
+        danger: true,
+        onPress: () => setDeleteVisible(true),
+      },
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <TabBackdrop title="Account" paddingTop={insets.top + 8} />
-        <View style={styles.sheet}>
-        <Card style={styles.headerCard}>
-          <View style={styles.headerRow}>
+      <ScrollView
+        refreshControl={
+          isLoggedIn ? (
+            <RefreshControl
+              refreshing={profile.isRefetching || balance.isRefetching || tentScore.isRefetching}
+              onRefresh={() => {
+                void profile.refetch();
+                void balance.refetch();
+                void tentScore.refetch();
+              }}
+              colors={[userHomeColors.emptyGrey]}
+              tintColor={userHomeColors.emptyGrey}
+            />
+          ) : undefined
+        }
+        contentContainerStyle={styles.scrollContent}
+      >
+        <ImageBackground
+          source={metallicBackground}
+          resizeMode="cover"
+          style={[styles.backdrop, { paddingTop: insets.top + 8 }]}
+        >
+          <Text style={styles.title}>Account</Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={isLoggedIn ? 'Edit profile' : 'Sign in'}
+            onPress={() => open('/personal-data')}
+            style={({ pressed }) => [styles.identity, pressed && styles.pressed]}
+          >
             <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{initial}</Text>
+              {profile.data ? (
+                <Text style={styles.avatarText}>
+                  {profile.data.firstName.charAt(0).toUpperCase()}
+                </Text>
+              ) : null}
+              {isLoggedIn ? null : (
+                <Ionicons name="person" size={26} color={userHomeColors.navy} />
+              )}
             </View>
-            <View style={styles.headerTexts}>
+            <View style={styles.identityCopy}>
               <Text style={styles.name} numberOfLines={1}>
-                {name || 'NEAST User'}
+                {profile.data ? `${profile.data.firstName} ${profile.data.lastName}` : null}
+                {isLoggedIn ? null : 'Welcome to NEAST'}
               </Text>
-              <Text style={styles.account} numberOfLines={1}>
-                {profile.data?.account ?? ''}
+              <Text style={styles.contact} numberOfLines={1}>
+                {profile.data ? `+${profile.data.account}` : null}
+                {isLoggedIn ? null : 'Sign in to manage your home.'}
               </Text>
             </View>
-            <View style={styles.pointsBadge}>
-              <Text style={styles.pointsBadgeText}>{profile.data?.points ?? 0} pts</Text>
-            </View>
-          </View>
-        </Card>
-
-        <Card padded={false} style={styles.menuCard}>
-          {menu.map((item, index) => (
+            <Chevron direction="right" color={userHomeColors.textOnNavy} size={8} />
+          </Pressable>
+          {isLoggedIn ? null : (
             <Pressable
-              key={item.key}
-              style={[styles.menuRow, index > 0 && styles.menuRowBorder]}
-              onPress={item.onPress}
               accessibilityRole="button"
+              accessibilityLabel="Sign in"
+              onPress={() => router.push('/login')}
+              style={({ pressed }) => [styles.signIn, pressed && styles.pressed]}
             >
-              <item.icon width={22} height={22} />
-              <Text style={[styles.menuLabel, item.danger && styles.menuLabelDanger]}>
-                {item.label}
-              </Text>
-              {item.showDot ? <View style={styles.menuDot} /> : null}
-              {item.trailing ? <Text style={styles.menuTrailing}>{item.trailing}</Text> : null}
-              <Chevron direction="right" color={coreColors.textHint} />
+              <Text style={styles.signInText}>Sign in</Text>
             </Pressable>
-          ))}
-        </Card>
+          )}
+        </ImageBackground>
 
-        <Text style={styles.version}>NEAST 1.0.13</Text>
+        <View style={styles.sheet}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="My QR"
+            onPress={() => open('/account/my-qr')}
+            style={({ pressed }) => [styles.qrCard, pressed && styles.pressed]}
+          >
+            <View style={styles.qrIcon}>
+              <Ionicons name="qr-code-outline" size={22} color={userHomeColors.navy} />
+            </View>
+            <View style={styles.qrCopy}>
+              <Text style={styles.qrTitle}>My QR</Text>
+              <Text style={styles.qrBody}>Show this for a merchant to scan</Text>
+            </View>
+            <Chevron direction="right" color={userHomeColors.textOnNavy} size={8} />
+          </Pressable>
+
+          <View style={styles.table}>
+            {rows.map((item, index) => (
+              <Pressable
+                key={item.key}
+                accessibilityRole="button"
+                accessibilityLabel={item.label}
+                onPress={item.onPress}
+                style={({ pressed }) => [
+                  styles.row,
+                  index > 0 && styles.rowBorder,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <Ionicons
+                  name={item.icon}
+                  size={20}
+                  color={item.danger ? coreColors.error : userHomeColors.royalBlue}
+                />
+                <Text style={[styles.rowLabel, item.danger && styles.rowLabelDanger]}>
+                  {item.label}
+                </Text>
+                {item.trailing ? (
+                  <Text
+                    style={[styles.rowValue, !isLoggedIn && styles.rowPrompt]}
+                    numberOfLines={1}
+                  >
+                    {item.trailing}
+                  </Text>
+                ) : null}
+                <Chevron
+                  direction="right"
+                  color={item.danger ? coreColors.error : userHomeColors.textSecondary}
+                  size={8}
+                />
+              </Pressable>
+            ))}
+          </View>
+
+          <Text style={styles.version}>NEAST {Constants.expoConfig?.version}</Text>
         </View>
       </ScrollView>
 
-      <CountdownConfirmDialog
-        visible={deleteVisible}
-        title="Delete account?"
-        message="This permanently deletes your account and all associated data. This action cannot be undone."
-        countdownSeconds={10}
-        confirmText="Delete"
-        onCancel={() => setDeleteVisible(false)}
-        onConfirm={() => {
-          setDeleteVisible(false);
-          deleteMutation.mutate();
-        }}
-      />
+      {isLoggedIn ? (
+        <CountdownConfirmDialog
+          visible={deleteVisible}
+          title="Delete account?"
+          message="This permanently deletes your account and all associated data. This action cannot be undone."
+          countdownSeconds={10}
+          confirmText="Delete"
+          onCancel={() => setDeleteVisible(false)}
+          onConfirm={() => {
+            setDeleteVisible(false);
+            deleteMutation.mutate();
+          }}
+        />
+      ) : null}
     </View>
-  );
-}
-
-function TabBackdrop({ title, paddingTop }: { title: string; paddingTop: number }) {
-  return (
-    <ImageBackground
-      source={metallicBackground}
-      resizeMode="cover"
-      style={[styles.backdrop, { paddingTop }]}
-    >
-      <Text style={styles.title}>{title}</Text>
-    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: userHomeColors.surface,
+    backgroundColor: userHomeColors.background,
   },
   scrollContent: {
     flexGrow: 1,
@@ -234,7 +301,8 @@ const styles = StyleSheet.create({
     backgroundColor: userHomeColors.navy,
     overflow: 'hidden',
     paddingHorizontal: 20,
-    paddingBottom: 44,
+    paddingBottom: 36,
+    gap: 16,
   },
   title: {
     color: userHomeColors.surface,
@@ -243,93 +311,147 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: -0.4,
   },
-  sheet: {
-    flex: 1,
-    marginTop: -36,
-    paddingTop: 14,
-    paddingBottom: spacing.xl,
-    overflow: 'hidden',
-    backgroundColor: userHomeColors.surface,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-  },
-  headerCard: {
-    marginHorizontal: spacing.lg,
-    marginBottom: spacing.md,
-  },
-  headerRow: {
+  identity: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
+    gap: 14,
   },
   avatar: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: coreColors.brandBlue,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: userHomeColors.cream,
+    borderWidth: 2,
+    borderColor: userHomeColors.gold,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarText: {
-    ...textStyles.heading2,
-    color: coreColors.white,
-  },
-  headerTexts: {
-    flex: 1,
-  },
-  name: {
-    ...textStyles.heading3,
-  },
-  account: {
-    ...textStyles.caption,
-    marginTop: 2,
-  },
-  pointsBadge: {
-    backgroundColor: coreColors.tintBlue,
-    borderRadius: 999,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-  },
-  pointsBadgeText: {
-    ...textStyles.caption,
-    color: coreColors.brandBlue,
+    color: userHomeColors.navy,
+    fontSize: 26,
+    lineHeight: 32,
     fontWeight: '700',
   },
-  menuCard: {
-    marginHorizontal: spacing.lg,
+  identityCopy: {
+    flex: 1,
+    gap: 2,
   },
-  menuRow: {
+  name: {
+    color: userHomeColors.surface,
+    fontSize: 20,
+    lineHeight: 26,
+    fontWeight: '700',
+  },
+  contact: {
+    color: userHomeColors.textOnNavyAlt,
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  signIn: {
+    minHeight: 46,
+    borderRadius: 11,
+    backgroundColor: userHomeColors.royalBlue,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  signInText: {
+    color: userHomeColors.surface,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  sheet: {
+    flex: 1,
+    marginTop: -20,
+    paddingTop: 18,
+    paddingBottom: spacing.xl,
+    gap: 16,
+    backgroundColor: userHomeColors.background,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+  },
+  qrCard: {
+    marginHorizontal: spacing.lg,
+    minHeight: 76,
+    borderRadius: 16,
+    backgroundColor: userHomeColors.navy,
+    paddingVertical: 14,
+    paddingLeft: 14,
+    paddingRight: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+    gap: 12,
   },
-  menuRowBorder: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: coreColors.divider,
+  qrIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: userHomeColors.cream,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  menuLabel: {
-    ...textStyles.body,
+  qrCopy: {
     flex: 1,
+    gap: 2,
   },
-  menuLabelDanger: {
+  qrTitle: {
+    color: userHomeColors.surface,
+    fontSize: 15,
+    lineHeight: 20,
+    fontWeight: '700',
+  },
+  qrBody: {
+    color: userHomeColors.gold,
+    fontSize: 12,
+    lineHeight: 17,
+    fontWeight: '600',
+  },
+  table: {
+    backgroundColor: userHomeColors.surface,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: userHomeColors.border,
+  },
+  row: {
+    minHeight: 52,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 20,
+    backgroundColor: userHomeColors.surface,
+  },
+  rowBorder: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: userHomeColors.border,
+  },
+  rowLabel: {
+    flex: 1,
+    color: userHomeColors.textPrimary,
+    fontSize: 15,
+    lineHeight: 20,
+  },
+  rowLabelDanger: {
     color: coreColors.error,
   },
-  menuDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: coreColors.error,
+  rowValue: {
+    maxWidth: '42%',
+    color: userHomeColors.textPrimary,
+    fontSize: 15,
+    lineHeight: 20,
+    fontWeight: '600',
+    textAlign: 'right',
   },
-  menuTrailing: {
-    ...textStyles.bodySmall,
-    color: coreColors.brandBlue,
+  rowPrompt: {
+    color: userHomeColors.royalBlue,
     fontWeight: '600',
   },
   version: {
-    ...textStyles.caption,
+    color: userHomeColors.textSecondary,
+    fontSize: 12,
+    lineHeight: 16,
     textAlign: 'center',
-    marginTop: spacing.xl,
+    marginTop: spacing.sm,
+  },
+  pressed: {
+    opacity: 0.7,
   },
 });

@@ -29,6 +29,9 @@ class RentPaymentService
     #[Inject]
     protected RentHistoryService $historyService;
 
+    #[Inject]
+    protected RentService $rentService;
+
     public function __construct(
         private ConfigInterface $config,
         private FiuuChannelService $fiuuChannelService,
@@ -205,7 +208,18 @@ class RentPaymentService
             ->first();
 
         if (! $history) {
-            throw new AppException('No payment due');
+            $dueDate = $this->rentService->nextUnpaidScheduleDate($rent);
+            if ($dueDate === null) {
+                throw new AppException('No payment due');
+            }
+
+            $history = new RentHistoryModel();
+            $history->rent_id = (int) $rent->id;
+            $history->user_id = $userId;
+            $history->amount = (string) $rent->amount;
+            $history->last_paid_date = $dueDate;
+            $history->status = RentHistoryModel::STATUS_PENDING;
+            $history->save();
         }
 
         $amount = $this->resolveBaseAmount($history, $rent);

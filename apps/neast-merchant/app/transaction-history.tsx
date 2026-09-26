@@ -11,10 +11,10 @@ import {
 } from '@neast/types';
 import { BrandHeader, coreColors, RefreshList, spacing, textStyles } from '@neast/ui-mobile';
 
-import { getPointsTransactions, getRedeemedTransactions } from '../src/lib/endpoints';
-import { yearChips } from '../src/lib/format';
-import { usePaginatedList } from '../src/hooks/use-paginated';
-import { Screen } from '../src/components/Screen';
+import { getPointsTransactions, getRedeemedTransactions } from '@/lib/endpoints';
+import { yearChips } from '@/lib/format';
+import { usePaginatedList } from '@/hooks/use-paginated';
+import { Screen } from '@/components/Screen';
 
 type HistoryTab = 'points' | 'redeemed';
 

@@ -44,7 +44,7 @@ class AppAuthService
             $code = '280198';
         } else if ($account == '60123123') {
             $code = '100000';
-        } else if ($account == '60123456789') {
+        } else if ($account == '60123456789' || $account == '60111111111') {
             $code = '123456';
         }
 

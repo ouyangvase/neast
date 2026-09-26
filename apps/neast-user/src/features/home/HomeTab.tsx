@@ -4,11 +4,11 @@ import { useQuery } from '@tanstack/react-query';
 import { useIsLoggedIn, type MerchantListItem } from '@neast/types';
 import { userHomeColors } from '@neast/ui-mobile';
 
-import metallicBackground from '../../../assets/images/home/neast-metallic-background.png';
+import metallicBackground from '@assets/images/home/neast-metallic-background.png';
 
-import { useDeviceLocation } from '../../lib/location';
-import { getHasUnread, getHomeDashboard, getNearbyMerchantList } from '../../lib/endpoints';
-import { useUserProfile } from '../../hooks/use-profile';
+import { useDeviceLocation } from '@/lib/location';
+import { getHasUnread, getHomeDashboard, getNearbyMerchantList } from '@/lib/endpoints';
+import { useUserProfile } from '@/hooks/use-profile';
 import {
   AmountCard,
   CampaignCarousel,
@@ -57,10 +57,12 @@ export function HomeTab() {
     ? (data?.nearbyDeals ?? [])
     : (guestDeals.data?.items ?? []);
 
-  const refreshing = dashboard.isRefetching || guestDeals.isRefetching;
+  const refreshing = dashboard.isRefetching || guestDeals.isRefetching || unread.isRefetching;
   const onRefresh = () => {
     void dashboard.refetch();
-    if (!isLoggedIn) {
+    if (isLoggedIn) {
+      void unread.refetch();
+    } else {
       void guestDeals.refetch();
     }
   };
@@ -86,7 +88,7 @@ export function HomeTab() {
           <HomeHeader
             firstName={profile.data?.firstName}
             isLoggedIn={isLoggedIn}
-            hasUnread={!!unread.data?.has_unread}
+            unreadCount={unread.data?.unread_count ?? 0}
           />
           <View style={styles.homeTop}>
             <AmountCard nextRent={isLoggedIn ? (data?.nextRent ?? null) : null} />

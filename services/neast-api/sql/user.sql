@@ -16,6 +16,7 @@ CREATE TABLE `t_user` (
   `pid` int unsigned NOT NULL DEFAULT '0' COMMENT '上级用户ID',
   `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态 0停用 1启用',
   `tent_score` int NOT NULL DEFAULT '500' COMMENT 'Tent Score信用分',
+  `balance` decimal(12, 2) NOT NULL DEFAULT '0.00' COMMENT '钱包余额',
   `last_active_at` datetime DEFAULT NULL COMMENT '最后活跃时间',
   `last_latitude` decimal(10, 7) DEFAULT NULL COMMENT '最后上报纬度',
   `last_longitude` decimal(10, 7) DEFAULT NULL COMMENT '最后上报经度',

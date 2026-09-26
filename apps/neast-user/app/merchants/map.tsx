@@ -8,11 +8,11 @@ import { FIVE_X_POINTS_CATEGORY } from '@neast/constant';
 import { type NearbyMerchantItem } from '@neast/types';
 import { Card, coreColors, radii, spacing, textStyles } from '@neast/ui-mobile';
 
-import { getMerchantCategories, getNearbyMerchants } from '../../src/lib/endpoints';
-import { useDeviceLocation } from '../../src/lib/location';
-import { ErrorState, LoadingState } from '../../src/components/StateViews';
-import { PageHeader } from '../../src/components/PageHeader';
-import { Screen } from '../../src/components/Screen';
+import { getMerchantCategories, getNearbyMerchants } from '@/lib/endpoints';
+import { useDeviceLocation } from '@/lib/location';
+import { ErrorState, LoadingState } from '@/components/StateViews';
+import { PageHeader } from '@/components/PageHeader';
+import { Screen } from '@/components/Screen';
 
 const OSM_TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 

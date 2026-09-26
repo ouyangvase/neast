@@ -16,17 +16,17 @@ import {
   useUiTheme,
 } from '@neast/ui-mobile';
 
-import logo from '../assets/images/home/hone_logo.png';
+import logo from '@assets/images/home/hone_logo.png';
 
-import { apiErrorMessage } from '../src/lib/api';
-import { getCountryCodes, sendCode } from '../src/lib/endpoints';
-import { Screen } from '../src/components/Screen';
+import { apiErrorMessage } from '@/lib/api';
+import { getCountryCodes, sendCode } from '@/lib/endpoints';
+import { Screen } from '@/components/Screen';
 
 /** Login (login_screen parity): phone OTP, country-code picker, default +60. */
 export default function LoginRoute() {
   const theme = useUiTheme();
   const [dialCode, setDialCode] = useState('+60');
-  const [phone, setPhone] = useState(__DEV__ ? '123456789' : '');
+  const [phone, setPhone] = useState(__DEV__ ? '111111111' : '');
   const [pickerVisible, setPickerVisible] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
 

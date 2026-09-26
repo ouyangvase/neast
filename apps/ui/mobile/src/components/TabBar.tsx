@@ -10,9 +10,9 @@ import {
 } from 'react-native';
 import { isValidElement, type ReactNode } from 'react';
 
-import { coreColors } from '../tokens/colors';
-import { spacing } from '../tokens/layout';
-import { textStyles } from '../tokens/typography';
+import { coreColors } from '@ui/tokens/colors';
+import { spacing } from '@ui/tokens/layout';
+import { textStyles } from '@ui/tokens/typography';
 import { BetaTag } from './BetaTag';
 
 export interface TabBarItem {

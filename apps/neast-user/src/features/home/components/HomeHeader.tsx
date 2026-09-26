@@ -1,22 +1,24 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BellIcon, ScanIcon, Toast, userHomeColors } from '@neast/ui-mobile';
 
-import { apiErrorMessage } from '../../../lib/api';
-import { openScanner } from '../../../lib/callbacks';
-import { getRentPropertyBySn } from '../../../lib/endpoints';
+import logo from '@assets/images/home/hone_logo.png';
+
+import { apiErrorMessage } from '@/lib/api';
+import { openScanner } from '@/lib/callbacks';
+import { getRentPropertyBySn } from '@/lib/endpoints';
 
 interface HomeHeaderProps {
   /** Greeting name; guests fall back to "there". */
   firstName?: string;
   isLoggedIn: boolean;
-  hasUnread: boolean;
+  unreadCount: number;
 }
 
-/** Home header: wordmark, one-line greeting, bell and scan. */
-export function HomeHeader({ firstName, isLoggedIn, hasUnread }: HomeHeaderProps) {
+/** Home header: brand mark, one-line greeting, bell and scan. */
+export function HomeHeader({ firstName, isLoggedIn, unreadCount }: HomeHeaderProps) {
   const insets = useSafeAreaInsets();
   const name = firstName ?? 'there';
 
@@ -44,7 +46,12 @@ export function HomeHeader({ firstName, isLoggedIn, hasUnread }: HomeHeaderProps
 
   return (
     <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-      <Text style={styles.wordmark}>NEAST</Text>
+      <Image
+        source={logo}
+        style={styles.logo}
+        resizeMode="contain"
+        accessibilityLabel="NEAST"
+      />
       <View style={styles.brandRow}>
         <Text style={styles.greeting} numberOfLines={1}>
           Hello, {name}
@@ -57,8 +64,12 @@ export function HomeHeader({ firstName, isLoggedIn, hasUnread }: HomeHeaderProps
             style={styles.iconButton}
           >
             <View>
-              <BellIcon />
-              {isLoggedIn && hasUnread ? <View style={styles.badge} /> : null}
+              <BellIcon size={32} />
+              {isLoggedIn && unreadCount > 0 ? (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
+                </View>
+              ) : null}
             </View>
           </Pressable>
           <Pressable
@@ -67,7 +78,7 @@ export function HomeHeader({ firstName, isLoggedIn, hasUnread }: HomeHeaderProps
             onPress={onScan}
             style={styles.iconButton}
           >
-            <ScanIcon />
+            <ScanIcon size={32} />
           </Pressable>
         </View>
       </View>
@@ -82,11 +93,9 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
     gap: 8,
   },
-  wordmark: {
-    color: userHomeColors.surface,
-    fontSize: 18,
-    fontWeight: '800',
-    letterSpacing: 1,
+  logo: {
+    width: 36,
+    height: 28,
   },
   brandRow: {
     flexDirection: 'row',
@@ -106,18 +115,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   iconButton: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
   },
   badge: {
     position: 'absolute',
-    top: 0,
-    right: 0,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    top: -2,
+    right: -6,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    paddingHorizontal: 4,
     backgroundColor: userHomeColors.badgeRed,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badgeText: {
+    color: userHomeColors.surface,
+    fontSize: 10,
+    fontWeight: '700',
   },
 });

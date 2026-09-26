@@ -5,21 +5,21 @@ import { useFocusEffect } from 'expo-router';
 import { useIsLoggedIn } from '@neast/types';
 import { coreColors, TabBar, Toast, type TabBarItem } from '@neast/ui-mobile';
 
-import scanIcon from '../assets/images/main/scan.png';
-import scanActiveIcon from '../assets/images/main/scan-act.png';
-import givePointsIcon from '../assets/images/main/give-points.png';
-import givePointsActiveIcon from '../assets/images/main/give-points-act.png';
-import settlementIcon from '../assets/images/main/settlement.png';
-import settlementActiveIcon from '../assets/images/main/settlement-act.png';
-import accountIcon from '../assets/images/main/account.png';
-import accountActiveIcon from '../assets/images/main/account-act.png';
+import scanIcon from '@assets/images/main/scan.png';
+import scanActiveIcon from '@assets/images/main/scan-act.png';
+import givePointsIcon from '@assets/images/main/give-points.png';
+import givePointsActiveIcon from '@assets/images/main/give-points-act.png';
+import settlementIcon from '@assets/images/main/settlement.png';
+import settlementActiveIcon from '@assets/images/main/settlement-act.png';
+import accountIcon from '@assets/images/main/account.png';
+import accountActiveIcon from '@assets/images/main/account-act.png';
 
-import { initPushNotifications } from '../src/lib/push';
-import { useTabsStore, type MainTab } from '../src/stores/tabs';
-import { AccountTab } from '../src/features/account/AccountTab';
-import { GivePointsTab } from '../src/features/give-points/GivePointsTab';
-import { ScanTab } from '../src/features/scan/ScanTab';
-import { SettlementTab } from '../src/features/settlement/SettlementTab';
+import { initPushNotifications } from '@/lib/push';
+import { useTabsStore, type MainTab } from '@/stores/tabs';
+import { AccountTab } from '@/features/account/AccountTab';
+import { GivePointsTab } from '@/features/give-points/GivePointsTab';
+import { ScanTab } from '@/features/scan/ScanTab';
+import { SettlementTab } from '@/features/settlement/SettlementTab';
 
 const tabIconStyle = { width: 24, height: 24 } as const;
 

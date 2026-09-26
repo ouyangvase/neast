@@ -6,9 +6,9 @@ import type {
   WebViewNavigation,
 } from 'react-native-webview/lib/WebViewTypes';
 
-import { coreColors } from '../tokens/colors';
-import { spacing } from '../tokens/layout';
-import { textStyles } from '../tokens/typography';
+import { coreColors } from '@ui/tokens/colors';
+import { spacing } from '@ui/tokens/layout';
+import { textStyles } from '@ui/tokens/typography';
 import { Chevron } from './Chevron';
 
 /** Payment outcome derived from the Fiuu return URL (purely URL-substring based). */

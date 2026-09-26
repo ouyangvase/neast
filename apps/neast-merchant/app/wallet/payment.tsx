@@ -17,16 +17,16 @@ import {
   type FpxBank,
 } from '@neast/ui-mobile';
 
-import { apiErrorMessage } from '../../src/lib/api';
-import { openH5WebView } from '../../src/lib/callbacks';
-import { createWalletTopup } from '../../src/lib/endpoints';
+import { apiErrorMessage } from '@/lib/api';
+import { openH5WebView } from '@/lib/callbacks';
+import { createWalletTopup } from '@/lib/endpoints';
 import {
   buildPaymentMethodOptions,
   fiuuChannelFor,
   totalWithFee,
-} from '../../src/lib/payment-methods';
-import { useMerchantConfig } from '../../src/hooks/use-merchant';
-import { Screen } from '../../src/components/Screen';
+} from '@/lib/payment-methods';
+import { useMerchantConfig } from '@/hooks/use-merchant';
+import { Screen } from '@/components/Screen';
 
 /**
  * Wallet payment (wallet_payment_screen parity): payment method (no wallet

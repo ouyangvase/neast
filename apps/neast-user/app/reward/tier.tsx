@@ -9,12 +9,12 @@ import {
   textStyles,
 } from '@neast/ui-mobile';
 
-import { getRewardDashboard } from '../../src/lib/endpoints';
-import { useDeviceLocation } from '../../src/lib/location';
-import { tierIcon } from '../../src/features/reward/tier-icons';
-import { ErrorState, LoadingState } from '../../src/components/StateViews';
-import { PageHeader } from '../../src/components/PageHeader';
-import { Screen } from '../../src/components/Screen';
+import { getRewardDashboard } from '@/lib/endpoints';
+import { useDeviceLocation } from '@/lib/location';
+import { tierIcon } from '@/features/reward/tier-icons';
+import { ErrorState, LoadingState } from '@/components/StateViews';
+import { PageHeader } from '@/components/PageHeader';
+import { Screen } from '@/components/Screen';
 
 /** Reward tiers (reward_tier_screen parity): current progress + full tier list. */
 export default function RewardTierRoute() {

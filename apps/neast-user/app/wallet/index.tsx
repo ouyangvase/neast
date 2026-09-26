@@ -19,11 +19,11 @@ import {
   textStyles,
 } from '@neast/ui-mobile';
 
-import { getWalletBalance, getWalletTopups } from '../../src/lib/endpoints';
-import { topupStatusMeta } from '../../src/lib/format';
-import { usePaginatedList } from '../../src/hooks/use-paginated';
-import { PageHeader } from '../../src/components/PageHeader';
-import { Screen } from '../../src/components/Screen';
+import { getWalletBalance, getWalletTopups } from '@/lib/endpoints';
+import { topupStatusMeta } from '@/lib/format';
+import { usePaginatedList } from '@/hooks/use-paginated';
+import { PageHeader } from '@/components/PageHeader';
+import { Screen } from '@/components/Screen';
 
 /** Wallet (wallet_screen parity): balance, preset/custom top-up, monthly records. */
 export default function WalletRoute() {

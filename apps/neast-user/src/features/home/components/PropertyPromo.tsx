@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 
 import { Chevron, userHomeColors } from '@neast/ui-mobile';
 
-import propertyHero from '../../../../assets/images/home/property-hero-generated.png';
+import propertyHero from '@assets/images/home/property-hero-generated.png';
 
 /** Property promo (web parity) → /properties placeholder. */
 export function PropertyPromo() {

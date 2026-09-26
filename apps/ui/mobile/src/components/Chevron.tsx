@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
-import { coreColors } from '../tokens/colors';
+import { coreColors } from '@ui/tokens/colors';
 
 export interface ChevronProps {
   direction?: 'left' | 'right' | 'down' | 'up';

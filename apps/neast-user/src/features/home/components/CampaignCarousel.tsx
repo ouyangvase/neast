@@ -15,9 +15,9 @@ import {
 import type { HomeBanner } from '@neast/types';
 import { userHomeColors } from '@neast/ui-mobile';
 
-import yoyoLuckinCampaign from '../../../../assets/images/home/yoyo-luckin-campaign.png';
-import campaignSampleCity from '../../../../assets/images/home/campaign-sample-city.png';
-import campaignSampleHome from '../../../../assets/images/home/campaign-sample-home.png';
+import yoyoLuckinCampaign from '@assets/images/home/yoyo-luckin-campaign.png';
+import campaignSampleCity from '@assets/images/home/campaign-sample-city.png';
+import campaignSampleHome from '@assets/images/home/campaign-sample-home.png';
 
 interface Slide {
   id: string;

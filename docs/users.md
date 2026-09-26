@@ -165,7 +165,7 @@ Only one file: `app_refresher.dart` — `AppRefresher`, the standard pull-refres
 
 ### notification
 - **Page**: `notification_screen.dart` — paginated list; on open: clears app badge, `markAllRead`, refreshes unread + list.
-- **Service** (`notification_service.dart`): `GET /app/message/list` (page, limit=15), `POST /app/message/read-all`, `GET /app/message/has-unread`.
+- **Service** (`notification_service.dart`): `GET /app/message/list` (page, limit=15), `POST /app/message/read-all`, `GET /app/message/has-unread` (`has_unread`, `unread_count`).
 - **Models**: `NotificationModel{id,title,content,isRead,createdAt}`, `NotificationListResponse`, `NotificationUnreadStatus{hasUnread}`.
 - **Providers**: `notificationListProvider` (paginated), `notificationUnreadProvider` (AsyncNotifier<bool>).
 - **Widgets**: `notification_item_card`. `data/` empty.

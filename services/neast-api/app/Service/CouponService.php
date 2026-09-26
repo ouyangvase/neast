@@ -58,6 +58,11 @@ class CouponService
             $query->where('category_id', (int) $categoryId);
         }
 
+        $reviewStatus = $request->input('review_status', null);
+        if ($reviewStatus !== null && $reviewStatus !== '') {
+            $query->where('review_status', $reviewStatus);
+        }
+
         $total = (clone $query)->count();
 
         $coupons = $query->orderBy('id', 'desc')
@@ -143,6 +148,7 @@ class CouponService
 
         $query = CouponModel::query()
             ->where('status', 1)
+            ->where('review_status', 'approved')
             ->orderBy('id', 'desc');
 
         if ($categoryId !== null && $categoryId > 0) {
@@ -223,6 +229,7 @@ class CouponService
 
         $coupons = CouponModel::query()
             ->where('status', 1)
+            ->where('review_status', 'approved')
             ->whereIn('id', $couponIds)
             ->orderBy('id', 'desc')
             ->with(['category:id,name', 'merchants.merchant:id,name'])
@@ -406,6 +413,7 @@ class CouponService
     {
         $coupon = CouponModel::query()
             ->where('status', 1)
+            ->where('review_status', 'approved')
             ->orderBy('id', 'desc')
             ->first(['id', 'name', 'required_points', 'image']);
 
@@ -431,7 +439,7 @@ class CouponService
                 ->lockForUpdate()
                 ->with(['merchants.merchant:id,name'])
                 ->find($couponId);
-            if (! $coupon || (int) $coupon->status !== 1) {
+            if (! $coupon || (int) $coupon->status !== 1 || $coupon->review_status !== 'approved') {
                 throw new AppException('Coupon not found');
             }
 
@@ -511,6 +519,8 @@ class CouponService
         return Db::transaction(function () use ($params, $merchantIds) {
             $coupon = new CouponModel();
             $this->fillCoupon($coupon, $params);
+            $coupon->origin = 'admin';
+            $coupon->review_status = 'approved';
             $coupon->save();
             $this->syncMerchantRelations($coupon->id, $merchantIds);
             $coupon->load(['category:id,name']);
@@ -519,6 +529,31 @@ class CouponService
                 $coupon,
                 $merchantIds,
                 $this->getMerchantNameMap($merchantIds)
+            );
+        });
+    }
+
+    /**
+     * 商家提交自己的优惠券，待管理员审核后才对用户可见
+     */
+    public function merchantSubmit(int $merchantId, array $params): array
+    {
+        $this->assertCategoryExists((int) ($params['category_id'] ?? 0));
+
+        return Db::transaction(function () use ($params, $merchantId) {
+            $coupon = new CouponModel();
+            $this->fillCoupon($coupon, $params);
+            $coupon->origin = 'merchant';
+            $coupon->review_status = 'pending';
+            $coupon->status = 0;
+            $coupon->save();
+            $this->syncMerchantRelations($coupon->id, [$merchantId]);
+            $coupon->load(['category:id,name']);
+
+            return $this->formatCoupon(
+                $coupon,
+                [$merchantId],
+                $this->getMerchantNameMap([$merchantId])
             );
         });
     }
@@ -568,6 +603,28 @@ class CouponService
         $coupon = $this->findOrFail($id);
         $coupon->status = $status === 1 ? 1 : 0;
         $coupon->save();
+    }
+
+    /**
+     * 审核商家提交的优惠券。管理员创建的券不走此接口。
+     */
+    public function review(int $id, string $result): array
+    {
+        $coupon = $this->findOrFail($id);
+        if ($coupon->origin !== 'merchant') {
+            throw new AppException('Only merchant-submitted vouchers can be reviewed');
+        }
+
+        if ($result === 'approved') {
+            $coupon->review_status = 'approved';
+            $coupon->status = 1;
+        } else {
+            $coupon->review_status = 'rejected';
+            $coupon->status = 0;
+        }
+        $coupon->save();
+
+        return $this->detail($id);
     }
 
     /**

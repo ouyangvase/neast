@@ -5,11 +5,11 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { Button, MailIcon, TextField, Toast, userHomeColors, WhatsAppIcon } from '@neast/ui-mobile';
 
-import { apiErrorMessage } from '../../src/lib/api';
-import { saveOwnerContact } from '../../src/lib/endpoints';
-import { useSelectionStore } from '../../src/stores/selection';
-import { PageHeader } from '../../src/components/PageHeader';
-import { Screen } from '../../src/components/Screen';
+import { apiErrorMessage } from '@/lib/api';
+import { saveOwnerContact } from '@/lib/endpoints';
+import { useSelectionStore } from '@/stores/selection';
+import { PageHeader } from '@/components/PageHeader';
+import { Screen } from '@/components/Screen';
 
 /** Invite an owner who is not a NEAST landlord. Opened from an unlinked tenancy card. */
 export default function InviteOwnerRoute() {

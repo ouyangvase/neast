@@ -5,13 +5,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 
 import { useIsLoggedIn } from '@neast/types';
-import { ComingSoonDialog, GuestLoginPlaceholder, userHomeColors } from '@neast/ui-mobile';
+import { ComingSoonDialog, userHomeColors } from '@neast/ui-mobile';
 
-import metallicBackground from '../../../assets/images/home/neast-metallic-background.png';
-import unloginImage from '../../../assets/images/pay_rent/unlogin.png';
+import metallicBackground from '@assets/images/home/neast-metallic-background.png';
 
-import { getRentList } from '../../lib/endpoints';
-import { ListSkeleton } from '../../components/StateViews';
+import { getRentList } from '@/lib/endpoints';
+import { ListSkeleton } from '@/components/StateViews';
 import { AddTenancyCard, ComingSoonTenancyCard, TenancyCard } from './components';
 
 /** Pay Rent tab: tenancy stack and add tenancy. */
@@ -20,6 +19,7 @@ export function PayRentTab() {
   const isLoggedIn = useIsLoggedIn();
 
   const [limitVisible, setLimitVisible] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const rents = useQuery({
     queryKey: ['rent-list'],
     queryFn: getRentList,
@@ -33,8 +33,11 @@ export function PayRentTab() {
         refreshControl={
           isLoggedIn ? (
             <RefreshControl
-              refreshing={rents.isRefetching}
-              onRefresh={() => void rents.refetch()}
+              refreshing={refreshing}
+              onRefresh={() => {
+                setRefreshing(true);
+                void rents.refetch().finally(() => setRefreshing(false));
+              }}
               colors={[userHomeColors.emptyGrey]}
               tintColor={userHomeColors.emptyGrey}
             />
@@ -52,11 +55,9 @@ export function PayRentTab() {
 
         <View style={styles.sheet}>
           {!isLoggedIn ? (
-            <GuestLoginPlaceholder
-              image={unloginImage}
-              title="Log in to pay rent"
-              message="Connect your tenancy and pay rent in a few taps."
-              onLoginPress={() => router.push('/login')}
+            <AddTenancyCard
+              label="Sign in to add your first tenancy"
+              onPress={() => router.push('/login')}
             />
           ) : rents.isLoading ? (
             <ListSkeleton rows={2} />
@@ -77,21 +78,23 @@ export function PayRentTab() {
           )}
         </View>
       </ScrollView>
-      {isLoggedIn ? (
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => {
-            if (hasTenancy) {
-              setLimitVisible(true);
-              return;
-            }
-            router.push('/pay-rent/create');
-          }}
-          style={({ pressed }) => [styles.addButton, pressed && styles.pressed]}
-        >
-          <Text style={styles.addButtonText}>Add tenancy</Text>
-        </Pressable>
-      ) : null}
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => {
+          if (!isLoggedIn) {
+            router.push('/login');
+            return;
+          }
+          if (hasTenancy) {
+            setLimitVisible(true);
+            return;
+          }
+          router.push('/pay-rent/create');
+        }}
+        style={({ pressed }) => [styles.addButton, pressed && styles.pressed]}
+      >
+        <Text style={styles.addButtonText}>Add tenancy</Text>
+      </Pressable>
       <ComingSoonDialog
         visible={limitVisible}
         message="You already have a tenancy. Adding another home is coming soon."

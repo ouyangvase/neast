@@ -1,5 +1,5 @@
-import { useEffect, useLayoutEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Redirect, router, useNavigation } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -18,22 +18,24 @@ import {
   userHomeColors,
 } from '@neast/ui-mobile';
 
-import { apiErrorMessage } from '../../src/lib/api';
-import { openH5WebView } from '../../src/lib/callbacks';
+import { apiErrorMessage } from '@/lib/api';
+import { openH5WebView } from '@/lib/callbacks';
 import {
   createWalletTopup,
   getPaymentQuote,
   getWalletBalance,
   payRentByWallet,
-} from '../../src/lib/endpoints';
-import { buildPaymentMethodOptions, fiuuChannelFor } from '../../src/lib/payment-methods';
-import { useSelectionStore } from '../../src/stores/selection';
-import { PageHeader } from '../../src/components/PageHeader';
-import { Screen } from '../../src/components/Screen';
+} from '@/lib/endpoints';
+import { buildPaymentMethodOptions, fiuuChannelFor } from '@/lib/payment-methods';
+import type { RentHistoryEntry } from '@/lib/types';
+import { useSelectionStore } from '@/stores/selection';
+import { PageHeader } from '@/components/PageHeader';
+import { Screen } from '@/components/Screen';
+import { PaymentReceipt } from '@/features/pay-rent/receipt';
 
 /**
- * Rent is always paid from wallet credit. A short balance is topped up first
- * (default rent − balance); a covered balance skips the provider.
+ * Rent is always paid from wallet credit. A short balance stays on Payment and
+ * tops up first. A covered balance opens Confirmation and debits immediately.
  */
 export default function PayRentPaymentRoute() {
   const insets = useSafeAreaInsets();
@@ -47,6 +49,8 @@ export default function PayRentPaymentRoute() {
   const [topupAmount, setTopupAmount] = useState('');
   const [topupEdited, setTopupEdited] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [paid, setPaid] = useState<RentHistoryEntry | null>(null);
+  const payStarted = useRef(false);
 
   const balance = useQuery({ queryKey: ['wallet-balance'], queryFn: getWalletBalance });
 
@@ -70,20 +74,30 @@ export default function PayRentPaymentRoute() {
   }, [navigation]);
 
   const payFromWallet = async () => {
+    if (payStarted.current) return;
+    payStarted.current = true;
     setProcessing(true);
     try {
       const entry = await payRentByWallet(rent!.id);
+      setPaid(entry);
       await queryClient.invalidateQueries({ queryKey: ['rent-list'] });
       await queryClient.invalidateQueries({ queryKey: ['rent-history'] });
+      await queryClient.invalidateQueries({ queryKey: ['rent-detail-history'] });
+      await queryClient.invalidateQueries({ queryKey: ['rent-recent-history'] });
       await queryClient.invalidateQueries({ queryKey: ['wallet-balance'] });
-      useSelectionStore.getState().setHistory(entry);
-      router.replace('/pay-rent/history/detail');
     } catch (error) {
+      payStarted.current = false;
       Toast.error(apiErrorMessage(error));
+      router.back();
     } finally {
       setProcessing(false);
     }
   };
+
+  useEffect(() => {
+    if (shortfall === null || shortfall > 0) return;
+    void payFromWallet();
+  }, [shortfall]);
 
   const applyTopup = async () => {
     setProcessing(true);
@@ -137,10 +151,6 @@ export default function PayRentPaymentRoute() {
       : null;
 
   const submit = () => {
-    if (!toppingUp) {
-      void payFromWallet();
-      return true;
-    }
     if (Number(topupAmount) < 1.01) {
       Toast.error('Amount must be at least 1.01');
       return false;
@@ -153,35 +163,45 @@ export default function PayRentPaymentRoute() {
     return true;
   };
 
-  const total = toppingUp ? quote.data?.methods[method]?.total_amount : rent.amount;
+  const total = quote.data?.methods[method]?.total_amount;
 
   return (
     <Screen edges={[]}>
       <PageHeader title="Pay Rent" />
-      <JourneyBar steps={['Top up', 'Pay']} activeIndex={balance.isSuccess && !toppingUp ? 1 : 0} />
+      <JourneyBar steps={['Payment', 'Confirmation']} activeIndex={toppingUp && !paid ? 0 : 1} />
       <View style={styles.flex}>
-        <ScrollView
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={[styles.body, { paddingBottom: insets.bottom + 78 }]}
-        >
-          <Card style={styles.summaryCard}>
-            <Text style={styles.property} numberOfLines={1}>
-              {rent.property_name}
-            </Text>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Rent amount</Text>
-              <Text style={styles.summaryValue}>{formatRinggit(rent.amount)}</Text>
-            </View>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Wallet credit</Text>
-              <Text style={styles.summaryValue}>
-                {balance.isSuccess ? formatRinggit(balance.data.balance) : '—'}
-              </Text>
-            </View>
-          </Card>
+        {paid ? (
+          <ScrollView
+            contentContainerStyle={[styles.body, { paddingBottom: insets.bottom + spacing.lg }]}
+          >
+            <PaymentReceipt rent={rent} entry={paid} />
+          </ScrollView>
+        ) : !toppingUp ? (
+          <View style={styles.loading}>
+            <ActivityIndicator size="large" color={userHomeColors.navy} />
+          </View>
+        ) : (
+          <>
+            <ScrollView
+              keyboardShouldPersistTaps="handled"
+              contentContainerStyle={[styles.body, { paddingBottom: insets.bottom + 78 }]}
+            >
+              <Card style={styles.summaryCard}>
+                <Text style={styles.property} numberOfLines={1}>
+                  {rent.property_name}
+                </Text>
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Rent amount</Text>
+                  <Text style={styles.summaryValue}>{formatRinggit(rent.amount)}</Text>
+                </View>
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Wallet credit</Text>
+                  <Text style={styles.summaryValue}>
+                    {balance.isSuccess ? formatRinggit(balance.data.balance) : '—'}
+                  </Text>
+                </View>
+              </Card>
 
-          {toppingUp ? (
-            <>
               <TextField
                 label="Top-up amount (RM)"
                 value={topupAmount}
@@ -212,7 +232,9 @@ export default function PayRentPaymentRoute() {
                             }}
                             style={styles.bankRow}
                           >
-                            <Text style={styles.bankText}>{bank ? bank.name : 'Select bank'}</Text>
+                            <Text style={styles.bankText}>
+                              {bank ? bank.name : 'Select bank'}
+                            </Text>
                             <Chevron direction="right" color={userHomeColors.navy} size={8} />
                           </Pressable>
                         ),
@@ -227,16 +249,16 @@ export default function PayRentPaymentRoute() {
                   }
                 }}
               />
-            </>
-          ) : null}
-        </ScrollView>
-        <SlidePayButton
-          title={total ? `Slide to pay ${formatRinggit(total)}` : 'Slide to pay'}
-          bottom={insets.bottom + 16}
-          disabled={!balance.isSuccess || !total}
-          loading={topupMutation.isPending || processing || balance.isLoading}
-          onConfirm={submit}
-        />
+            </ScrollView>
+            <SlidePayButton
+              title={total ? `Slide to pay ${formatRinggit(total)}` : 'Slide to pay'}
+              bottom={insets.bottom + 16}
+              disabled={!balance.isSuccess || !total}
+              loading={topupMutation.isPending || processing || balance.isLoading}
+              onConfirm={submit}
+            />
+          </>
+        )}
       </View>
 
       <FpxBankPicker
@@ -252,6 +274,11 @@ export default function PayRentPaymentRoute() {
 const styles = StyleSheet.create({
   flex: {
     flex: 1,
+  },
+  loading: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   body: {
     padding: spacing.lg,

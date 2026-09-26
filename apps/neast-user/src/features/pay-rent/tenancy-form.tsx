@@ -23,9 +23,9 @@ import {
   ordinalDay,
   upcomingMonths,
   type MonthOption,
-} from '../../lib/format';
-import { pickDocumentFile, pickImageFile } from '../../lib/pickers';
-import { useFileUpload } from '../../hooks/use-upload';
+} from '@/lib/format';
+import { pickDocumentFile, pickImageFile } from '@/lib/pickers';
+import { useFileUpload } from '@/hooks/use-upload';
 
 export interface TenancyFormValues {
   amount: string;
@@ -35,30 +35,47 @@ export interface TenancyFormValues {
   lease_months: number;
 }
 
+export interface TenancyFormInitial {
+  amount: string;
+  paidAt: number;
+  /** `Y-m`. */
+  firstPayMonth: string;
+  leaseMonths: number;
+  file: string;
+}
+
 /** Shared rent fields, agreement upload, and floating submit for both add-tenancy pages. */
 export function TenancyForm({
   leading,
   submitting,
   submitLabel = 'Submit',
+  initial,
   onSubmit,
 }: {
   leading: ReactNode;
   submitting: boolean;
   submitLabel?: string;
+  initial?: TenancyFormInitial;
   onSubmit: (values: TenancyFormValues) => void;
 }) {
   const insets = useSafeAreaInsets();
   const upload = useFileUpload();
-  const [amount, setAmount] = useState('');
-  const [payDay, setPayDay] = useState(1);
   const now = new Date();
-  const [firstPayMonth, setFirstPayMonth] = useState<MonthOption>({
-    year: now.getFullYear(),
-    month: now.getMonth() + 1,
-  });
-  const [leaseMonths, setLeaseMonths] = useState(12);
-  const [agreementPath, setAgreementPath] = useState<string | null>(null);
-  const [agreementName, setAgreementName] = useState<string | null>(null);
+  const [amount, setAmount] = useState(initial?.amount ?? '');
+  const [payDay, setPayDay] = useState(initial?.paidAt ?? 1);
+  const [firstPayMonth, setFirstPayMonth] = useState<MonthOption>(
+    initial
+      ? {
+          year: Number(initial.firstPayMonth.slice(0, 4)),
+          month: Number(initial.firstPayMonth.slice(5, 7)),
+        }
+      : { year: now.getFullYear(), month: now.getMonth() + 1 },
+  );
+  const [leaseMonths, setLeaseMonths] = useState(initial?.leaseMonths ?? 12);
+  const [agreementPath, setAgreementPath] = useState<string | null>(initial?.file ?? null);
+  const [agreementName, setAgreementName] = useState<string | null>(
+    initial ? initial.file.slice(initial.file.lastIndexOf('/') + 1) : null,
+  );
 
   const [dayPickerVisible, setDayPickerVisible] = useState(false);
   const [monthPickerVisible, setMonthPickerVisible] = useState(false);
@@ -81,13 +98,14 @@ export function TenancyForm({
       Toast.error('Please enter a valid monthly rent amount');
       return;
     }
-    if (!agreementPath) {
+    const file = __DEV__ ? '/uploads/rent/local-test-agreement.jpg' : agreementPath;
+    if (!file) {
       Toast.error('Please upload your tenancy agreement');
       return;
     }
     onSubmit({
       amount,
-      file: agreementPath,
+      file,
       paid_at: String(payDay),
       first_pay_month: monthOptionValue(firstPayMonth),
       lease_months: leaseMonths,
@@ -123,19 +141,21 @@ export function TenancyForm({
           value={`${leaseMonths} months`}
           onPress={() => setLeasePickerVisible(true)}
         />
-        <Card style={styles.agreementCard} onPress={() => setAgreementPickerVisible(true)}>
-          {agreementName ? (
-            <DocumentIcon size={24} color={coreColors.brandBlue} />
-          ) : (
-            <UploadIcon size={24} color={coreColors.brandBlue} />
-          )}
-          <View style={styles.agreementText}>
-            <Text style={styles.agreementTitle}>Tenancy agreement</Text>
-            <Text style={styles.agreementSubtitle}>
-              {agreementName ?? 'Upload a photo or PDF of your agreement'}
-            </Text>
-          </View>
-        </Card>
+        {__DEV__ ? null : (
+          <Card style={styles.agreementCard} onPress={() => setAgreementPickerVisible(true)}>
+            {agreementName ? (
+              <DocumentIcon size={24} color={coreColors.brandBlue} />
+            ) : (
+              <UploadIcon size={24} color={coreColors.brandBlue} />
+            )}
+            <View style={styles.agreementText}>
+              <Text style={styles.agreementTitle}>Tenancy agreement</Text>
+              <Text style={styles.agreementSubtitle}>
+                {agreementName ?? 'Upload a photo or PDF of your agreement'}
+              </Text>
+            </View>
+          </Card>
+        )}
       </ScrollView>
 
       <Pressable

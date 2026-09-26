@@ -9,9 +9,9 @@ import {
   type ViewStyle,
 } from 'react-native';
 
-import { coreColors } from '../tokens/colors';
-import { radii } from '../tokens/layout';
-import { textStyles } from '../tokens/typography';
+import { coreColors } from '@ui/tokens/colors';
+import { radii } from '@ui/tokens/layout';
+import { textStyles } from '@ui/tokens/typography';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost';
 export type ButtonSize = 'small' | 'medium' | 'large';

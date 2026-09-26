@@ -4,12 +4,12 @@ import { router } from 'expo-router';
 import { formatRinggit } from '@neast/types';
 import { Card, coreColors, spacing, textStyles } from '@neast/ui-mobile';
 
-import { payStatusLabel, rentHistoryStatusMeta } from '../../../src/lib/format';
-import { useSelectionStore } from '../../../src/stores/selection';
-import { ErrorState } from '../../../src/components/StateViews';
-import { PageHeader } from '../../../src/components/PageHeader';
-import { Screen } from '../../../src/components/Screen';
-import { PaymentSuccessHero } from '../../../src/features/pay-rent/components';
+import { payStatusLabel, rentHistoryStatusMeta } from '@/lib/format';
+import { useSelectionStore } from '@/stores/selection';
+import { ErrorState } from '@/components/StateViews';
+import { PageHeader } from '@/components/PageHeader';
+import { Screen } from '@/components/Screen';
+import { PaymentSuccessHero } from '@/features/pay-rent/components';
 
 /** Paid record opened after wallet pay. */
 export default function RentHistoryDetailRoute() {

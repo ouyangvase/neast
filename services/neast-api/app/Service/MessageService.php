@@ -27,12 +27,12 @@ class MessageService
             ->update(['is_read' => 1]);
     }
 
-    public function userHasUnread(int $userId): bool
+    public function userUnreadCount(int $userId): int
     {
         return UserMessageModel::query()
             ->where('user_id', $userId)
             ->where('is_read', 0)
-            ->exists();
+            ->count();
     }
 
     public function landlordList(int $landlordId, int $page, int $limit): array

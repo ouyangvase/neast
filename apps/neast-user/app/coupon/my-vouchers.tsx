@@ -6,12 +6,12 @@ import { VOUCHER_STATUS_TABS } from '@neast/constant';
 import type { UserCouponItem, VoucherStatus } from '@neast/types';
 import { coreColors, RefreshList, spacing, textStyles } from '@neast/ui-mobile';
 
-import { getMyCoupons } from '../../src/lib/endpoints';
-import { usePaginatedList } from '../../src/hooks/use-paginated';
-import { useSelectionStore } from '../../src/stores/selection';
-import { CouponCard, CouponQrDialog, useCouponActions } from '../../src/features/coupon/components';
-import { PageHeader } from '../../src/components/PageHeader';
-import { Screen } from '../../src/components/Screen';
+import { getMyCoupons } from '@/lib/endpoints';
+import { usePaginatedList } from '@/hooks/use-paginated';
+import { useSelectionStore } from '@/stores/selection';
+import { CouponCard, CouponQrDialog, useCouponActions } from '@/features/coupon/components';
+import { PageHeader } from '@/components/PageHeader';
+import { Screen } from '@/components/Screen';
 
 /** My vouchers (my_vouchers_screen parity): active / used / expired tabs. */
 export default function MyVouchersRoute() {

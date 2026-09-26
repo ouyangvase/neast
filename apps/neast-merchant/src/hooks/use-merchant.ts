@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { useIsLoggedIn } from '@neast/types';
 
-import { getMerchantConfig, getMerchantInfo } from '../lib/endpoints';
+import { getMerchantConfig, getMerchantInfo } from '@/lib/endpoints';
 
 /** merchantInfoProvider parity — cached merchant info, only fetched when logged in. */
 export function useMerchantInfo() {

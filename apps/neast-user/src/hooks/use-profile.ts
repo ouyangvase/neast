@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { useIsLoggedIn } from '@neast/types';
 
-import { getAppConfig, getUserProfile } from '../lib/endpoints';
+import { getAppConfig, getUserProfile } from '@/lib/endpoints';
 
 /** userProfileProvider parity — cached profile, only fetched when logged in. */
 export function useUserProfile() {

@@ -4,13 +4,14 @@ import { router } from 'expo-router';
 import { formatRinggit, useIsLoggedIn, type RentListItem } from '@neast/types';
 import { userHomeColors } from '@neast/ui-mobile';
 
-import walletArt from '../../../../assets/images/home/reference-rent-wallet.png';
+import walletArt from '@assets/images/home/reference-rent-wallet.png';
 
-import { useTabsStore } from '../../../stores/tabs';
+import { dueStatusLabel } from '@/lib/format';
+import { useTabsStore } from '@/stores/tabs';
 
 /**
  * AmountCard (web parity): next-rent summary on cream with a royal-blue CTA.
- * Doubles as the guest sign-in card (replaces GuestLoginPlaceholder on home).
+ * Doubles as the guest sign-in card.
  * Logged-in Pay Rent Now opens the Pay rent tab.
  */
 export function AmountCard({ nextRent }: { nextRent: RentListItem | null }) {
@@ -40,7 +41,7 @@ export function AmountCard({ nextRent }: { nextRent: RentListItem | null }) {
             {signedOut
               ? 'Sign in to see your next payment.'
               : nextRent
-                ? `${nextRent.due_text}${nextRent.date_label ? ` · ${nextRent.date_label}` : ''}`
+                ? `${dueStatusLabel(nextRent.due_status)} · ${nextRent.date_label}`
                 : 'Payment schedule pending'}
           </Text>
         </View>

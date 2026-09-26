@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { merchantAccentColors } from '../tokens/colors';
-import { radii } from '../tokens/layout';
+import { merchantAccentColors } from '@ui/tokens/colors';
+import { radii } from '@ui/tokens/layout';
 
 export interface BetaTagProps {
   label?: string;

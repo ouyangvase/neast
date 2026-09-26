@@ -2,7 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 
 import { FiuuH5WebView } from '@neast/ui-mobile';
 
-import { clearH5Callbacks, getH5Callbacks } from '../src/lib/callbacks';
+import { clearH5Callbacks, getH5Callbacks } from '@/lib/callbacks';
 
 /**
  * Fiuu H5 payment page (wallet_pay_h5_webview_page parity). Callers stash

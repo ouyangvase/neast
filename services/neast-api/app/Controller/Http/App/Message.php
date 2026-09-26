@@ -51,9 +51,11 @@ class Message extends AbstractController
     public function hasUnread(): ResponseInterface
     {
         $auth = Context::get('app_auth');
+        $unreadCount = $this->service->userUnreadCount((int) $auth->id);
 
         return $this->success([
-            'has_unread' => $this->service->userHasUnread((int) $auth->id),
+            'has_unread' => $unreadCount > 0,
+            'unread_count' => $unreadCount,
         ]);
     }
 

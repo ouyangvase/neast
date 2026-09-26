@@ -7,7 +7,14 @@
     "jsx": "react-jsx",
     "types": [
       "node"
-    ]
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@assets/*": ["assets/*"],
+      "@ui/*": ["../ui/mobile/src/*"],
+      "@ui-assets/*": ["../ui/mobile/assets/*"]
+    }
   },
   "include": [
     "app",

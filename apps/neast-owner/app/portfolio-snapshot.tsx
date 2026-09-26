@@ -13,9 +13,9 @@ import {
   useUiTheme,
 } from '@neast/ui-mobile';
 
-import { getPortfolioDetail } from '../src/lib/endpoints';
-import { ErrorState, LoadingState } from '../src/components/StateViews';
-import { Screen } from '../src/components/Screen';
+import { getPortfolioDetail } from '@/lib/endpoints';
+import { ErrorState, LoadingState } from '@/components/StateViews';
+import { Screen } from '@/components/Screen';
 
 /** Portfolio snapshot (portfolio_snapshot_screen parity): rent roll + tenant list drill-down. */
 export default function PortfolioSnapshotRoute() {

@@ -5,22 +5,22 @@ import { router, useFocusEffect } from 'expo-router';
 import { useIsLoggedIn } from '@neast/types';
 import { coreColors, TabBar, Toast, type TabBarItem } from '@neast/ui-mobile';
 
-import HomeIcon from '../assets/images/main/home.svg';
-import HomeActiveIcon from '../assets/images/main/home-act.svg';
-import PayRentIcon from '../assets/images/main/pay-rent.svg';
-import PayRentActiveIcon from '../assets/images/main/pay-rent-act.svg';
-import RewardIcon from '../assets/images/main/reward.svg';
-import RewardActiveIcon from '../assets/images/main/reward-act.svg';
-import AccountIcon from '../assets/images/main/account.svg';
-import AccountActiveIcon from '../assets/images/main/account-act.svg';
+import HomeIcon from '@assets/images/main/home.svg';
+import HomeActiveIcon from '@assets/images/main/home-act.svg';
+import PayRentIcon from '@assets/images/main/pay-rent.svg';
+import PayRentActiveIcon from '@assets/images/main/pay-rent-act.svg';
+import RewardIcon from '@assets/images/main/reward.svg';
+import RewardActiveIcon from '@assets/images/main/reward-act.svg';
+import AccountIcon from '@assets/images/main/account.svg';
+import AccountActiveIcon from '@assets/images/main/account-act.svg';
 
-import { initPushNotifications } from '../src/lib/push';
-import { drainPendingRoute } from '../src/stores/pending-route';
-import { useTabsStore, type MainTab } from '../src/stores/tabs';
-import { AccountTab } from '../src/features/account/AccountTab';
-import { HomeTab } from '../src/features/home/HomeTab';
-import { PayRentTab } from '../src/features/pay-rent/PayRentTab';
-import { RewardTab } from '../src/features/reward/RewardTab';
+import { initPushNotifications } from '@/lib/push';
+import { drainPendingRoute } from '@/stores/pending-route';
+import { useTabsStore, type MainTab } from '@/stores/tabs';
+import { AccountTab } from '@/features/account/AccountTab';
+import { HomeTab } from '@/features/home/HomeTab';
+import { PayRentTab } from '@/features/pay-rent/PayRentTab';
+import { RewardTab } from '@/features/reward/RewardTab';
 
 const TAB_ITEMS: TabBarItem[] = [
   {

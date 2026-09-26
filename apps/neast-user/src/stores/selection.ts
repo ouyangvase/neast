@@ -2,7 +2,7 @@ import { create } from 'zustand';
 
 import type { CouponListItem, RentListItem, UserCouponItem } from '@neast/types';
 
-import type { RentHistoryEntry } from '../lib/types';
+import type { RentHistoryEntry } from '@/lib/types';
 
 /**
  * Cross-screen "extra" payloads (go_router `extra` parity). Callers set the

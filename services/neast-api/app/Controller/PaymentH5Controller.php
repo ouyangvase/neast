@@ -30,16 +30,10 @@ class PaymentH5Controller extends AbstractController
             return $this->renderHtml('pay.html');
         }
 
-        $orderId = trim((string) $request->input('order_sn', ''));
-        $channel = trim((string) $request->input('code', ''));
+        $orderId = (string) $request->input('order_sn');
+        $channel = (string) $request->input('code');
 
-        try {
-            $amount = $this->walletService->devOrderAmount($orderId);
-        } catch (AppException $exception) {
-            return $this->response->raw($exception->getMessage())->withStatus(404);
-        }
-
-        return $this->renderDevPayPage($amount, $orderId, $channel);
+        return $this->renderDevPayPage($this->walletService->devOrderAmount($orderId), $orderId, $channel);
     }
 
     #[RequestMapping(path: '/wallet/topup/dev-return', methods: ['POST'])]
@@ -49,14 +43,10 @@ class PaymentH5Controller extends AbstractController
             return $this->response->raw('Not Found')->withStatus(404);
         }
 
-        $orderId = trim((string) $request->input('order_sn', ''));
-        $channel = trim((string) $request->input('code', ''));
-
-        try {
-            $this->walletService->settleDevOrder($orderId, $channel);
-        } catch (AppException $exception) {
-            return $this->response->raw($exception->getMessage())->withStatus(400);
-        }
+        $this->walletService->settleDevOrder(
+            (string) $request->input('order_sn'),
+            (string) $request->input('code')
+        );
 
         return $this->response->redirect(payment_h5_base_url() . '/pay_success.html');
     }
@@ -125,11 +115,6 @@ class PaymentH5Controller extends AbstractController
 
     private function renderDevPayPage(string $amount, string $orderId, string $channel): ResponseInterface
     {
-        $templatePath = BASE_PATH . '/storage/html/pay_dev.html';
-        if (! is_file($templatePath)) {
-            return $this->response->raw('Not Found')->withStatus(404);
-        }
-
         $html = str_replace(
             ['__AMOUNT__', '__ORDER_SN__', '__CHANNEL__'],
             [
@@ -137,7 +122,7 @@ class PaymentH5Controller extends AbstractController
                 htmlspecialchars($orderId, ENT_QUOTES, 'UTF-8'),
                 htmlspecialchars($channel, ENT_QUOTES, 'UTF-8'),
             ],
-            (string) file_get_contents($templatePath)
+            (string) file_get_contents(BASE_PATH . '/storage/html/pay_dev.html')
         );
 
         return $this->response

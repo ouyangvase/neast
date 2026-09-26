@@ -8,9 +8,9 @@ import {
   type FlatListProps,
 } from 'react-native';
 
-import { userHomeColors } from '../tokens/colors';
-import { spacing } from '../tokens/layout';
-import { textStyles } from '../tokens/typography';
+import { userHomeColors } from '@ui/tokens/colors';
+import { spacing } from '@ui/tokens/layout';
+import { textStyles } from '@ui/tokens/typography';
 import { EmptyState } from './EmptyState';
 
 export interface RefreshListProps<T> extends Omit<

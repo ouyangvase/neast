@@ -15,9 +15,9 @@ import {
   Toast,
 } from '@neast/ui-mobile';
 
-import { useUserProfile } from '../../src/hooks/use-profile';
-import { ErrorState, LoadingState } from '../../src/components/StateViews';
-import { Screen } from '../../src/components/Screen';
+import { useUserProfile } from '@/hooks/use-profile';
+import { ErrorState, LoadingState } from '@/components/StateViews';
+import { Screen } from '@/components/Screen';
 
 /** My QR (my_qr_screen parity): account QR + save-to-gallery via view-shot. */
 export default function MyQrRoute() {

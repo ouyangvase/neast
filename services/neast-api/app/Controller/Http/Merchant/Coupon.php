@@ -80,4 +80,45 @@ class Coupon extends AbstractController
             (string) $request->input('code')
         ));
     }
+
+    /**
+     * 提交本店优惠券，待管理员审核
+     */
+    #[Middleware(MerchantAuthMiddleware::class)]
+    #[RequestMapping(path: 'submit', methods: ['POST'])]
+    public function submit(RequestInterface $request): ResponseInterface
+    {
+        $params = $request->all();
+
+        $validator = di(ValidatorFactory::class)->make($params, [
+            'name' => 'required|string|max:128',
+            'required_points' => 'required|integer|min:1',
+            'valid_days' => 'required|integer|min:1',
+            'discount_amount' => 'required|numeric|min:0',
+            'usage_condition' => 'nullable|string',
+            'redeem_limit' => 'nullable|integer|min:1',
+            'category_id' => 'required|integer|min:1',
+            'image' => 'nullable|string|max:512',
+        ], [
+            'name.required' => 'Please enter the coupon name',
+            'name.max' => 'The coupon name must be less than 128 characters',
+            'required_points.required' => 'Please enter required points',
+            'required_points.min' => 'Required points must be at least 1',
+            'valid_days.required' => 'Please enter valid days',
+            'valid_days.min' => 'Valid days must be at least 1',
+            'discount_amount.required' => 'Please enter discount amount',
+            'discount_amount.min' => 'Discount amount must be at least 0',
+            'redeem_limit.min' => 'Redeem limit must be at least 1',
+            'category_id.required' => 'Please select a category',
+            'category_id.min' => 'Please select a category',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->error($validator->errors()->first());
+        }
+
+        $auth = Context::get('merchant_auth');
+
+        return $this->success($this->service->merchantSubmit((int) $auth->id, $params));
+    }
 }

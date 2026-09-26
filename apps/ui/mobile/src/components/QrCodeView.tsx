@@ -2,7 +2,7 @@ import QRCode from 'react-native-qrcode-svg';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import type { ImageSourcePropType } from 'react-native';
 
-import { coreColors } from '../tokens/colors';
+import { coreColors } from '@ui/tokens/colors';
 
 export interface QrCodeViewProps {
   /** Payload. User identity QR = backend `qrCode` string; property QR = raw `sn`. */

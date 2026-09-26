@@ -5,6 +5,7 @@ import {
   RENT_STATUS,
   type PaymentQuote,
   type PaymentMethodQuote,
+  type RentDueStatus,
 } from '@neast/types';
 import type { StatusTagStatus } from '@neast/ui-mobile';
 
@@ -13,17 +14,16 @@ export interface StatusMeta {
   tag: StatusTagStatus;
 }
 
-/** t_rent.status: 0 pending · 1 approved · 2 rejected · 3 pending bind · 4 terminated. */
+/** t_rent.status: 0 and 3 pending · 1 approved · 2 rejected · 4 terminated. */
 export function rentStatusMeta(status: number): StatusMeta {
   switch (status) {
     case RENT_STATUS.pending:
-      return { label: 'Pending review', tag: 'pending' };
+    case RENT_STATUS.pendingBind:
+      return { label: 'Pending', tag: 'pending' };
     case RENT_STATUS.approved:
-      return { label: 'Active', tag: 'success' };
+      return { label: 'Approved', tag: 'success' };
     case RENT_STATUS.rejected:
       return { label: 'Rejected', tag: 'failed' };
-    case RENT_STATUS.pendingBind:
-      return { label: 'Pending bind', tag: 'info' };
     case RENT_STATUS.terminated:
       return { label: 'Terminated', tag: 'cancelled' };
     default:
@@ -69,6 +69,19 @@ export function payStatusLabel(payStatus: string): string {
     return 'Late';
   }
   return 'Upcoming';
+}
+
+export function dueStatusLabel(status: RentDueStatus | ''): string {
+  switch (status) {
+    case 'advance':
+      return 'Advance payment';
+    case 'due_today':
+      return 'Due today';
+    case 'overdue':
+      return 'Overdue';
+    case '':
+      return '';
+  }
 }
 
 /** `1` → `1st`, `22` → `22nd` (rent pay-day picker labels). */

@@ -103,8 +103,14 @@ export interface RentListItem {
   /** `Y-m-d`. */
   expire_date: string;
   status: RentStatus;
+  /** Set when the tenancy was created from an owner QR. */
+  property_id: number | null;
   landlord_id: number;
   landlord_name: string;
+  /** Typed owner name on a manual tenancy. */
+  owner_name: string;
+  landlord_bank: string;
+  landlord_bank_account: string;
   landlord_account_name: string;
   /** Typed contact for an owner who is not a NEAST landlord. */
   owner_email: string;
@@ -117,7 +123,8 @@ export interface RentListItem {
   earn_points: number;
   created_at: string;
   can_pay: boolean;
-  due_text: string;
+  /** `advance` | `due_today` | `overdue`. Empty when there is no payable date. */
+  due_status: RentDueStatus | '';
   date_label: string;
   /** mock-only: present in the mock server, absent from the real API. */
   landlord_bank_name?: string;
@@ -191,6 +198,9 @@ export const RENT_HISTORY_STATUS = {
 export type RentHistoryStatus = (typeof RENT_HISTORY_STATUS)[keyof typeof RENT_HISTORY_STATUS];
 
 export type RentPayStatus = 'on_time' | 'late' | 'upcoming';
+
+/** Next unpaid installment, from `formatRentDueLabels`. */
+export type RentDueStatus = 'advance' | 'due_today' | 'overdue';
 
 /** GET /app/rent/history/list item (full model + computed display fields). */
 export interface RentHistoryItem {
@@ -559,6 +569,7 @@ export type AppMessageListResponse = MessageListResponse;
 /** GET /app/message/has-unread response (/app only). */
 export interface HasUnreadResponse {
   has_unread: boolean;
+  unread_count: number;
 }
 
 export type AppAgreementDetail = AgreementDetail;

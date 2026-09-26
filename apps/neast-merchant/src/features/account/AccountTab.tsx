@@ -4,16 +4,16 @@ import { router } from 'expo-router';
 import { formatRinggit } from '@neast/types';
 import { Card, Chevron, coreColors, spacing, textStyles } from '@neast/ui-mobile';
 
-import coinIcon from '../../../assets/images/account/coin.png';
-import StoreProfileIcon from '../../../assets/images/account/store_profile.svg';
-import WalletTopUpIcon from '../../../assets/images/account/wallet_top_up.svg';
-import TransactionHistoryIcon from '../../../assets/images/account/transaction_history.svg';
-import LegalIcon from '../../../assets/images/account/legal.svg';
-import LogOutIcon from '../../../assets/images/account/log_out.svg';
+import coinIcon from '@assets/images/account/coin.png';
+import StoreProfileIcon from '@assets/images/account/store_profile.svg';
+import WalletTopUpIcon from '@assets/images/account/wallet_top_up.svg';
+import TransactionHistoryIcon from '@assets/images/account/transaction_history.svg';
+import LegalIcon from '@assets/images/account/legal.svg';
+import LogOutIcon from '@assets/images/account/log_out.svg';
 
-import { Screen } from '../../components/Screen';
-import { performLogout } from '../../lib/auth';
-import { useMerchantInfo } from '../../hooks/use-merchant';
+import { Screen } from '@/components/Screen';
+import { performLogout } from '@/lib/auth';
+import { useMerchantInfo } from '@/hooks/use-merchant';
 
 interface MenuItem {
   key: string;

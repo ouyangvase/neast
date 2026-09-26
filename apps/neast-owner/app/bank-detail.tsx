@@ -15,14 +15,14 @@ import {
   UploadProgressDialog,
 } from '@neast/ui-mobile';
 
-import photoUpload from '../assets/images/property/photo-upload.png';
+import photoUpload from '@assets/images/property/photo-upload.png';
 
-import { apiErrorMessage } from '../src/lib/api';
-import { getLandlordInfo, updateBankDetail } from '../src/lib/endpoints';
-import { pickImageFile } from '../src/lib/pickers';
-import { useFileUpload } from '../src/hooks/use-upload';
-import { LoadingState } from '../src/components/StateViews';
-import { Screen } from '../src/components/Screen';
+import { apiErrorMessage } from '@/lib/api';
+import { getLandlordInfo, updateBankDetail } from '@/lib/endpoints';
+import { pickImageFile } from '@/lib/pickers';
+import { useFileUpload } from '@/hooks/use-upload';
+import { LoadingState } from '@/components/StateViews';
+import { Screen } from '@/components/Screen';
 
 /** Bank detail (bank_detail_screen parity): payout bank form + bank-header photo upload. */
 export default function BankDetailRoute() {

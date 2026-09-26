@@ -9,9 +9,9 @@ import {
 } from 'react-native';
 import type { ReactNode } from 'react';
 
-import { coreColors } from '../tokens/colors';
-import { spacing } from '../tokens/layout';
-import { textStyles } from '../tokens/typography';
+import { coreColors } from '@ui/tokens/colors';
+import { spacing } from '@ui/tokens/layout';
+import { textStyles } from '@ui/tokens/typography';
 import { Chevron } from './Chevron';
 
 export interface BrandHeaderProps {

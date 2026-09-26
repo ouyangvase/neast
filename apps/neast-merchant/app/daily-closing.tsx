@@ -17,13 +17,13 @@ import {
   textStyles,
 } from '@neast/ui-mobile';
 
-import stat1Icon from '../assets/images/daily_closing/stat1.png';
-import stat2Icon from '../assets/images/daily_closing/stat2.png';
-import stat3Icon from '../assets/images/daily_closing/stat3.png';
+import stat1Icon from '@assets/images/daily_closing/stat1.png';
+import stat2Icon from '@assets/images/daily_closing/stat2.png';
+import stat3Icon from '@assets/images/daily_closing/stat3.png';
 
-import { getDailyClosingSummary, getDailyClosingTransactions } from '../src/lib/endpoints';
-import { usePaginatedList } from '../src/hooks/use-paginated';
-import { Screen } from '../src/components/Screen';
+import { getDailyClosingSummary, getDailyClosingTransactions } from '@/lib/endpoints';
+import { usePaginatedList } from '@/hooks/use-paginated';
+import { Screen } from '@/components/Screen';
 
 /**
  * Daily closing (daily_closing_screen parity): today's summary card +

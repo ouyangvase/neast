@@ -14,18 +14,20 @@ import {
   Toast,
 } from '@neast/ui-mobile';
 
-import { apiErrorMessage } from '../src/lib/api';
-import { navigateAfterAuth } from '../src/lib/auth';
-import { login, sendCode } from '../src/lib/endpoints';
-import { useCountdown } from '../src/hooks/use-countdown';
-import { Screen } from '../src/components/Screen';
+import { apiErrorMessage } from '@/lib/api';
+import { navigateAfterAuth } from '@/lib/auth';
+import { login, sendCode } from '@/lib/endpoints';
+import { useCountdown } from '@/hooks/use-countdown';
+import { Screen } from '@/components/Screen';
 
 /** OTP verification (verify_screen parity): pinput + 60s resend countdown. */
 export default function VerifyRoute() {
   const { contact } = useLocalSearchParams<{ contact: string }>();
   const account = contact ?? '';
 
-  const [code, setCode] = useState(__DEV__ && account === '60123456789' ? '123456' : '');
+  const [code, setCode] = useState(
+    __DEV__ && (account === '60123456789' || account === '60111111111') ? '123456' : '',
+  );
   const [hasError, setHasError] = useState(false);
   const countdown = useCountdown(60);
 

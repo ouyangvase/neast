@@ -1,13 +1,13 @@
-import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { StyleSheet, Text, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
 
 import {
   coreColors,
   merchantAccentColors,
   ownerAccentColors,
   userAccentColors,
-} from '../tokens/colors';
-import { radii, spacing } from '../tokens/layout';
-import { textStyles } from '../tokens/typography';
+} from '@ui/tokens/colors';
+import { radii, spacing } from '@ui/tokens/layout';
+import { textStyles } from '@ui/tokens/typography';
 
 /** Rent/payment history statuses used across the apps. */
 export type StatusTagStatus =
@@ -21,6 +21,7 @@ export interface StatusTagProps {
   color?: string;
   backgroundColor?: string;
   style?: StyleProp<ViewStyle>;
+  labelStyle?: StyleProp<TextStyle>;
 }
 
 const STATUS_COLORS: Record<StatusTagStatus, { text: string; background: string }> = {
@@ -41,11 +42,12 @@ export function StatusTag({
   color,
   backgroundColor,
   style,
+  labelStyle,
 }: StatusTagProps) {
   const palette = STATUS_COLORS[status];
   return (
     <View style={[styles.tag, { backgroundColor: backgroundColor ?? palette.background }, style]}>
-      <Text style={[styles.label, { color: color ?? palette.text }]}>{label}</Text>
+      <Text style={[styles.label, { color: color ?? palette.text }, labelStyle]}>{label}</Text>
     </View>
   );
 }

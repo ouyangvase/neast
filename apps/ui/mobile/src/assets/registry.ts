@@ -6,10 +6,10 @@
  * Values are Metro asset references — pass them straight to
  * `<Image source={...} />` or any `ImageSourcePropType` prop.
  */
-import accountHeader from '../../assets/images/account-header.png';
-import accountWalletIcon from '../../assets/images/account-wallet.svg';
-import coin from '../../assets/images/coin.png';
-import walletBalanceIcon from '../../assets/images/wallet-balance-icon.png';
+import accountHeader from '@ui-assets/images/account-header.png';
+import accountWalletIcon from '@ui-assets/images/account-wallet.svg';
+import coin from '@ui-assets/images/coin.png';
+import walletBalanceIcon from '@ui-assets/images/wallet-balance-icon.png';
 
 export const sharedAssets = {
   /** Wallet balance card icon (was `images/wallet/balance-icon.png` in user + merchant). */

@@ -1,8 +1,8 @@
 import { Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import type { ReactNode } from 'react';
 
-import { coreColors } from '../tokens/colors';
-import { cardShadow, radii, spacing } from '../tokens/layout';
+import { coreColors } from '@ui/tokens/colors';
+import { cardShadow, radii, spacing } from '@ui/tokens/layout';
 
 export interface CardProps {
   children?: ReactNode;

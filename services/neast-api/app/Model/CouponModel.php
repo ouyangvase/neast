@@ -17,6 +17,8 @@ use Hyperf\Database\Model\Relations\HasMany;
  * @property string $discount_amount 优惠金额
  * @property string|null $usage_condition 使用条件
  * @property int $status 状态 0停用 1启用
+ * @property string $origin 来源 admin管理员 merchant商家
+ * @property string $review_status 审核 pending待审 approved通过 rejected拒绝
  * @property int|null $redeem_limit 兑换次数 NULL表示不限制
  * @property int $category_id 优惠券分类ID
  * @property string $image 列表展示图片
@@ -36,6 +38,8 @@ class CouponModel extends Model
         'discount_amount',
         'usage_condition',
         'status',
+        'origin',
+        'review_status',
         'redeem_limit',
         'category_id',
         'image',

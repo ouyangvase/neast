@@ -4,9 +4,9 @@ import { router } from 'expo-router';
 
 import { Button, coreColors, radii, spacing, textStyles, Toast } from '@neast/ui-mobile';
 
-import { apiErrorMessage } from '../../lib/api';
-import { getLandlordInfo } from '../../lib/endpoints';
-import { queryClient } from '../../lib/query';
+import { apiErrorMessage } from '@/lib/api';
+import { getLandlordInfo } from '@/lib/endpoints';
+import { queryClient } from '@/lib/query';
 
 /**
  * Add-property bank gate (properties_screen parity): refresh the landlord

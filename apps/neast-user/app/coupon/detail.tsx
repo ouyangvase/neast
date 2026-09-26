@@ -4,15 +4,15 @@ import { router } from 'expo-router';
 import { formatRinggit, formatSimpleDate } from '@neast/types';
 import { Button, Card, coreColors, spacing, textStyles } from '@neast/ui-mobile';
 
-import { useSelectionStore } from '../../src/stores/selection';
+import { useSelectionStore } from '@/stores/selection';
 import {
   CouponQrDialog,
   couponValidityLabel,
   useCouponActions,
-} from '../../src/features/coupon/components';
-import { ErrorState } from '../../src/components/StateViews';
-import { PageHeader } from '../../src/components/PageHeader';
-import { Screen } from '../../src/components/Screen';
+} from '@/features/coupon/components';
+import { ErrorState } from '@/components/StateViews';
+import { PageHeader } from '@/components/PageHeader';
+import { Screen } from '@/components/Screen';
 
 /**
  * Coupon detail (coupon_detail_screen parity). The coupon arrives via the

@@ -7,10 +7,10 @@ import { useQueryClient } from '@tanstack/react-query';
 import { formatRelativeTime, type MessageItem } from '@neast/types';
 import { coreColors, RefreshList, spacing, textStyles } from '@neast/ui-mobile';
 
-import { getMessages, markAllMessagesRead } from '../src/lib/endpoints';
-import { usePaginatedList } from '../src/hooks/use-paginated';
-import { PageHeader } from '../src/components/PageHeader';
-import { Screen } from '../src/components/Screen';
+import { getMessages, markAllMessagesRead } from '@/lib/endpoints';
+import { usePaginatedList } from '@/hooks/use-paginated';
+import { PageHeader } from '@/components/PageHeader';
+import { Screen } from '@/components/Screen';
 
 /**
  * Notification list (notification_screen parity). On open: clears the app

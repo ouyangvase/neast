@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { sessionStore } from '@neast/types';
 import { Toast } from '@neast/ui-mobile';
 
-import { useTabsStore } from '../stores/tabs';
+import { useTabsStore } from '@/stores/tabs';
 import { setLogoutHandler } from './api';
 import { unregisterPushToken } from './push';
 import { queryClient } from './query';

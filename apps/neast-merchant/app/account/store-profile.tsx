@@ -3,9 +3,9 @@ import { router } from 'expo-router';
 
 import { BrandHeader, Card, coreColors, spacing, textStyles } from '@neast/ui-mobile';
 
-import { useMerchantInfo } from '../../src/hooks/use-merchant';
-import { ErrorState, LoadingState } from '../../src/components/StateViews';
-import { Screen } from '../../src/components/Screen';
+import { useMerchantInfo } from '@/hooks/use-merchant';
+import { ErrorState, LoadingState } from '@/components/StateViews';
+import { Screen } from '@/components/Screen';
 
 /** Store profile (store_profile_screen parity): read-only info from /merchant/info. */
 export default function StoreProfileRoute() {

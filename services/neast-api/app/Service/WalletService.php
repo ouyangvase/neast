@@ -352,38 +352,18 @@ class WalletService
         return 'failed';
     }
 
-    /** Amount shown on the local dev pay page. */
+    /** Amount of the pending user top-up opened by the local pay page. */
     public function devOrderAmount(string $orderId): string
     {
-        return $this->payableH5Order(trim($orderId))['amount'];
+        $topup = UserTopupModel::query()->where('order_id', $orderId)->first();
+
+        return $this->formatAmount($topup->amount);
     }
 
-    /** Settle a pending H5 order the same way a Fiuu status-00 return does. */
+    /** Credit that top-up the same way a Fiuu status-00 return does. */
     public function settleDevOrder(string $orderId, string $channel): void
     {
-        $orderId = trim($orderId);
-        $order = $this->payableH5Order($orderId);
-        $channel = trim($channel);
-
-        if ($order['kind'] === 'user') {
-            $this->completeTopupByOrderId($orderId, 'local', $order['amount'], $channel);
-
-            return;
-        }
-
-        if ($order['kind'] === 'rent') {
-            $this->rentPaymentService->completePayByOrderId($orderId, 'local', $order['amount'], $channel);
-
-            return;
-        }
-
-        if ($order['kind'] === 'merchant') {
-            $this->merchantWalletService->completeTopupByOrderId($orderId, 'local', $order['amount'], $channel);
-
-            return;
-        }
-
-        $this->settlementService->completePayByOrderId($orderId, 'local', $order['amount'], $channel);
+        $this->completeTopupByOrderId($orderId, 'local', $this->devOrderAmount($orderId), $channel);
     }
 
     /**
@@ -603,57 +583,6 @@ class WalletService
         }
 
         throw new AppException('Unknown payment status');
-    }
-
-    /**
-     * Pending order the pay page can settle.
-     *
-     * @return array{kind: 'user'|'rent'|'merchant'|'settlement', amount: string}
-     */
-    private function payableH5Order(string $orderId): array
-    {
-        if ($orderId === '') {
-            throw new AppException('Invalid payment request');
-        }
-
-        $topup = UserTopupModel::query()->where('order_id', $orderId)->first();
-        if ($topup) {
-            if ((int) $topup->status !== UserTopupModel::STATUS_PENDING) {
-                throw new AppException('The order has been paid');
-            }
-
-            return ['kind' => 'user', 'amount' => $this->formatAmount($topup->amount)];
-        }
-
-        $rentHistory = RentHistoryModel::query()
-            ->where('order_id', $orderId)
-            ->where('status', RentHistoryModel::STATUS_PENDING)
-            ->first();
-        if ($rentHistory) {
-            return ['kind' => 'rent', 'amount' => $this->formatAmount($rentHistory->amount)];
-        }
-
-        $merchantTopup = MerchantTopupModel::query()->where('order_id', $orderId)->first();
-        if ($merchantTopup) {
-            if ((int) $merchantTopup->status !== MerchantTopupModel::STATUS_PENDING) {
-                throw new AppException('The order has been paid');
-            }
-
-            return ['kind' => 'merchant', 'amount' => $this->formatAmount($merchantTopup->amount)];
-        }
-
-        $merchantBill = MerchantBillModel::query()
-            ->where('order_id', $orderId)
-            ->where('is_paid', 0)
-            ->first();
-        if ($merchantBill) {
-            return [
-                'kind' => 'settlement',
-                'amount' => $this->formatAmount($merchantBill->pay_amount ?? $merchantBill->amount),
-            ];
-        }
-
-        throw new AppException('Payment order not found');
     }
 
     /**

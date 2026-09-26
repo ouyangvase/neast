@@ -1,8 +1,16 @@
-import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  type StyleProp,
+  type TextStyle,
+  type ViewStyle,
+} from 'react-native';
 
-import { coreColors } from '../tokens/colors';
-import { spacing } from '../tokens/layout';
-import { textStyles } from '../tokens/typography';
+import { coreColors } from '@ui/tokens/colors';
+import { spacing } from '@ui/tokens/layout';
+import { textStyles } from '@ui/tokens/typography';
 
 export interface SectionHeaderProps {
   title: string;
@@ -10,13 +18,20 @@ export interface SectionHeaderProps {
   actionLabel?: string;
   onActionPress?: () => void;
   style?: StyleProp<ViewStyle>;
+  titleStyle?: StyleProp<TextStyle>;
 }
 
 /** Section title row with optional trailing action link. */
-export function SectionHeader({ title, actionLabel, onActionPress, style }: SectionHeaderProps) {
+export function SectionHeader({
+  title,
+  actionLabel,
+  onActionPress,
+  style,
+  titleStyle,
+}: SectionHeaderProps) {
   return (
     <View style={[styles.row, style]}>
-      <Text style={styles.title}>{title}</Text>
+      <Text style={[styles.title, titleStyle]}>{title}</Text>
       {actionLabel ? (
         <Pressable onPress={onActionPress} accessibilityRole="button" hitSlop={8}>
           <Text style={styles.action}>{actionLabel}</Text>

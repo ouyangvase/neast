@@ -15,13 +15,13 @@ import {
   Toast,
 } from '@neast/ui-mobile';
 
-import successImage from '../assets/images/redeem/success.png';
+import successImage from '@assets/images/redeem/success.png';
 
-import { apiErrorMessage } from '../src/lib/api';
-import { getRedeemVoucherArgs } from '../src/lib/callbacks';
-import { redeemCoupon } from '../src/lib/endpoints';
-import { Screen } from '../src/components/Screen';
-import { SuccessDialog } from '../src/components/SuccessDialog';
+import { apiErrorMessage } from '@/lib/api';
+import { getRedeemVoucherArgs } from '@/lib/callbacks';
+import { redeemCoupon } from '@/lib/endpoints';
+import { Screen } from '@/components/Screen';
+import { SuccessDialog } from '@/components/SuccessDialog';
 
 /** Confirm Redeem (redeem_voucher_screen parity): voucher card + detail card + confirm. */
 export default function RedeemVoucherRoute() {

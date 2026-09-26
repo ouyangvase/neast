@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 
 import { QrScannerScreen } from '@neast/ui-mobile';
 
-import { handleScanned } from '../src/lib/callbacks';
+import { handleScanned } from '@/lib/callbacks';
 
 /**
  * QR scanner (qr_scanner_screen parity). Callers use `openScanner(cb)`;

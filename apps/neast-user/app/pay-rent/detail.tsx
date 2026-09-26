@@ -8,15 +8,16 @@ import { MONTH_INDEX, MONTH_NAMES_SHORT } from '@neast/constant';
 import { formatRinggit, RENT_HISTORY_STATUS, RENT_STATUS, type RentPayStatus } from '@neast/types';
 import { Chevron, spacing, userHomeColors } from '@neast/ui-mobile';
 
-import HouseIcon from '../../assets/images/pay_rent/house.svg';
+import HouseIcon from '@assets/images/pay_rent/house.svg';
 
-import { getRentHistory } from '../../src/lib/endpoints';
-import { isPaidHistory, type RentHistoryEntry } from '../../src/lib/types';
-import { useSelectionStore } from '../../src/stores/selection';
-import { ErrorState } from '../../src/components/StateViews';
-import { PageHeader } from '../../src/components/PageHeader';
-import { Screen } from '../../src/components/Screen';
-import { TenancyCard } from '../../src/features/pay-rent/components';
+import { getRentHistory, getRentList } from '@/lib/endpoints';
+import { dueStatusLabel, payStatusLabel } from '@/lib/format';
+import { isPaidHistory, type RentHistoryEntry } from '@/lib/types';
+import { useSelectionStore } from '@/stores/selection';
+import { ErrorState } from '@/components/StateViews';
+import { PageHeader } from '@/components/PageHeader';
+import { Screen } from '@/components/Screen';
+import { TenancyCard } from '@/features/pay-rent/components';
 
 type MonthTone = RentPayStatus | 'empty';
 
@@ -24,6 +25,18 @@ type MonthTone = RentPayStatus | 'empty';
 function monthFromPeriod(rentalPeriod: string): number | null {
   const month = MONTH_INDEX[(rentalPeriod.split(' ')[0] ?? '').toLowerCase()];
   return month || null;
+}
+
+/** Lease months (`first_pay_month` + `lease_months`) that fall in `year`. */
+function leaseMonthsInYear(firstPayMonth: string, leaseMonths: number, year: number): number[] {
+  const [startYear, startMonth] = firstPayMonth.split('-').map(Number);
+  const months: number[] = [];
+  for (let i = 0; i < leaseMonths; i += 1) {
+    const index = startMonth - 1 + i;
+    const y = startYear + Math.floor(index / 12);
+    if (y === year) months.push((index % 12) + 1);
+  }
+  return months;
 }
 
 function monthTone(entry: RentHistoryEntry): MonthTone {
@@ -50,6 +63,12 @@ export default function PayRentDetailRoute() {
   const rent = useSelectionStore((state) => state.rent);
   const setRent = useSelectionStore((state) => state.setRent);
   const year = new Date().getFullYear();
+  const rents = useQuery({
+    queryKey: ['rent-list'],
+    queryFn: getRentList,
+    enabled: !!rent,
+  });
+  const listed = rents.data?.items.find((item) => item.id === rent?.id) ?? rent;
 
   const history = useQuery({
     queryKey: ['rent-detail-history', rent?.id],
@@ -74,6 +93,20 @@ export default function PayRentDetailRoute() {
     return tones;
   }, [yearItems]);
 
+  const yearFullyPaid = useMemo(() => {
+    const current = listed ?? rent;
+    if (!current) return false;
+    const months = leaseMonthsInYear(current.first_pay_month, current.lease_months, year);
+    return (
+      months.length > 0 &&
+      months.every((month) =>
+        yearItems.some(
+          (entry) => monthFromPeriod(entry.rental_period) === month && isPaidHistory(entry),
+        ),
+      )
+    );
+  }, [listed, rent, year, yearItems]);
+
   const recent = useMemo(
     () =>
       (history.data?.items ?? [])
@@ -92,13 +125,35 @@ export default function PayRentDetailRoute() {
     );
   }
 
-  const canPay = rent.can_pay && rent.status === RENT_STATUS.approved;
+  const current = listed ?? rent;
+  const canPay = !!listed && listed.can_pay && listed.status === RENT_STATUS.approved;
+  const canEdit =
+    current.status === RENT_STATUS.pending ||
+    current.status === RENT_STATUS.rejected ||
+    current.status === RENT_STATUS.pendingBind;
 
   return (
     <Screen edges={[]}>
       <PageHeader title="Tenancy" />
       <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 78 }]}>
-        <TenancyCard rent={rent} summary />
+        <TenancyCard rent={current} summary />
+        {canEdit ? (
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => {
+              setRent(current);
+              router.push({
+                pathname: current.property_id
+                  ? '/pay-rent/create/connect'
+                  : '/pay-rent/create/manual',
+                params: { rentId: String(current.id) },
+              });
+            }}
+            style={({ pressed }) => [styles.editButton, pressed && styles.pressed]}
+          >
+            <Text style={styles.payText}>Edit details</Text>
+          </Pressable>
+        ) : null}
 
         <View style={[styles.card, styles.payCard]}>
           <Text style={styles.label}>{year}</Text>
@@ -117,17 +172,18 @@ export default function PayRentDetailRoute() {
             <Legend tone="empty" label="No record" />
           </View>
           <View style={styles.infoLines}>
-            <InfoLine title="Rental Amount" value={formatRinggit(rent.amount)} />
-            <InfoLine
-              title={rent.due_text || 'Due'}
-              value={rent.date_label || 'Payment schedule pending'}
-            />
+            <InfoLine title="Rental Amount" value={formatRinggit(current.amount)} />
+            {yearFullyPaid ? (
+              <InfoLine title={`Fully paid of year of ${year}`} value="" />
+            ) : (
+              <InfoLine title={dueStatusLabel(current.due_status)} value={current.date_label} />
+            )}
           </View>
           {canPay ? (
             <Pressable
               accessibilityRole="button"
               onPress={() => {
-                setRent(rent);
+                setRent(current);
                 router.push('/pay-rent/payment');
               }}
               style={({ pressed }) => [styles.payButton, pressed && styles.pressed]}
@@ -183,7 +239,7 @@ function RecentRow({ entry }: { entry: RentHistoryEntry }) {
       <Text style={styles.recentPeriod} numberOfLines={1}>
         {entry.rental_period}
       </Text>
-      <Text style={styles.recentStatus}>{entry.pay_status === 'on_time' ? 'On time' : 'Due'}</Text>
+      <Text style={styles.recentStatus}>{payStatusLabel(entry.pay_status)}</Text>
       <Text style={styles.recentAmount}>{formatRinggit(entry.amount)}</Text>
     </View>
   );
@@ -264,23 +320,23 @@ const styles = StyleSheet.create({
   recentPeriod: {
     flex: 1,
     color: userHomeColors.textSecondary,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 11,
+    lineHeight: 15,
     fontWeight: '600',
   },
   recentStatus: {
     width: 72,
     color: userHomeColors.textPrimary,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 11,
+    lineHeight: 15,
     fontWeight: '700',
     textAlign: 'center',
   },
   recentAmount: {
     width: 108,
     color: userHomeColors.textPrimary,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 11,
+    lineHeight: 15,
     fontWeight: '700',
     textAlign: 'right',
   },
@@ -325,6 +381,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 16,
     fontWeight: '600',
+  },
+  editButton: {
+    minHeight: 46,
+    borderRadius: 11,
+    backgroundColor: userHomeColors.navy,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
   },
   payButton: {
     minHeight: 36,

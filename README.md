@@ -57,7 +57,7 @@ cd apps/neast-user      # or neast-merchant / neast-owner
 pnpm start              # Expo dev server
 ```
 
-Local app runs call the Docker API. The default base URL is `http://127.0.0.1:9512` (iOS simulator and this Mac). An Android emulator needs `EXPO_PUBLIC_API_URL=http://10.0.2.2:9512`. On a physical device use your machine's LAN IP, e.g. `EXPO_PUBLIC_API_URL=http://192.168.1.10:9512 pnpm start`.
+Local app runs call the Docker API. The default base URL is `http://127.0.0.1:9512` (iOS simulator and this Mac). The user app uses `http://10.0.2.2:9512` on Android when `EXPO_PUBLIC_API_URL` is unset. Merchant and owner still need that variable on an emulator. On a physical device use your machine's LAN IP, e.g. `EXPO_PUBLIC_API_URL=http://192.168.1.10:9512 pnpm start`.
 
 ```bash
 cp services/neast-api/.env.example services/neast-api/.env  # first run only

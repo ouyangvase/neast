@@ -3,7 +3,14 @@
   "compilerOptions": {
     // React 19 types removed the global JSX namespace; use the automatic runtime.
     "jsx": "react-jsx",
-    "types": ["node"]
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@assets/*": ["assets/*"],
+      "@ui/*": ["../ui/mobile/src/*"],
+      "@ui-assets/*": ["../ui/mobile/assets/*"]
+    }
   },
   "include": ["app", "src", "expo-env.d.ts"],
   "exclude": ["node_modules", "dist", ".expo"]

@@ -9,8 +9,8 @@ import {
   type ViewStyle,
 } from 'react-native';
 
-import { coreColors } from '../tokens/colors';
-import { radii } from '../tokens/layout';
+import { coreColors } from '@ui/tokens/colors';
+import { radii } from '@ui/tokens/layout';
 
 export interface OtpInputProps {
   /** Current code (digits only). */

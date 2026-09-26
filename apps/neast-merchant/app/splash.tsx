@@ -5,10 +5,10 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useSessionStatus } from '@neast/types';
 import { coreColors } from '@neast/ui-mobile';
 
-import launchIos from '../assets/images/launch_ios.png';
-import launchAndroid from '../assets/images/launch_android.png';
+import launchIos from '@assets/images/launch_ios.png';
+import launchAndroid from '@assets/images/launch_android.png';
 
-import { navigateAfterSplash } from '../src/lib/auth';
+import { navigateAfterSplash } from '@/lib/auth';
 
 /**
  * Splash (splash_screen parity): mirrors the native splash, waits 1500ms

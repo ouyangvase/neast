@@ -111,6 +111,65 @@ class Rent extends AbstractController
     }
 
     /**
+     * 修改未审核通过的租约
+     */
+    #[Middleware(AppAuthMiddleware::class)]
+    #[RequestMapping(path: 'id/{id}', methods: ['PUT'])]
+    public function update(int $id, RequestInterface $request): ResponseInterface
+    {
+        $validator = di(ValidatorFactory::class)->make($request->all(), [
+            'amount' => 'required|numeric|min:0.01',
+            'file' => 'required|string|max:512',
+            'paid_at' => 'required|integer|min:1|max:31',
+            'first_pay_month' => 'required|date_format:Y-m',
+            'lease_months' => 'required|integer|min:1',
+            'property_id' => 'nullable|integer|min:1',
+            'property_name' => 'nullable|string|max:128',
+            'owner_name' => 'nullable|string|max:128',
+            'landlord_bank' => 'required_without:property_id|string|max:128',
+            'landlord_bank_account' => 'required_without:property_id|string|max:64',
+            'landlord_account_name' => 'required_without:property_id|string|max:128',
+        ], [
+            'amount.required' => 'Rental amount is required',
+            'amount.numeric' => 'Invalid rental amount',
+            'amount.min' => 'Rental amount must be greater than 0',
+            'file.required' => 'Tenancy agreement is required',
+            'file.max' => 'File path is too long',
+            'paid_at.required' => 'Pay date is required',
+            'paid_at.integer' => 'Invalid pay date',
+            'paid_at.min' => 'Pay date must be between 1 and 31',
+            'paid_at.max' => 'Pay date must be between 1 and 31',
+            'first_pay_month.required' => 'First pay month is required',
+            'first_pay_month.date_format' => 'Invalid first pay month',
+            'lease_months.required' => 'Lease term is required',
+            'lease_months.integer' => 'Invalid lease term',
+            'lease_months.min' => 'Lease term must be at least 1 month',
+            'property_id.integer' => 'Invalid property',
+            'property_id.min' => 'Invalid property',
+            'property_name.max' => 'Property name is too long',
+            'owner_name.max' => 'Owner name is too long',
+            'landlord_bank.required_without' => 'Bank name is required',
+            'landlord_bank.max' => 'Bank name is too long',
+            'landlord_bank_account.required_without' => 'Account number is required',
+            'landlord_bank_account.max' => 'Account number is too long',
+            'landlord_account_name.required_without' => 'Account holder is required',
+            'landlord_account_name.max' => 'Account holder is too long',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->error($validator->errors()->first());
+        }
+
+        $auth = Context::get('app_auth');
+
+        return $this->success($this->service->appUpdate(
+            (int) $auth->id,
+            $id,
+            $request->all()
+        ));
+    }
+
+    /**
      * 通过物业 sn 查询房产信息
      */
     #[Middleware(AppAuthMiddleware::class)]

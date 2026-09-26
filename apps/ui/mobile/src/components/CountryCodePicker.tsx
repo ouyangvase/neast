@@ -1,8 +1,8 @@
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { coreColors } from '../tokens/colors';
-import { spacing } from '../tokens/layout';
-import { textStyles } from '../tokens/typography';
+import { coreColors } from '@ui/tokens/colors';
+import { spacing } from '@ui/tokens/layout';
+import { textStyles } from '@ui/tokens/typography';
 import { BottomSheet } from './BottomSheet';
 
 export interface CountryCodePickerProps {

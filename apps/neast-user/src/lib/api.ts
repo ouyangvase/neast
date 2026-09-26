@@ -1,9 +1,11 @@
+import { Platform } from 'react-native';
+
 import { ApiError, createApiClient, type LogoutReason } from '@neast/types';
 
 /**
- * The app's API client (`/app` prefix). Base URL comes from
- * `EXPO_PUBLIC_API_URL`, defaulting to `http://127.0.0.1:9512`
- * (the local Docker API). Android emulator: `http://10.0.2.2:9512`.
+ * The app's API client (`/app` prefix). `EXPO_PUBLIC_API_URL` overrides the
+ * local Docker API. Otherwise iOS uses `http://127.0.0.1:9512` and Android
+ * uses `http://10.0.2.2:9512` (the emulator's address for this machine).
  *
  * Envelope/refresh quirks (raw token header, business-400 refresh with the
  * refresh token as a query param, 200ms GET delay) live in @neast/types.
@@ -17,6 +19,9 @@ export function setLogoutHandler(handler: (reason: LogoutReason) => void): void 
 
 export const api = createApiClient({
   prefix: '/app',
+  baseUrl:
+    process.env.EXPO_PUBLIC_API_URL ??
+    (Platform.OS === 'android' ? 'http://10.0.2.2:9512' : 'http://127.0.0.1:9512'),
   onLogout: (reason) => logoutHandler?.(reason),
 });
 

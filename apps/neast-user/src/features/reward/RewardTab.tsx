@@ -1,6 +1,5 @@
+import { useState } from 'react';
 import {
-  FlatList,
-  Image,
   ImageBackground,
   Pressable,
   RefreshControl,
@@ -11,66 +10,94 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useQuery } from '@tanstack/react-query';
+import { useQueries, useQuery } from '@tanstack/react-query';
 
-import { formatThousands, useIsLoggedIn, type CouponListItem, type RewardTier } from '@neast/types';
+import { useIsLoggedIn, type UserCouponItem, type VoucherStatus } from '@neast/types';
 import {
-  Card,
-  coreColors,
-  GuestLoginPlaceholder,
+  EmptyState,
   radii,
+  RewardCard,
   SectionHeader,
   spacing,
   textStyles,
-  userAccentColors,
   userHomeColors,
+  VoucherCard,
+  type VoucherCardStatus,
 } from '@neast/ui-mobile';
 
-import metallicBackground from '../../../assets/images/home/neast-metallic-background.png';
-import myPointsIcon from '../../../assets/images/reward/my-points-icon.png';
+import metallicBackground from '@assets/images/home/neast-metallic-background.png';
 
-import { useDeviceLocation } from '../../lib/location';
-import { getRewardDashboard } from '../../lib/endpoints';
-import { useSelectionStore } from '../../stores/selection';
-import { DealCard } from '../merchant/components';
-import { tierIcon } from './tier-icons';
+import { getMyCoupons, getRewardDashboard } from '@/lib/endpoints';
+import { useSelectionStore } from '@/stores/selection';
+import { CouponQrDialog, useCouponActions } from '@/features/coupon/components';
+import { PointsSummaryCard } from './components/PointsSummaryCard';
 
-/** Reward tab (reward_screen parity): points, tier progress, featured + nearby rewards. */
+type VoucherFilter = 'All' | VoucherCardStatus;
+
+/** Reward tab: points, tier, featured merchant vouchers, and my vouchers. */
 export function RewardTab() {
   const insets = useSafeAreaInsets();
   const isLoggedIn = useIsLoggedIn();
-  const { coords } = useDeviceLocation();
+  const setCoupon = useSelectionStore((state) => state.setCoupon);
+  const couponActions = useCouponActions();
+  const [voucherFilter, setVoucherFilter] = useState<VoucherFilter>('All');
 
   const dashboard = useQuery({
-    queryKey: ['reward-dashboard', coords?.latitude, coords?.longitude],
-    queryFn: () => getRewardDashboard(coords),
-    enabled: isLoggedIn,
+    queryKey: ['reward-dashboard'],
+    queryFn: () => getRewardDashboard(null),
   });
 
-  if (!isLoggedIn) {
-    return (
-      <View style={styles.container}>
-        <TabBackdrop title="Rewards" paddingTop={insets.top + 8} />
-        <View style={styles.sheet}>
-          <GuestLoginPlaceholder
-            title="Log in to view rewards"
-            message="Earn points on rent and spending, then redeem vouchers."
-            onLoginPress={() => router.push('/login')}
-          />
-        </View>
-      </View>
-    );
-  }
+  const voucherQueries = useQueries({
+    queries: (['active', 'used', 'expired'] as const).map((status) => ({
+      queryKey: ['my-coupons', 'preview', status],
+      queryFn: () => getMyCoupons(1, 4, status),
+      enabled: isLoggedIn,
+    })),
+  });
 
   const data = dashboard.data;
+  const featured = data?.featuredRewards
+    .filter((coupon) => coupon.merchant_names.length > 0)
+    .slice(0, 2);
+  const vouchersByStatus = {
+    Active: voucherQueries[0]?.data?.items ?? [],
+    Used: voucherQueries[1]?.data?.items ?? [],
+    Expired: voucherQueries[2]?.data?.items ?? [],
+  };
+  const visibleVouchers = (
+    voucherFilter === 'All'
+      ? [...vouchersByStatus.Active, ...vouchersByStatus.Used, ...vouchersByStatus.Expired]
+      : vouchersByStatus[voucherFilter]
+  ).slice(0, 4);
+  const hasVouchers =
+    vouchersByStatus.Active.length + vouchersByStatus.Used.length + vouchersByStatus.Expired.length >
+    0;
+  const vouchersPending = voucherQueries.some((query) => query.isLoading);
+
+  const openVoucher = (item: UserCouponItem) => {
+    if (item.voucher_status === 'active') {
+      couponActions.showQr(item);
+      return;
+    }
+    setCoupon(item);
+    router.push({ pathname: '/coupon/detail', params: { id: String(item.id) } });
+  };
 
   return (
     <View style={styles.container}>
       <ScrollView
         refreshControl={
           <RefreshControl
-            refreshing={dashboard.isRefetching}
-            onRefresh={() => dashboard.refetch()}
+            refreshing={
+              dashboard.isRefetching || voucherQueries.some((query) => query.isRefetching)
+            }
+            onRefresh={() => {
+              void dashboard.refetch();
+              if (!isLoggedIn) return;
+              for (const query of voucherQueries) {
+                void query.refetch();
+              }
+            }}
             colors={[userHomeColors.emptyGrey]}
             tintColor={userHomeColors.emptyGrey}
           />
@@ -79,62 +106,128 @@ export function RewardTab() {
       >
         <TabBackdrop title="Rewards" paddingTop={insets.top + 8} />
         <View style={styles.sheet}>
-        <Card style={styles.pointsCard} onPress={() => router.push('/points')}>
-          <View style={styles.pointsRow}>
-            <Image source={myPointsIcon} style={styles.pointsIcon} resizeMode="contain" />
-            <View style={styles.pointsTexts}>
-              <Text style={styles.pointsLabel}>My Points</Text>
-              <Text style={styles.pointsValue}>{formatThousands(data?.points ?? 0)}</Text>
-              {data?.pointsExpiringText ? (
-                <Text style={styles.pointsExpiring}>{data.pointsExpiringText}</Text>
-              ) : null}
-            </View>
-          </View>
-        </Card>
+          {data ? (
+            <PointsSummaryCard
+              points={data.points}
+              pointsExpiringText={data.pointsExpiringText}
+              tier={data.tier}
+              signedOut={!isLoggedIn}
+            />
+          ) : null}
 
-        {data ? <TierProgressCard tier={data.tier} /> : null}
-
-        {data && data.featuredRewards.length > 0 ? (
           <View>
             <SectionHeader
               title="Featured Rewards"
-              actionLabel="See all"
+              titleStyle={styles.sectionTitle}
+              actionLabel="View all"
               onActionPress={() => router.push('/coupon')}
             />
-            <FlatList
-              horizontal
-              data={data.featuredRewards}
-              keyExtractor={(item) => String(item.id)}
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.horizontalList}
-              renderItem={({ item }) => <FeaturedRewardCard coupon={item} />}
-            />
+            {featured && featured.length > 0 ? (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.horizontalList}
+              >
+                {featured.map((coupon) => (
+                  <View key={coupon.id} style={styles.rewardSlot}>
+                    <RewardCard
+                      merchant={coupon.merchant_names.join(' · ')}
+                      title={coupon.name}
+                      points={coupon.required_points}
+                      image={coupon.image ? { uri: coupon.image } : undefined}
+                      onPress={() => {
+                        if (!isLoggedIn) {
+                          router.push('/login');
+                          return;
+                        }
+                        setCoupon(coupon);
+                        router.push('/coupon/detail');
+                      }}
+                    />
+                  </View>
+                ))}
+              </ScrollView>
+            ) : data ? (
+              <EmptyState
+                title="No featured rewards"
+                message="Redeemable vouchers appear here."
+                messageStyle={styles.emptyMessage}
+              />
+            ) : null}
           </View>
-        ) : null}
 
-        {data && data.nearbyRewards.length > 0 ? (
           <View>
             <SectionHeader
-              title="Nearby Rewards"
-              actionLabel="View map"
-              onActionPress={() => router.push('/merchants/map')}
+              title="My Vouchers"
+              titleStyle={styles.sectionTitle}
+              actionLabel="View all"
+              onActionPress={() =>
+                router.push(isLoggedIn ? '/coupon/my-vouchers' : '/login')
+              }
             />
-            <FlatList
-              horizontal
-              data={data.nearbyRewards}
-              keyExtractor={(item) => String(item.id)}
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.horizontalList}
-              renderItem={({ item }) => (
-                <DealCard merchant={item} onPress={() => router.push(`/merchant/${item.id}`)} />
-              )}
-            />
+            {hasVouchers ? (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.chips}
+              >
+                {(['All', 'Active', 'Used', 'Expired'] as const).map((filter) => {
+                  const selected = voucherFilter === filter;
+                  return (
+                    <Pressable
+                      key={filter}
+                      accessibilityRole="button"
+                      onPress={() => setVoucherFilter(filter)}
+                      style={[styles.chip, selected && styles.chipActive]}
+                    >
+                      <Text style={[styles.chipText, selected && styles.chipTextActive]}>
+                        {filter}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
+            ) : null}
+            {vouchersPending ? null : visibleVouchers.length > 0 ? (
+              <View style={styles.voucherList}>
+                {visibleVouchers.map((item) => (
+                  <VoucherCard
+                    key={item.user_coupon_id}
+                    title={item.name}
+                    merchant={item.merchant_names.join(' · ')}
+                    status={voucherStatusLabel(item.voucher_status)}
+                    image={item.image ? { uri: item.image } : undefined}
+                    onPress={() => openVoucher(item)}
+                  />
+                ))}
+              </View>
+            ) : (
+              <EmptyState
+                title={
+                  voucherFilter === 'All'
+                    ? 'No vouchers'
+                    : `No ${voucherFilter.toLowerCase()} vouchers`
+                }
+                message="Redeem vouchers with your points from the catalog."
+                messageStyle={styles.emptyMessage}
+              />
+            )}
           </View>
-        ) : null}
         </View>
       </ScrollView>
+      <CouponQrDialog
+        coupon={couponActions.qrCoupon}
+        visible={!!couponActions.qrCoupon}
+        onClose={couponActions.closeQr}
+      />
     </View>
   );
+}
+
+function voucherStatusLabel(status: VoucherStatus): VoucherCardStatus {
+  if (status === 'used') return 'Used';
+  if (status === 'expired') return 'Expired';
+  return 'Active';
 }
 
 function TabBackdrop({ title, paddingTop }: { title: string; paddingTop: number }) {
@@ -146,61 +239,6 @@ function TabBackdrop({ title, paddingTop }: { title: string; paddingTop: number 
     >
       <Text style={styles.title}>{title}</Text>
     </ImageBackground>
-  );
-}
-
-function TierProgressCard({
-  tier,
-}: {
-  tier: {
-    current: RewardTier;
-    next: RewardTier | null;
-    pointsToNextTier: number;
-    progressCurrent: number;
-    progressTarget: number;
-  };
-}) {
-  const progress =
-    tier.progressTarget > 0 ? Math.min(1, tier.progressCurrent / tier.progressTarget) : 0;
-  return (
-    <Card style={styles.tierCard} onPress={() => router.push('/reward/tier')}>
-      <View style={styles.tierRow}>
-        <Image source={tierIcon(tier.current.id)} style={styles.tierIcon} resizeMode="contain" />
-        <View style={styles.tierTexts}>
-          <Text style={styles.tierName}>{tier.current.name} Tier</Text>
-          {tier.next ? (
-            <Text style={styles.tierNext}>
-              {formatThousands(tier.pointsToNextTier)} pts to {tier.next.name}
-            </Text>
-          ) : (
-            <Text style={styles.tierNext}>Highest tier reached</Text>
-          )}
-        </View>
-      </View>
-      <View style={styles.progressTrack}>
-        <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
-      </View>
-    </Card>
-  );
-}
-
-function FeaturedRewardCard({ coupon }: { coupon: CouponListItem }) {
-  const setCoupon = useSelectionStore((state) => state.setCoupon);
-  return (
-    <Pressable
-      style={styles.rewardItem}
-      onPress={() => {
-        setCoupon(coupon);
-        router.push('/coupon/detail');
-      }}
-      accessibilityRole="button"
-    >
-      <Image source={{ uri: coupon.image }} style={styles.rewardImage} resizeMode="cover" />
-      <Text style={styles.rewardName} numberOfLines={1}>
-        {coupon.name}
-      </Text>
-      <Text style={styles.rewardPoints}>{coupon.required_points} pts</Text>
-    </Pressable>
   );
 }
 
@@ -225,6 +263,14 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: -0.4,
   },
+  sectionTitle: {
+    fontSize: 15,
+    lineHeight: 20,
+  },
+  emptyMessage: {
+    fontSize: 12,
+    lineHeight: 16,
+  },
   sheet: {
     flex: 1,
     marginTop: -36,
@@ -236,91 +282,40 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
   },
-  pointsCard: {
-    marginHorizontal: spacing.lg,
-    backgroundColor: userAccentColors.tierBackground,
-  },
-  pointsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-  },
-  pointsIcon: {
-    width: 44,
-    height: 44,
-  },
-  pointsTexts: {
-    flex: 1,
-  },
-  pointsLabel: {
-    ...textStyles.caption,
-    color: userAccentColors.tierText,
-  },
-  pointsValue: {
-    ...textStyles.numeric,
-    color: userAccentColors.tierText,
-  },
-  pointsExpiring: {
-    ...textStyles.caption,
-    color: coreColors.error,
-    marginTop: 2,
-  },
-  tierCard: {
-    marginHorizontal: spacing.lg,
-  },
-  tierRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-  },
-  tierIcon: {
-    width: 44,
-    height: 44,
-  },
-  tierTexts: {
-    flex: 1,
-  },
-  tierName: {
-    ...textStyles.heading3,
-  },
-  tierNext: {
-    ...textStyles.caption,
-    color: coreColors.textSecondary,
-    marginTop: 2,
-  },
-  progressTrack: {
-    height: 8,
-    borderRadius: radii.pill,
-    backgroundColor: coreColors.divider,
-    marginTop: spacing.md,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: radii.pill,
-    backgroundColor: coreColors.actionGreen,
-  },
   horizontalList: {
     paddingHorizontal: spacing.lg,
+    gap: 12,
   },
-  rewardItem: {
-    width: 140,
-    marginRight: spacing.md,
+  rewardSlot: {
+    width: 250,
   },
-  rewardImage: {
-    width: 140,
-    height: 96,
-    borderRadius: radii.card,
-    backgroundColor: coreColors.divider,
+  chips: {
+    paddingHorizontal: spacing.lg,
+    gap: spacing.sm,
+    paddingBottom: spacing.md,
   },
-  rewardName: {
+  chip: {
+    backgroundColor: userHomeColors.surface,
+    borderRadius: radii.pill,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderWidth: 1,
+    borderColor: userHomeColors.border,
+  },
+  chipActive: {
+    backgroundColor: userHomeColors.royalBlue,
+    borderColor: userHomeColors.royalBlue,
+  },
+  chipText: {
     ...textStyles.bodySmall,
-    fontWeight: '600',
-    marginTop: spacing.sm,
+    color: userHomeColors.textSecondary,
+    fontWeight: '700',
   },
-  rewardPoints: {
-    ...textStyles.caption,
-    color: userAccentColors.pointsDeal,
-    marginTop: 2,
+  chipTextActive: {
+    color: userHomeColors.surface,
+  },
+  voucherList: {
+    paddingHorizontal: spacing.lg,
+    gap: spacing.sm,
   },
 });

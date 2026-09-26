@@ -3,14 +3,16 @@ import { StyleSheet, Text } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
+import type { CreateRentBody } from '@neast/types';
 import { Button, coreColors, textStyles, Toast } from '@neast/ui-mobile';
 
-import { apiErrorMessage } from '../../../src/lib/api';
-import { openScanner } from '../../../src/lib/callbacks';
-import { createRent, getRentPropertyBySn } from '../../../src/lib/endpoints';
-import { PageHeader } from '../../../src/components/PageHeader';
-import { Screen } from '../../../src/components/Screen';
-import { TenancyForm } from '../../../src/features/pay-rent/tenancy-form';
+import { apiErrorMessage } from '@/lib/api';
+import { openScanner } from '@/lib/callbacks';
+import { createRent, getRentPropertyBySn, updateRent } from '@/lib/endpoints';
+import { PageHeader } from '@/components/PageHeader';
+import { Screen } from '@/components/Screen';
+import { TenancyForm } from '@/features/pay-rent/tenancy-form';
+import { useSelectionStore } from '@/stores/selection';
 
 interface ConnectedProperty {
   propertyId: number;
@@ -25,7 +27,10 @@ export default function ConnectTenancyRoute() {
     propertyId?: string;
     propertyName?: string;
     ownerName?: string;
+    rentId?: string;
   }>();
+  const stored = useSelectionStore((state) => state.rent);
+  const editing = params.rentId && stored?.id === Number(params.rentId) ? stored : null;
   const [connected, setConnected] = useState<ConnectedProperty | null>(
     params.propertyName
       ? {
@@ -33,7 +38,13 @@ export default function ConnectTenancyRoute() {
           propertyName: params.propertyName,
           ownerName: params.ownerName ?? '',
         }
-      : null,
+      : editing?.property_id
+        ? {
+            propertyId: editing.property_id,
+            propertyName: editing.property_name,
+            ownerName: editing.landlord_name,
+          }
+        : null,
   );
 
   const scanConnect = () => {
@@ -51,11 +62,12 @@ export default function ConnectTenancyRoute() {
     });
   };
 
-  const createMutation = useMutation({
-    mutationFn: createRent,
+  const saveMutation = useMutation({
+    mutationFn: (body: CreateRentBody) =>
+      editing ? updateRent(editing.id, body) : createRent(body),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['rent-list'] });
-      Toast.success('Tenancy submitted for review');
+      Toast.success(editing ? 'Tenancy updated' : 'Tenancy submitted for review');
       router.back();
     },
     onError: (error) => Toast.error(apiErrorMessage(error)),
@@ -63,9 +75,21 @@ export default function ConnectTenancyRoute() {
 
   return (
     <Screen edges={[]}>
-      <PageHeader title="Connect with owner" />
+      <PageHeader title={editing ? 'Edit tenancy' : 'Connect with owner'} />
       <TenancyForm
-        submitting={createMutation.isPending}
+        submitting={saveMutation.isPending}
+        submitLabel={editing ? 'Save' : 'Submit'}
+        initial={
+          editing
+            ? {
+                amount: editing.amount,
+                paidAt: Number(editing.paid_at),
+                firstPayMonth: editing.first_pay_month,
+                leaseMonths: editing.lease_months,
+                file: editing.file,
+              }
+            : undefined
+        }
         leading={
           <>
             {connected ? (
@@ -85,7 +109,7 @@ export default function ConnectTenancyRoute() {
             Toast.error("Scan the owner's QR code");
             return;
           }
-          createMutation.mutate({
+          saveMutation.mutate({
             ...values,
             property_name: connected.propertyName,
             property_id: connected.propertyId,

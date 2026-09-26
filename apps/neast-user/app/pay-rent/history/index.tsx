@@ -4,14 +4,14 @@ import { router } from 'expo-router';
 
 import { RefreshList, userHomeColors } from '@neast/ui-mobile';
 
-import { getRentHistory } from '../../../src/lib/endpoints';
-import { yearChips } from '../../../src/lib/format';
-import type { RentHistoryEntry } from '../../../src/lib/types';
-import { usePaginatedList } from '../../../src/hooks/use-paginated';
-import { useSelectionStore } from '../../../src/stores/selection';
-import { HistoryRow } from '../../../src/features/pay-rent/components';
-import { PageHeader } from '../../../src/components/PageHeader';
-import { Screen } from '../../../src/components/Screen';
+import { getRentHistory } from '@/lib/endpoints';
+import { yearChips } from '@/lib/format';
+import type { RentHistoryEntry } from '@/lib/types';
+import { usePaginatedList } from '@/hooks/use-paginated';
+import { useSelectionStore } from '@/stores/selection';
+import { HistoryRow } from '@/features/pay-rent/components';
+import { PageHeader } from '@/components/PageHeader';
+import { Screen } from '@/components/Screen';
 
 /** Full rent history (rent_history_screen parity): year filter chips. */
 export default function RentHistoryRoute() {

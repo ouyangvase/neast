@@ -23,7 +23,7 @@ Spec source: `docs/users.md` (30 routes, 49 endpoints, 4 tabs).
 | 12  | `/wallet`                  | `app/wallet/index.tsx`                                                   | ✅ balance, presets [500/1000/1500/2000] + custom, records + MonthPicker                                         |
 | 13  | `/wallet/payment`          | `app/wallet/payment.tsx`                                                 | ✅ quote w/ local fallback, FPX picker, create → H5 → success dialog                                             |
 | 14  | `/pay-h5-webview`          | `app/pay-h5-webview.tsx`                                                 | ✅ shared `FiuuH5WebView` + callback store (pop-with-result parity)                                              |
-| 15  | `/points`                  | `app/points/index.tsx`                                                   | ✅ dashboard, tier, expiring, voucher count                                                                      |
+| 15  | `/points`                  | —                                                                            | removed; balance and expiry stay on the Reward tab                                                                  |
 | 16  | `/points/history`          | `app/points/history.tsx`                                                 | ✅ paginated logs                                                                                                |
 | 17  | `/reward/tier`             | `app/reward/tier.tsx`                                                    | ✅ current progress + tier list (icons id 1–5)                                                                   |
 | 18  | `/coupon`                  | `app/coupon/index.tsx`                                                   | ✅ category chips + paginated list (guest-browsable)                                                             |
@@ -53,9 +53,10 @@ post-auth replay, ToastHost.
 `src/features/home/HomeTab.tsx` mirrors the tenant web home (`NEAST-source/apps/neast`) as a
 thin composition of `src/features/home/components/`, top → bottom:
 
-1. **Header** (deepBlue `#031B58` + metallic background art): NEAST text wordmark,
-   one-line `Hello, {firstName}` greeting, then bell and scan (both `#0851AA` circles).
-   Guests tap either icon to go to `/login`. Logged in: bell (unread badge) → `/notification`,
+1. **Header** (deepBlue `#031B58` + metallic background art): white NEAST mark
+   (`hone_logo.png`), one-line `Hello, {firstName}` greeting, then bell and scan
+   (both `#0851AA` circles, 32px). Guests tap either icon to go to `/login`.
+   Logged in: bell (unread count, `99+` above 99) → `/notification`,
    scan looks up `getRentPropertyBySn` and opens
    `/pay-rent/create/connect` with that property filled in (otherwise “Property not found”).
 2. **AmountCard** — guest: "Rent, made simple." / "Sign in to pay rent" → `/login`; logged in
@@ -79,6 +80,21 @@ Removed from home: Today's Reward card, My Vouchers card, old `PromoCarousel`,
 `GuestLoginPlaceholder` (guest sign-in now lives in AmountCard). Home renders
 `dashboard.banners` again.
 
+## Account tab
+
+`src/features/account/AccountTab.tsx`, top → bottom:
+
+1. **Identity** on the metallic navy header: cream avatar, name, and phone.
+   Guests see "Welcome to NEAST" and a Sign in button. The row opens
+   `/personal-data` (guests: `/login`).
+2. **My QR** is the only card → `/account/my-qr` (guests: `/login`).
+3. **Table** under that card, full width, one row per line: Wallet (`formatRinggit`),
+   TENT score, Personal Information, Privacy & Security, Terms & Conditions. No points
+   row and no notifications row. Value rows open `/wallet` and `/account/tent-score`.
+   Guests read "Sign in" and go to `/login`. Privacy and Terms stay on `/rich-text`.
+4. Logged in only, still in that table: Log Out (confirm alert) and Delete Account
+   (10s countdown).
+
 ## Endpoints (49)
 
 App-level wrappers live in `src/lib/endpoints.ts`; upload/push/refresh are inside
@@ -93,7 +109,7 @@ App-level wrappers live in `src/lib/endpoints.ts`; upload/push/refresh are insid
 | 5   | `GET /app/user/profile`           | `getUserProfile`                                    | `useUserProfile` (Account, Home, personal-data, my-qr)         |
 | 6   | `POST /app/user/profile`          | `updateUserProfile`                                 | `app/full-data.tsx`, `app/personal-data/edit.tsx`              |
 | 7   | `POST /app/user/delete-account`   | `deleteAccount`                                     | `AccountTab` (10s CountdownConfirmDialog)                      |
-| 8   | `GET /app/user/tent-score`        | `getTentScore`                                      | `app/account/tent-score.tsx`                                   |
+| 8   | `GET /app/user/tent-score`        | `getTentScore`                                      | `AccountTab` snapshot, `app/account/tent-score.tsx`            |
 | 9   | `GET /app/config`                 | `getAppConfig`                                      | `useAppConfig` (fee fallback, alpha notice)                    |
 | 10  | `GET /app/home/dashboard`         | `getHomeDashboard`                                  | `HomeTab`                                                      |
 | 11  | `GET /app/rent/list`              | `getRentList`                                       | `PayRentTab`                       |
@@ -108,7 +124,7 @@ App-level wrappers live in `src/lib/endpoints.ts`; upload/push/refresh are insid
 | 21  | `GET /app/wallet/topup/list`      | `getWalletTopups`                                   | `wallet` (month filter)                                        |
 | 22  | `POST /app/wallet/topup/create`   | `createWalletTopup`                                 | `wallet/payment`, `pay-rent/payment` (when balance is short)   |
 | 23  | `GET /app/payment/quote`          | `getPaymentQuote`                                   | `wallet/payment`, `pay-rent/payment` (local fallback on error) |
-| 24  | `GET /app/points/dashboard`       | `getPointsDashboard`                                | `points`                                                       |
+| 24  | `GET /app/points/dashboard`       | —                                                   | API remains; user app no longer calls it                       |
 | 25  | `GET /app/points/logs`            | `getPointsLogs`                                     | `points/history`                                               |
 | 26  | `GET /app/reward/dashboard`       | `getRewardDashboard`                                | `RewardTab`, `reward/tier`                                     |
 | 27  | `GET /app/coupon/categories`      | `getCouponCategories`                               | `coupon`                                                       |
@@ -126,7 +142,7 @@ App-level wrappers live in `src/lib/endpoints.ts`; upload/push/refresh are insid
 | 39  | `GET /app/merchant/nearby`        | `getNearbyMerchants`                                | `merchants/map`                                                |
 | 40  | `GET /app/message/list`           | `getMessages`                                       | `notification`                                                 |
 | 41  | `POST /app/message/read-all`      | `markAllMessagesRead`                               | `notification` (on focus)                                      |
-| 42  | `GET /app/message/has-unread`     | `getHasUnread`                                      | `HomeTab` bell dot, `AccountTab` menu dot                      |
+| 42  | `GET /app/message/has-unread`     | `getHasUnread`                                      | `HomeTab` bell count (`unread_count`)                              |
 | 43  | `GET /app/refer/dashboard`        | `getReferDashboard`                                 | `refer`                                                        |
 | 44  | `GET /app/agreement/detail`       | `getAgreement`                                      | `rich-text`                                                    |
 | 45  | `POST /app/push/add-fcm-token`    | `@neast/types` `registerFcmToken`                   | `src/lib/push.ts` (on login)                                   |

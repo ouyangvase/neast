@@ -14,11 +14,11 @@ import {
   Toast,
 } from '@neast/ui-mobile';
 
-import { apiErrorMessage } from '../src/lib/api';
-import { navigateAfterAuth } from '../src/lib/auth';
-import { login, register, sendCode } from '../src/lib/endpoints';
-import { useCountdown } from '../src/hooks/use-countdown';
-import { Screen } from '../src/components/Screen';
+import { apiErrorMessage } from '@/lib/api';
+import { navigateAfterAuth } from '@/lib/auth';
+import { login, register, sendCode } from '@/lib/endpoints';
+import { useCountdown } from '@/hooks/use-countdown';
+import { Screen } from '@/components/Screen';
 
 /** OTP verification (verify_screen parity): 6-digit code + 60s resend countdown. */
 export default function VerifyRoute() {

@@ -3,9 +3,9 @@ import { useEffect, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { coreColors } from '../tokens/colors';
-import { radii, spacing } from '../tokens/layout';
-import { textStyles } from '../tokens/typography';
+import { coreColors } from '@ui/tokens/colors';
+import { radii, spacing } from '@ui/tokens/layout';
+import { textStyles } from '@ui/tokens/typography';
 import { Button } from './Button';
 import { Chevron } from './Chevron';
 

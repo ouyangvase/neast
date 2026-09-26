@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import { registerFcmToken, sessionStore, unregisterFcmToken } from '@neast/types';
 
 import { api } from './api';
+import { queryClient } from './query';
 
 /**
  * Push notifications (push_notification_service.dart parity).
@@ -32,7 +33,7 @@ function handleNotificationResponse(response: Notifications.NotificationResponse
     return;
   }
   if (type === 'PointAdd') {
-    router.push('/points');
+    router.push('/points/history');
   } else if (type === 'Coupon') {
     router.push('/coupon/my-vouchers');
   } else {
@@ -58,6 +59,9 @@ export async function initPushNotifications(): Promise<void> {
   });
 
   Notifications.addNotificationResponseReceivedListener(handleNotificationResponse);
+  Notifications.addNotificationReceivedListener(() => {
+    void queryClient.invalidateQueries({ queryKey: ['has-unread'] });
+  });
 
   const current = await Notifications.getPermissionsAsync();
   const permissions = current.granted ? current : await Notifications.requestPermissionsAsync();

@@ -17,13 +17,13 @@ import {
   useUiTheme,
 } from '@neast/ui-mobile';
 
-import manualIcon from '../../../assets/images/scan/manual.png';
-import photosIcon from '../../../assets/images/scan/photos.png';
+import manualIcon from '@assets/images/scan/manual.png';
+import photosIcon from '@assets/images/scan/photos.png';
 
-import { apiErrorMessage } from '../../lib/api';
-import { openRedeemVoucher, openScanner } from '../../lib/callbacks';
-import { verifyCoupon } from '../../lib/endpoints';
-import { useMerchantInfo } from '../../hooks/use-merchant';
+import { apiErrorMessage } from '@/lib/api';
+import { openRedeemVoucher, openScanner } from '@/lib/callbacks';
+import { verifyCoupon } from '@/lib/endpoints';
+import { useMerchantInfo } from '@/hooks/use-merchant';
 
 /**
  * Scan tab (scan_screen parity): tap-to-scan frame, manual 6-char voucher

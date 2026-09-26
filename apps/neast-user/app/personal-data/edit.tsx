@@ -5,12 +5,12 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { Button, spacing, TextField, Toast } from '@neast/ui-mobile';
 
-import { apiErrorMessage } from '../../src/lib/api';
-import { updateUserProfile } from '../../src/lib/endpoints';
-import { useUserProfile } from '../../src/hooks/use-profile';
-import { DatePickerField, fromYmd, toYmd } from '../../src/components/DatePickerField';
-import { PageHeader } from '../../src/components/PageHeader';
-import { Screen } from '../../src/components/Screen';
+import { apiErrorMessage } from '@/lib/api';
+import { updateUserProfile } from '@/lib/endpoints';
+import { useUserProfile } from '@/hooks/use-profile';
+import { DatePickerField, fromYmd, toYmd } from '@/components/DatePickerField';
+import { PageHeader } from '@/components/PageHeader';
+import { Screen } from '@/components/Screen';
 
 /**
  * Single-field editor (personal_data_edit_screen parity). The wire body

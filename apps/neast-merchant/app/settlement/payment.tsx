@@ -18,24 +18,24 @@ import {
   type FpxBank,
 } from '@neast/ui-mobile';
 
-import successImage from '../../assets/images/settlement/success.png';
+import successImage from '@assets/images/settlement/success.png';
 
-import { apiErrorMessage } from '../../src/lib/api';
-import { openH5WebView } from '../../src/lib/callbacks';
+import { apiErrorMessage } from '@/lib/api';
+import { openH5WebView } from '@/lib/callbacks';
 import {
   createSettlementPayment,
   getSettlementOverview,
   paySettlementByWallet,
-} from '../../src/lib/endpoints';
-import { settlementDueLabel } from '../../src/lib/format';
+} from '@/lib/endpoints';
+import { settlementDueLabel } from '@/lib/format';
 import {
   buildPaymentMethodOptions,
   fiuuChannelFor,
   totalWithFee,
-} from '../../src/lib/payment-methods';
-import { useMerchantConfig, useMerchantInfo } from '../../src/hooks/use-merchant';
-import { Screen } from '../../src/components/Screen';
-import { SuccessDialog } from '../../src/components/SuccessDialog';
+} from '@/lib/payment-methods';
+import { useMerchantConfig, useMerchantInfo } from '@/hooks/use-merchant';
+import { Screen } from '@/components/Screen';
+import { SuccessDialog } from '@/components/SuccessDialog';
 
 /**
  * Settlement payment (settlement_payment_screen parity): FPX (bank picker),

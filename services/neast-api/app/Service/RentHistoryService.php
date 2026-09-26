@@ -440,7 +440,14 @@ class RentHistoryService
 
         if ($status === RentHistoryModel::STATUS_PAID || $status === RentHistoryModel::STATUS_SETTLED) {
             $userPaidAt = $this->extractDateOnly((string) ($row['user_paid_at'] ?? ''));
-            if ($lastPaidDate !== '' && $userPaidAt !== '' && $userPaidAt > $lastPaidDate) {
+            $openedAt = $this->extractDateOnly((string) ($row['created_at'] ?? ''));
+            $paidAfterDue = $lastPaidDate !== '' && $userPaidAt !== '' && $userPaidAt > $lastPaidDate;
+            // A backdated installment paid the day it was opened could not have been paid by its due date.
+            $paidWhenOpened = $paidAfterDue
+                && $openedAt !== ''
+                && $userPaidAt === $openedAt
+                && $openedAt > $lastPaidDate;
+            if ($paidAfterDue && ! $paidWhenOpened) {
                 return 'late';
             }
 
@@ -455,14 +462,13 @@ class RentHistoryService
     }
 
     /**
-     * 可支付待还：status=pending 且 last_paid_date 在当月或往月。
+     * 可支付待还：任意未付期，含未到到期月的下一期。
      *
      * @param \Hyperf\Database\Model\Builder $query
      */
     public function applyPayablePendingScope($query): void
     {
-        $query->where('status', RentHistoryModel::STATUS_PENDING)
-            ->where('last_paid_date', '<=', date('Y-m-t'));
+        $query->where('status', RentHistoryModel::STATUS_PENDING);
     }
 
     /**
@@ -523,42 +529,32 @@ class RentHistoryService
     }
 
     /**
-     * @return array{due_text: string, date_label: string}
+     * @return array{due_status: string, date_label: string}
      */
-    public function formatRentDueLabels(?string $lastPaidDate): array
+    public function formatRentDueLabels(?string $lastPaidDate, ?string $tenancyCreatedAt): array
     {
-        $dueDate = $this->extractDateOnly(trim((string) ($lastPaidDate ?? '')));
+        $dueDate = $this->extractDateOnly((string) $lastPaidDate);
         if ($dueDate === '') {
             return [
-                'due_text' => '',
+                'due_status' => '',
                 'date_label' => '',
             ];
         }
 
-        $dueTimestamp = strtotime($dueDate);
-        $todayTimestamp = strtotime(date('Y-m-d'));
-        if ($dueTimestamp === false || $todayTimestamp === false) {
-            return [
-                'due_text' => '',
-                'date_label' => '',
-            ];
-        }
-
-        $days = (int) floor(($dueTimestamp - $todayTimestamp) / 86400);
+        $days = (int) floor((strtotime($dueDate) - strtotime(date('Y-m-d'))) / 86400);
+        $createdDate = $this->extractDateOnly((string) $tenancyCreatedAt);
         $dateLabel = $this->formatEnglishDateLabel($dueDate);
 
-        if ($days > 0) {
-            $dueText = $days === 1
-                ? 'Due in 1 day'
-                : 'Due in ' . $days . ' days';
-        } elseif ($days === 0) {
-            $dueText = 'Due today';
+        if ($days === 0) {
+            $dueStatus = 'due_today';
+        } elseif ($days > 0 || $dueDate < $createdDate) {
+            $dueStatus = 'advance';
         } else {
-            $dueText = 'Overdue';
+            $dueStatus = 'overdue';
         }
 
         return [
-            'due_text' => $dueText,
+            'due_status' => $dueStatus,
             'date_label' => $dateLabel,
         ];
     }

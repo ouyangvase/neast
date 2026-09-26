@@ -14,10 +14,10 @@ import {
   useUiTheme,
 } from '@neast/ui-mobile';
 
-import { getAckList } from '../src/lib/endpoints';
-import { useSelectionStore } from '../src/stores/selection';
-import { ErrorState, ListSkeleton } from '../src/components/StateViews';
-import { Screen } from '../src/components/Screen';
+import { getAckList } from '@/lib/endpoints';
+import { useSelectionStore } from '@/stores/selection';
+import { ErrorState, ListSkeleton } from '@/components/StateViews';
+import { Screen } from '@/components/Screen';
 
 /** Ack list (ack_list_screen parity): settled payments awaiting receipt confirmation. */
 export default function AckListRoute() {

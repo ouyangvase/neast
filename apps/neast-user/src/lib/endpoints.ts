@@ -20,7 +20,6 @@ import type {
   NearbyMerchantResponse,
   PaginatedList,
   PaymentQuote,
-  PointsDashboard,
   PointsLogListResponse,
   RedeemCouponResponse,
   ReferInfo,
@@ -88,6 +87,9 @@ export const getRentPropertyBySn = (sn: string) => api.get<RentProperty>('rent/p
 export const createRent = (body: CreateRentBody) =>
   api.post<CreateRentResponse>('rent/create', body);
 
+export const updateRent = (rentId: number, body: CreateRentBody) =>
+  api.put<CreateRentResponse>(`rent/id/${rentId}`, body);
+
 export const getRentHistory = (query: {
   page?: number;
   limit?: number;
@@ -133,8 +135,6 @@ export const getPaymentQuote = (amount: string) =>
   api.get<PaymentQuote>('payment/quote', { amount });
 
 // ---- Points ----
-
-export const getPointsDashboard = () => api.get<PointsDashboard>('points/dashboard');
 
 export const getPointsLogs = (page: number, limit = 15) =>
   api.get<PointsLogListResponse>('points/logs', { page, limit });

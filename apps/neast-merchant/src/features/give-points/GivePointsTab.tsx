@@ -15,29 +15,29 @@ import {
   UploadProgressDialog,
 } from '@neast/ui-mobile';
 
-import headerImage from '../../../assets/images/give_points/header.png';
-import CameraIcon from '../../../assets/images/give_points/camera.svg';
-import ruleIcon from '../../../assets/images/give_points/rule-icon.png';
-import stat1Icon from '../../../assets/images/give_points/stat1.png';
-import stat2Icon from '../../../assets/images/give_points/stat2.png';
-import stat3Icon from '../../../assets/images/give_points/stat3.png';
-import stat4Icon from '../../../assets/images/give_points/stat4.png';
+import headerImage from '@assets/images/give_points/header.png';
+import CameraIcon from '@assets/images/give_points/camera.svg';
+import ruleIcon from '@assets/images/give_points/rule-icon.png';
+import stat1Icon from '@assets/images/give_points/stat1.png';
+import stat2Icon from '@assets/images/give_points/stat2.png';
+import stat3Icon from '@assets/images/give_points/stat3.png';
+import stat4Icon from '@assets/images/give_points/stat4.png';
 
-import { Screen } from '../../components/Screen';
-import { openReceiptDetails, type ReceiptCaptureResult } from '../../lib/callbacks';
+import { Screen } from '@/components/Screen';
+import { openReceiptDetails, type ReceiptCaptureResult } from '@/lib/callbacks';
 import {
   getGivePointsStats,
   getPointsSetting,
   getTodayCommission,
-} from '../../lib/endpoints';
+} from '@/lib/endpoints';
 import {
   captureReceiptFromCamera,
   compressReceipt,
   pickReceiptFromLibrary,
   type CapturedReceipt,
-} from '../../lib/receipt';
-import { useMerchantInfo } from '../../hooks/use-merchant';
-import { useFileUpload } from '../../hooks/use-upload';
+} from '@/lib/receipt';
+import { useMerchantInfo } from '@/hooks/use-merchant';
+import { useFileUpload } from '@/hooks/use-upload';
 
 /**
  * Give Points tab (give_points_screen parity): header, today stats card,

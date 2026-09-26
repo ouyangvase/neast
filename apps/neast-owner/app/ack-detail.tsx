@@ -13,12 +13,12 @@ import {
   Toast,
 } from '@neast/ui-mobile';
 
-import { apiErrorMessage } from '../src/lib/api';
-import { confirmAck } from '../src/lib/endpoints';
-import { useFileViewer } from '../src/hooks/use-file-viewer';
-import { useSelectionStore } from '../src/stores/selection';
-import { ErrorState } from '../src/components/StateViews';
-import { Screen } from '../src/components/Screen';
+import { apiErrorMessage } from '@/lib/api';
+import { confirmAck } from '@/lib/endpoints';
+import { useFileViewer } from '@/hooks/use-file-viewer';
+import { useSelectionStore } from '@/stores/selection';
+import { ErrorState } from '@/components/StateViews';
+import { Screen } from '@/components/Screen';
 
 /** Ack detail (ack_detail_screen parity): confirm receipt of a settled rent payment. */
 export default function AckDetailRoute() {

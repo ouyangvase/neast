@@ -5,13 +5,13 @@ import { useQuery } from '@tanstack/react-query';
 
 import { RefreshList, spacing } from '@neast/ui-mobile';
 
-import { getRentHistory } from '../../../src/lib/endpoints';
-import { isPaidHistory, type RentHistoryEntry } from '../../../src/lib/types';
-import { useSelectionStore } from '../../../src/stores/selection';
-import { ErrorState } from '../../../src/components/StateViews';
-import { PageHeader } from '../../../src/components/PageHeader';
-import { Screen } from '../../../src/components/Screen';
-import { HistoryRow } from '../../../src/features/pay-rent/components';
+import { getRentHistory } from '@/lib/endpoints';
+import { isPaidHistory, type RentHistoryEntry } from '@/lib/types';
+import { useSelectionStore } from '@/stores/selection';
+import { ErrorState } from '@/components/StateViews';
+import { PageHeader } from '@/components/PageHeader';
+import { Screen } from '@/components/Screen';
+import { HistoryRow } from '@/features/pay-rent/components';
 
 /** Paid history for the selected tenancy. */
 export default function TenancyRecentPaymentsRoute() {

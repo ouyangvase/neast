@@ -8,8 +8,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { sessionStore, useIsLoggedIn, useSessionStatus } from '@neast/types';
 import { ToastHost, UiThemeProvider } from '@neast/ui-mobile';
 
-import '../src/lib/auth'; // registers the session-expired logout handler
-import { queryClient } from '../src/lib/query';
+import '@/lib/auth'; // registers the session-expired logout handler
+import { queryClient } from '@/lib/query';
 
 void SplashScreen.preventAutoHideAsync();
 

@@ -5,21 +5,21 @@ import { useFocusEffect } from 'expo-router';
 import { useIsLoggedIn } from '@neast/types';
 import { coreColors, TabBar, Toast, type TabBarItem } from '@neast/ui-mobile';
 
-import HomeIcon from '../assets/images/main/home.svg';
-import HomeActiveIcon from '../assets/images/main/home-act.svg';
-import PropertiesIcon from '../assets/images/main/properties.svg';
-import PropertiesActiveIcon from '../assets/images/main/properties-act.svg';
-import RecordsIcon from '../assets/images/main/records.svg';
-import RecordsActiveIcon from '../assets/images/main/records-act.svg';
-import AccountIcon from '../assets/images/main/account.svg';
-import AccountActiveIcon from '../assets/images/main/account-act.svg';
+import HomeIcon from '@assets/images/main/home.svg';
+import HomeActiveIcon from '@assets/images/main/home-act.svg';
+import PropertiesIcon from '@assets/images/main/properties.svg';
+import PropertiesActiveIcon from '@assets/images/main/properties-act.svg';
+import RecordsIcon from '@assets/images/main/records.svg';
+import RecordsActiveIcon from '@assets/images/main/records-act.svg';
+import AccountIcon from '@assets/images/main/account.svg';
+import AccountActiveIcon from '@assets/images/main/account-act.svg';
 
-import { initPushNotifications } from '../src/lib/push';
-import { useTabsStore, type MainTab } from '../src/stores/tabs';
-import { AccountTab } from '../src/features/account/AccountTab';
-import { HomeTab } from '../src/features/home/HomeTab';
-import { PropertiesTab } from '../src/features/properties/PropertiesTab';
-import { RecordsTab } from '../src/features/records/RecordsTab';
+import { initPushNotifications } from '@/lib/push';
+import { useTabsStore, type MainTab } from '@/stores/tabs';
+import { AccountTab } from '@/features/account/AccountTab';
+import { HomeTab } from '@/features/home/HomeTab';
+import { PropertiesTab } from '@/features/properties/PropertiesTab';
+import { RecordsTab } from '@/features/records/RecordsTab';
 
 const TAB_ITEMS: TabBarItem[] = [
   {

@@ -22,14 +22,14 @@ import {
   textStyles,
 } from '@neast/ui-mobile';
 
-import headerBg from '../../../assets/images/home/header-bg.png';
-import msgIcon from '../../../assets/images/home/msg-icon.png';
-import addPropertyIcon from '../../../assets/images/home/quick_actions/add_property.png';
+import headerBg from '@assets/images/home/header-bg.png';
+import msgIcon from '@assets/images/home/msg-icon.png';
+import addPropertyIcon from '@assets/images/home/quick_actions/add_property.png';
 
-import { getHomeDashboard } from '../../lib/endpoints';
-import { useSelectionStore } from '../../stores/selection';
-import { ErrorState, LoadingState } from '../../components/StateViews';
-import { useAddPropertyGate } from '../properties/AddPropertyGate';
+import { getHomeDashboard } from '@/lib/endpoints';
+import { useSelectionStore } from '@/stores/selection';
+import { ErrorState, LoadingState } from '@/components/StateViews';
+import { useAddPropertyGate } from '@/features/properties/AddPropertyGate';
 
 /** Home tab (home_screen parity): dashboard header, need-action, portfolio, quick actions. */
 export function HomeTab() {

@@ -3,7 +3,7 @@ import { useRef, useState } from 'react';
 import { UploadCancelledError, type UploadFileInput } from '@neast/types';
 import { Toast } from '@neast/ui-mobile';
 
-import { api, apiErrorMessage } from '../lib/api';
+import { api, apiErrorMessage } from '@/lib/api';
 
 /**
  * Chunked-upload driver (uploadServiceProvider + upload_progress_dialog

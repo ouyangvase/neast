@@ -14,12 +14,12 @@ import {
   useUiTheme,
 } from '@neast/ui-mobile';
 
-import logo from '../assets/images/app_header.png';
+import logo from '@assets/images/app_header.png';
 
-import { apiErrorMessage } from '../src/lib/api';
-import { navigateAfterAuth } from '../src/lib/auth';
-import { login } from '../src/lib/endpoints';
-import { Screen } from '../src/components/Screen';
+import { apiErrorMessage } from '@/lib/api';
+import { navigateAfterAuth } from '@/lib/auth';
+import { login } from '@/lib/endpoints';
+import { Screen } from '@/components/Screen';
 
 /** Login (login_screen parity): email + password only — no register, no OTP. */
 export default function LoginRoute() {

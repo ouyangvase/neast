@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { useIsLoggedIn } from '@neast/types';
 import { Chevron, userHomeColors } from '@neast/ui-mobile';
 
-import tierBadge from '../../../../assets/images/home/reference-tier-badge.png';
+import tierBadge from '@assets/images/home/reference-tier-badge.png';
 
 interface JourneyPromoProps {
   /** e.g. "14 Month Streak, don't stop!"; undefined while the dashboard loads. */
@@ -58,8 +58,8 @@ const styles = StyleSheet.create({
   },
   headline: {
     color: userHomeColors.surface,
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: 13,
+    lineHeight: 18,
     fontWeight: '600',
   },
   headlineMuted: {

@@ -15,14 +15,14 @@ import {
   Toast,
 } from '@neast/ui-mobile';
 
-import { apiErrorMessage } from '../../src/lib/api';
-import { openH5WebView } from '../../src/lib/callbacks';
-import { createWalletTopup, getPaymentQuote } from '../../src/lib/endpoints';
-import { buildLocalPaymentQuote, totalForMethod } from '../../src/lib/format';
-import { useAppConfig } from '../../src/hooks/use-profile';
-import { buildPaymentMethodOptions, fiuuChannelFor } from '../../src/lib/payment-methods';
-import { PageHeader } from '../../src/components/PageHeader';
-import { Screen } from '../../src/components/Screen';
+import { apiErrorMessage } from '@/lib/api';
+import { openH5WebView } from '@/lib/callbacks';
+import { createWalletTopup, getPaymentQuote } from '@/lib/endpoints';
+import { buildLocalPaymentQuote, totalForMethod } from '@/lib/format';
+import { useAppConfig } from '@/hooks/use-profile';
+import { buildPaymentMethodOptions, fiuuChannelFor } from '@/lib/payment-methods';
+import { PageHeader } from '@/components/PageHeader';
+import { Screen } from '@/components/Screen';
 
 /**
  * Wallet payment (wallet_payment_screen parity): quote + method + FPX bank →
