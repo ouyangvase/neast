@@ -6,7 +6,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { coreColors } from '@ui/tokens/colors';
 import { radii, spacing } from '@ui/tokens/layout';
 import { textStyles } from '@ui/tokens/typography';
-import { Button } from './Button';
 import { Chevron } from './Chevron';
 
 export interface QrScannerScreenProps {
@@ -29,7 +28,14 @@ export function QrScannerScreen({
   const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const scannedRef = useRef(false);
+  const askedRef = useRef(false);
   const scanLine = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (!permission || permission.granted || askedRef.current) return;
+    askedRef.current = true;
+    void requestPermission();
+  }, [permission, requestPermission]);
 
   useEffect(() => {
     const loop = Animated.loop(
@@ -54,17 +60,18 @@ export function QrScannerScreen({
 
   if (!permission.granted) {
     return (
-      <View style={[styles.container, styles.centered]}>
+      <View style={styles.container}>
         <Text style={styles.permissionText}>Camera access is required to scan QR codes.</Text>
-        <Button
-          title="Grant permission"
-          onPress={() => {
-            void requestPermission();
-          }}
-          fullWidth={false}
-        />
         {onClose ? (
-          <Button title="Back" variant="ghost" onPress={onClose} fullWidth={false} />
+          <Pressable
+            onPress={onClose}
+            accessibilityRole="button"
+            accessibilityLabel="Back"
+            hitSlop={12}
+            style={[styles.back, { top: insets.top + spacing.md }]}
+          >
+            <Chevron direction="left" color={coreColors.white} />
+          </Pressable>
         ) : null}
       </View>
     );
@@ -115,16 +122,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: coreColors.black,
   },
-  centered: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: spacing.xl,
-    gap: spacing.md,
-  },
   permissionText: {
     ...textStyles.body,
     color: coreColors.white,
     textAlign: 'center',
+    marginTop: 'auto',
+    marginBottom: 'auto',
+    marginHorizontal: spacing.xl,
   },
   overlay: {
     position: 'absolute',

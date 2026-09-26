@@ -128,9 +128,7 @@ export default function PayRentDetailRoute() {
   const current = listed ?? rent;
   const canPay = !!listed && listed.can_pay && listed.status === RENT_STATUS.approved;
   const canEdit =
-    current.status === RENT_STATUS.pending ||
-    current.status === RENT_STATUS.rejected ||
-    current.status === RENT_STATUS.pendingBind;
+    current.status === RENT_STATUS.pending || current.status === RENT_STATUS.rejected;
   const showAction = canEdit || canPay;
 
   return (

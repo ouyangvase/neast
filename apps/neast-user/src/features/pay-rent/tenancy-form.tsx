@@ -1,13 +1,15 @@
 import { useState, type ReactNode } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { DAY_OPTIONS, LEASE_MONTH_OPTIONS } from '@neast/constant';
 import {
   BottomSheet,
+  Button,
   Card,
-  coreColors,
   DocumentIcon,
+  MonthPicker,
+  SelectField,
   spacing,
   TextField,
   textStyles,
@@ -17,13 +19,7 @@ import {
   userHomeColors,
 } from '@neast/ui-mobile';
 
-import {
-  monthOptionLabel,
-  monthOptionValue,
-  ordinalDay,
-  upcomingMonths,
-  type MonthOption,
-} from '@/lib/format';
+import { monthOptionLabel, monthOptionValue, ordinalDay, upcomingMonths } from '@/lib/format';
 import { pickDocumentFile, pickImageFile } from '@/lib/pickers';
 import { useFileUpload } from '@/hooks/use-upload';
 
@@ -44,7 +40,7 @@ export interface TenancyFormInitial {
   file: string;
 }
 
-/** Shared rent fields, agreement upload, and floating submit for both add-tenancy pages. */
+/** Shared rent fields, agreement upload, and footer submit for both add-tenancy pages. */
 export function TenancyForm({
   leading,
   submitting,
@@ -63,7 +59,7 @@ export function TenancyForm({
   const now = new Date();
   const [amount, setAmount] = useState(initial?.amount ?? '');
   const [payDay, setPayDay] = useState(initial?.paidAt ?? 1);
-  const [firstPayMonth, setFirstPayMonth] = useState<MonthOption>(
+  const [firstPayMonth, setFirstPayMonth] = useState(
     initial
       ? {
           year: Number(initial.firstPayMonth.slice(0, 4)),
@@ -113,67 +109,56 @@ export function TenancyForm({
   };
 
   return (
-    <View style={styles.flex}>
+    <View style={styles.body}>
       <ScrollView
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 78 }]}
+        contentContainerStyle={styles.scroll}
       >
-        {leading}
-        <TextField
-          label="Monthly rent (RM)"
-          value={amount}
-          onChangeText={setAmount}
-          keyboardType="decimal-pad"
-          placeholder="0.00"
-        />
-        <SelectorRow
-          label="Pay day of month"
-          value={ordinalDay(payDay)}
-          onPress={() => setDayPickerVisible(true)}
-        />
-        <SelectorRow
-          label="First payment month"
-          value={monthOptionLabel(firstPayMonth)}
-          onPress={() => setMonthPickerVisible(true)}
-        />
-        <SelectorRow
-          label="Lease duration"
-          value={`${leaseMonths} months`}
-          onPress={() => setLeasePickerVisible(true)}
-        />
-        {__DEV__ ? null : (
-          <Card style={styles.agreementCard} onPress={() => setAgreementPickerVisible(true)}>
-            {agreementName ? (
-              <DocumentIcon size={24} color={userHomeColors.navy} />
-            ) : (
-              <UploadIcon size={24} color={userHomeColors.navy} />
-            )}
-            <View style={styles.agreementText}>
-              <Text style={styles.agreementTitle}>Tenancy agreement</Text>
-              <Text style={styles.agreementSubtitle}>
-                {agreementName ?? 'Upload a photo or PDF of your agreement'}
-              </Text>
-            </View>
-          </Card>
-        )}
+        <Card style={styles.fields}>
+          {leading}
+          <TextField
+            label="Monthly rent (RM)"
+            value={amount}
+            onChangeText={setAmount}
+            keyboardType="decimal-pad"
+            placeholder="0.00"
+          />
+          <SelectField
+            label="Pay day of month"
+            value={ordinalDay(payDay)}
+            onPress={() => setDayPickerVisible(true)}
+          />
+          <SelectField
+            label="First payment month"
+            value={monthOptionLabel(firstPayMonth)}
+            onPress={() => setMonthPickerVisible(true)}
+          />
+          <SelectField
+            label="Lease duration"
+            value={`${leaseMonths} months`}
+            onPress={() => setLeasePickerVisible(true)}
+          />
+          {__DEV__ ? null : (
+            <SelectField
+              label="Tenancy agreement"
+              value={agreementName ?? undefined}
+              placeholder="Upload a photo or PDF"
+              left={
+                agreementName ? (
+                  <DocumentIcon size={20} color={userHomeColors.navy} />
+                ) : (
+                  <UploadIcon size={20} color={userHomeColors.navy} />
+                )
+              }
+              onPress={() => setAgreementPickerVisible(true)}
+            />
+          )}
+        </Card>
       </ScrollView>
 
-      <Pressable
-        accessibilityRole="button"
-        disabled={submitting}
-        onPress={submit}
-        style={({ pressed }) => [
-          styles.submit,
-          { bottom: insets.bottom + 16 },
-          pressed && styles.pressed,
-        ]}
-      >
-        {submitting ? (
-          <ActivityIndicator color={userHomeColors.surface} />
-        ) : (
-          <Text style={styles.submitText}>{submitLabel}</Text>
-        )}
-      </Pressable>
+      <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}>
+        <Button title={submitLabel} onPress={submit} loading={submitting} />
+      </View>
 
       <UploadProgressDialog
         visible={upload.progress !== null}
@@ -188,38 +173,37 @@ export function TenancyForm({
         onClose={() => setDayPickerVisible(false)}
         title="Pay day of month"
       >
-        <ScrollView style={styles.pickerScroll}>
-          {DAY_OPTIONS.map((day) => (
-            <PickerOption
-              key={day}
-              label={ordinalDay(day)}
-              onPress={() => {
-                setPayDay(day);
-                setDayPickerVisible(false);
-              }}
-            />
-          ))}
-        </ScrollView>
+        <View style={styles.dayGrid}>
+          {DAY_OPTIONS.map((day) => {
+            const selected = day === payDay;
+            return (
+              <Pressable
+                key={day}
+                accessibilityRole="button"
+                accessibilityState={{ selected }}
+                onPress={() => {
+                  setPayDay(day);
+                  setDayPickerVisible(false);
+                }}
+                style={styles.dayCell}
+              >
+                <View style={[styles.dayDot, selected && styles.dayDotSelected]}>
+                  <Text style={[styles.dayText, selected && styles.dayTextSelected]}>{day}</Text>
+                </View>
+              </Pressable>
+            );
+          })}
+        </View>
       </BottomSheet>
 
-      <BottomSheet
+      <MonthPicker
         visible={monthPickerVisible}
         onClose={() => setMonthPickerVisible(false)}
+        onSelect={setFirstPayMonth}
+        selected={firstPayMonth}
+        months={upcomingMonths()}
         title="First payment month"
-      >
-        <ScrollView style={styles.pickerScroll}>
-          {upcomingMonths().map((option) => (
-            <PickerOption
-              key={monthOptionValue(option)}
-              label={monthOptionLabel(option)}
-              onPress={() => {
-                setFirstPayMonth(option);
-                setMonthPickerVisible(false);
-              }}
-            />
-          ))}
-        </ScrollView>
-      </BottomSheet>
+      />
 
       <BottomSheet
         visible={leasePickerVisible}
@@ -230,6 +214,7 @@ export function TenancyForm({
           <PickerOption
             key={months}
             label={`${months} months`}
+            selected={months === leaseMonths}
             onPress={() => {
               setLeaseMonths(months);
               setLeasePickerVisible(false);
@@ -262,100 +247,88 @@ export function TenancyForm({
   );
 }
 
-function SelectorRow({
+function PickerOption({
   label,
-  value,
+  selected = false,
   onPress,
 }: {
   label: string;
-  value: string;
+  selected?: boolean;
   onPress: () => void;
 }) {
   return (
-    <View>
-      <Text style={styles.selectorLabel}>{label}</Text>
-      <Pressable style={styles.selector} onPress={onPress} accessibilityRole="button">
-        <Text style={styles.selectorValue}>{value}</Text>
-      </Pressable>
-    </View>
-  );
-}
-
-function PickerOption({ label, onPress }: { label: string; onPress: () => void }) {
-  return (
-    <Pressable style={styles.option} onPress={onPress} accessibilityRole="button">
-      <Text style={styles.optionText}>{label}</Text>
+    <Pressable
+      style={[styles.option, selected && styles.optionSelected]}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
+    >
+      <Text style={[styles.optionText, selected && styles.optionTextSelected]}>{label}</Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  flex: {
+  body: {
     flex: 1,
+    backgroundColor: userHomeColors.background,
   },
   scroll: {
     padding: spacing.lg,
-    gap: spacing.md,
   },
-  selectorLabel: {
-    ...textStyles.bodySmall,
-    fontWeight: '500',
-    marginBottom: spacing.sm,
+  fields: {
+    gap: spacing.lg,
   },
-  selector: {
-    borderWidth: 1,
-    borderColor: coreColors.border,
-    borderRadius: 8,
-    backgroundColor: coreColors.white,
-    paddingHorizontal: spacing.md,
-    minHeight: 48,
-    justifyContent: 'center',
+  footer: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    backgroundColor: userHomeColors.background,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: userHomeColors.border,
   },
-  selectorValue: {
-    ...textStyles.body,
-  },
-  agreementCard: {
+  dayGrid: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
+    flexWrap: 'wrap',
   },
-  agreementText: {
-    flex: 1,
-    gap: 2,
-  },
-  agreementTitle: {
-    ...textStyles.body,
-    fontWeight: '600',
-  },
-  agreementSubtitle: {
-    ...textStyles.caption,
-  },
-  submit: {
-    position: 'absolute',
-    left: 14,
-    right: 14,
-    minHeight: 46,
-    borderRadius: 11,
-    backgroundColor: userHomeColors.navy,
+  dayCell: {
+    width: `${100 / 7}%`,
+    aspectRatio: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 16,
   },
-  submitText: {
-    color: userHomeColors.surface,
-    fontSize: 14,
+  dayDot: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dayDotSelected: {
+    backgroundColor: userHomeColors.navy,
+  },
+  dayText: {
+    color: userHomeColors.textPrimary,
+    fontSize: 15,
+    lineHeight: 20,
     fontWeight: '600',
   },
-  pressed: {
-    opacity: 0.7,
-  },
-  pickerScroll: {
-    maxHeight: 320,
+  dayTextSelected: {
+    color: userHomeColors.surface,
   },
   option: {
-    paddingVertical: spacing.md,
+    minHeight: 48,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.sm,
+    borderRadius: 8,
+  },
+  optionSelected: {
+    backgroundColor: userHomeColors.lightBlue,
   },
   optionText: {
     ...textStyles.body,
+  },
+  optionTextSelected: {
+    color: userHomeColors.navy,
+    fontWeight: '600',
   },
 });

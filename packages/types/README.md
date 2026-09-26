@@ -101,7 +101,7 @@ workers, `/merchant` = 256KB × 8 workers. Cancellation rejects with
 PaymentQuote, PointsDashboard, RewardDashboard, CouponListItem, UserCouponItem,
 MerchantListItem, ReferInfo, TentScore, HomeDashboard, AppConfig, …),
 `contracts/landlord` (LandlordInfo, LandlordHomeDashboard, LandlordDueItem,
-LandlordAckItem, LandlordBindRequestItem, LandlordProperty, LandlordPortfolio,
+LandlordAckItem, LandlordProperty, LandlordPortfolio,
 LandlordRentDetail, …), `contracts/merchant` (MerchantInfo, VerifyCouponResponse,
 GivePointsStats, SettlementOverview, DailyClosingSummary, MerchantTopupItem, …),
 `contracts/common` (PaginatedList, AuthTokens, MessageItem, AgreementDetail,

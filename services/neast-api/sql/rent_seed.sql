@@ -21,10 +21,11 @@ INSERT INTO `t_rent` (
   `landlord_id`,
   `owner_name`,
   `status`,
+  `link_status`,
   `landlord_bank`,
   `landlord_bank_account`,
   `landlord_account_name`,
   `created_at`,
   `updated_at`
 ) VALUES
-(1, 1800.50, '/uploads/rent/voucher-20260215.jpg', 15, '2026-01-01', 12, '2026-12-31', NULL, 'Smoke Villa', @landlord_id, '', 1, 'Maybank', '512345678901', 'Ahmad Property', NOW(), NOW());
+(1, 1800.50, '/uploads/rent/voucher-20260215.jpg', 15, '2026-01-01', 12, '2026-12-31', NULL, 'Smoke Villa', @landlord_id, '', 1, 'none', 'Maybank', '512345678901', 'Ahmad Property', NOW(), NOW());

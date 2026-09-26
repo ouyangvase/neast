@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import type { CreateRentBody } from '@neast/types';
-import { Button, coreColors, textStyles, Toast } from '@neast/ui-mobile';
+import { Chevron, QrCodeIcon, Toast, userHomeColors } from '@neast/ui-mobile';
 
 import { apiErrorMessage } from '@/lib/api';
 import { openScanner } from '@/lib/callbacks';
@@ -91,18 +91,36 @@ export default function ConnectTenancyRoute() {
             : undefined
         }
         leading={
-          <>
-            {connected ? (
-              <Text style={styles.connectedCopy}>
-                Connected: {connected.ownerName} · {connected.propertyName}
-              </Text>
-            ) : null}
-            <Button
-              title={connected ? 'Scan a different owner QR' : 'Scan owner QR'}
-              variant="outline"
+          connected ? (
+            <View style={styles.connected}>
+              <Text style={styles.eyebrow}>Connected</Text>
+              <Text style={styles.propertyName}>{connected.propertyName}</Text>
+              <Text style={styles.ownerName}>{connected.ownerName}</Text>
+              <Pressable
+                accessibilityRole="button"
+                onPress={scanConnect}
+                style={({ pressed }) => [styles.rescan, pressed && styles.pressed]}
+              >
+                <Text style={styles.rescanText}>Scan a different owner QR</Text>
+                <Chevron direction="right" color={userHomeColors.navy} size={8} />
+              </Pressable>
+            </View>
+          ) : (
+            <Pressable
+              accessibilityRole="button"
               onPress={scanConnect}
-            />
-          </>
+              style={({ pressed }) => [styles.scanRow, pressed && styles.pressed]}
+            >
+              <View style={styles.iconWell}>
+                <QrCodeIcon size={22} color={userHomeColors.navy} />
+              </View>
+              <View style={styles.scanCopy}>
+                <Text style={styles.scanTitle}>Scan owner QR</Text>
+                <Text style={styles.scanSubtitle}>Link a property already on NEAST</Text>
+              </View>
+              <Chevron direction="right" color={userHomeColors.textSecondary} size={8} />
+            </Pressable>
+          )
         }
         onSubmit={(values) => {
           if (!connected) {
@@ -121,8 +139,76 @@ export default function ConnectTenancyRoute() {
 }
 
 const styles = StyleSheet.create({
-  connectedCopy: {
-    ...textStyles.bodySmall,
-    color: coreColors.brandBlue,
+  scanRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    minHeight: 72,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: userHomeColors.background,
+  },
+  iconWell: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: userHomeColors.lightBlue,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scanCopy: {
+    flex: 1,
+    gap: 2,
+  },
+  scanTitle: {
+    color: userHomeColors.textPrimary,
+    fontSize: 16,
+    lineHeight: 22,
+    fontWeight: '600',
+  },
+  scanSubtitle: {
+    color: userHomeColors.textSecondary,
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  connected: {
+    gap: 2,
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: userHomeColors.background,
+  },
+  eyebrow: {
+    color: userHomeColors.navy,
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: '700',
+  },
+  propertyName: {
+    color: userHomeColors.textPrimary,
+    fontSize: 16,
+    lineHeight: 22,
+    fontWeight: '700',
+  },
+  ownerName: {
+    color: userHomeColors.textSecondary,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  rescan: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 6,
+    marginTop: 8,
+  },
+  rescanText: {
+    color: userHomeColors.navy,
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '600',
+  },
+  pressed: {
+    opacity: 0.7,
   },
 });

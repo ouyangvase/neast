@@ -83,10 +83,16 @@ export const RENT_STATUS = {
   pending: 0,
   approved: 1,
   rejected: 2,
-  pendingBind: 3,
   terminated: 4,
 } as const;
 export type RentStatus = (typeof RENT_STATUS)[keyof typeof RENT_STATUS];
+
+export const LINK_STATUS = {
+  none: 'none',
+  pending: 'pending',
+  approved: 'approved',
+} as const;
+export type LinkStatus = (typeof LINK_STATUS)[keyof typeof LINK_STATUS];
 
 /** GET /app/rent/list item (`RentModel::formatAppListItem`). */
 export interface RentListItem {
@@ -103,7 +109,9 @@ export interface RentListItem {
   /** `Y-m-d`. */
   expire_date: string;
   status: RentStatus;
-  /** Set when the tenancy was created from an owner QR. */
+  /** `none` until a property is attached. `pending` waits for admin. `approved` is connected. */
+  link_status: LinkStatus;
+  /** Set when the tenancy is attached to an owner property. */
   property_id: number | null;
   landlord_id: number;
   landlord_name: string;
@@ -115,7 +123,7 @@ export interface RentListItem {
   /** Typed contact for an owner who is not a NEAST landlord. */
   owner_email: string;
   owner_phone: string;
-  /** True when `landlord_id` is set. */
+  /** True when `landlord_id` is set. The card label uses `link_status`. */
   owner_linked: boolean;
   property_name: string;
   /** Public URL of the linked property photo. Empty when unbound. */

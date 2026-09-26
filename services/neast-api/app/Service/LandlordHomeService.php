@@ -13,9 +13,6 @@ use Hyperf\Di\Annotation\Inject;
 class LandlordHomeService
 {
     #[Inject]
-    protected LandlordBindRequestService $bindRequestService;
-
-    #[Inject]
     protected MessageService $messageService;
     /**
      * 房东端首页聚合数据
@@ -74,7 +71,6 @@ class LandlordHomeService
 
         $needAckItems = $this->needAckList($landlordId);
         $needAckCount = count($needAckItems);
-        $bindReqCount = $this->bindRequestService->count($landlordId);
 
         $withRelations = $this->ackWithRelations();
 
@@ -118,12 +114,10 @@ class LandlordHomeService
                 'overdue' => $overdueCount,
                 'due_soon' => $dueSoonCount,
                 'need_ack' => $needAckCount,
-                'bind_req' => $bindReqCount,
             ],
             'overdue_list' => $overdueList,
             'due_soon_list' => $dueSoonList,
             'need_ack' => $needAckHistory,
-            'bind_request' => $this->bindRequestService->first($landlordId),
             'portfolio' => [
                 'properties' => $propertyCount,
                 'tenants' => $tenantCount,

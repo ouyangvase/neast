@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import type { CreateRentBody } from '@neast/types';
-import { JourneyBar, TextField, Toast, userHomeColors } from '@neast/ui-mobile';
+import { Button, Card, JourneyBar, spacing, TextField, Toast, userHomeColors } from '@neast/ui-mobile';
 
 import { apiErrorMessage } from '@/lib/api';
 import { createRent, updateRent } from '@/lib/endpoints';
@@ -87,8 +87,18 @@ export default function ManualTenancyRoute() {
           }
           leading={
             <>
-              <TextField label="Property name" value={propertyName} onChangeText={setPropertyName} />
-              <TextField label="Owner name" value={ownerName} onChangeText={setOwnerName} />
+              <TextField
+                label="Property name"
+                value={propertyName}
+                onChangeText={setPropertyName}
+                placeholder="Apartment or house name"
+              />
+              <TextField
+                label="Owner name"
+                value={ownerName}
+                onChangeText={setOwnerName}
+                placeholder="Name on the agreement"
+              />
             </>
           }
           onSubmit={(values) => {
@@ -147,36 +157,27 @@ function PayoutStep({
 
   return (
     <View style={styles.step}>
-      <ScrollView
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 78 }]}
-      >
-        <Text style={styles.copy}>Where should this rent be paid out?</Text>
-        <TextField label="Bank name" value={bankName} onChangeText={onBankName} />
-        <TextField
-          label="Account number"
-          value={bankAccount}
-          onChangeText={onBankAccount}
-          keyboardType="number-pad"
-        />
-        <TextField label="Account holder" value={accountHolder} onChangeText={onAccountHolder} />
+      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scroll}>
+        <Card style={styles.fields}>
+          <Text style={styles.copy}>Where should this rent be paid out?</Text>
+          <TextField label="Bank name" value={bankName} onChangeText={onBankName} />
+          <TextField
+            label="Account number"
+            value={bankAccount}
+            onChangeText={onBankAccount}
+            keyboardType="number-pad"
+          />
+          <TextField
+            label="Account holder"
+            value={accountHolder}
+            onChangeText={onAccountHolder}
+            placeholder="Name on the account"
+          />
+        </Card>
       </ScrollView>
-      <Pressable
-        accessibilityRole="button"
-        disabled={submitting}
-        onPress={onSubmit}
-        style={({ pressed }) => [
-          styles.submit,
-          { bottom: insets.bottom + 16 },
-          pressed && styles.pressed,
-        ]}
-      >
-        {submitting ? (
-          <ActivityIndicator color={userHomeColors.surface} />
-        ) : (
-          <Text style={styles.submitText}>{submitLabel}</Text>
-        )}
-      </Pressable>
+      <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}>
+        <Button title={submitLabel} onPress={onSubmit} loading={submitting} />
+      </View>
     </View>
   );
 }
@@ -184,36 +185,27 @@ function PayoutStep({
 const styles = StyleSheet.create({
   step: {
     flex: 1,
+    backgroundColor: userHomeColors.background,
   },
   hidden: {
     display: 'none',
   },
   scroll: {
-    padding: 16,
-    gap: 12,
+    padding: spacing.lg,
+  },
+  fields: {
+    gap: spacing.lg,
   },
   copy: {
     color: userHomeColors.textSecondary,
     fontSize: 14,
     lineHeight: 20,
   },
-  submit: {
-    position: 'absolute',
-    left: 14,
-    right: 14,
-    minHeight: 46,
-    borderRadius: 11,
-    backgroundColor: userHomeColors.navy,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 16,
-  },
-  submitText: {
-    color: userHomeColors.surface,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  pressed: {
-    opacity: 0.7,
+  footer: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    backgroundColor: userHomeColors.background,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: userHomeColors.border,
   },
 });

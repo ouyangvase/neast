@@ -49,9 +49,8 @@ class LandlordPropertyService
         $name = trim((string) ($params['name'] ?? ''));
         $address = trim((string) ($params['address'] ?? ''));
         $image = trim((string) ($params['image'] ?? ''));
-        $file = trim((string) ($params['file'] ?? ''));
 
-        if ($name === '' || $address === '' || $image === '' || $file === '') {
+        if ($name === '' || $address === '' || $image === '') {
             throw new AppException('Invalid property data');
         }
 
@@ -61,7 +60,6 @@ class LandlordPropertyService
         $property->name = $name;
         $property->address = $address;
         $property->image = $image;
-        $property->file = $file;
         $property->save();
 
         return $this->formatProperty($property->toArray());
@@ -96,7 +94,6 @@ class LandlordPropertyService
     private function formatProperty(array $data): array
     {
         $data['image'] = $this->resolveFileUrl((string) ($data['image'] ?? ''));
-        $data['file'] = $this->resolveFileUrl((string) ($data['file'] ?? ''));
 
         return $data;
     }

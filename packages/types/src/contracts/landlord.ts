@@ -108,19 +108,6 @@ export interface LandlordAckItem {
   file_url: string;
 }
 
-export interface LandlordBindRequestItem {
-  id: number;
-  initials: string;
-  user_name: string;
-  rent: string;
-  /** e.g. `Day 5`. */
-  payday: string;
-  property_name: string;
-  property_address: string;
-  rental_date: string;
-  file_url: string;
-}
-
 /** GET /landlord/home/detail response. */
 export interface LandlordHomeDashboard {
   has_unread_message: boolean;
@@ -134,12 +121,10 @@ export interface LandlordHomeDashboard {
     overdue: number;
     due_soon: number;
     need_ack: number;
-    bind_req: number;
   };
   overdue_list: LandlordDueItem[];
   due_soon_list: LandlordDueItem[];
   need_ack: LandlordAckItem | null;
-  bind_request: LandlordBindRequestItem | null;
   portfolio: {
     properties: number;
     tenants: number;
@@ -148,7 +133,7 @@ export interface LandlordHomeDashboard {
 }
 
 // ---------------------------------------------------------------------------
-// Ack / bind requests
+// Ack
 // ---------------------------------------------------------------------------
 
 /** GET /landlord/ack/list response — full list, NOT paginated. */
@@ -161,22 +146,11 @@ export interface ConfirmAckBody {
   id: number;
 }
 
-/** GET /landlord/bind-request/list response (unpaginated). */
-export interface BindRequestListResponse {
-  items: LandlordBindRequestItem[];
-}
-
-/** POST /landlord/bind-request/audit body. */
-export interface AuditBindRequestBody {
-  id: number;
-  result: 'approved' | 'rejected';
-}
-
 // ---------------------------------------------------------------------------
 // Property
 // ---------------------------------------------------------------------------
 
-/** Landlord property (image/file resolved to absolute URLs by the backend). */
+/** Landlord property (image resolved to an absolute URL by the backend). */
 export interface LandlordProperty {
   id: number;
   landlord_id: number;
@@ -184,7 +158,6 @@ export interface LandlordProperty {
   name: string;
   address: string;
   image: string;
-  file: string;
   created_at: string;
   updated_at: string;
 }
@@ -194,9 +167,8 @@ export type LandlordPropertyListResponse = PaginatedList<LandlordProperty>;
 export interface CreatePropertyBody {
   name: string;
   address: string;
-  /** Uploaded file paths from /landlord/upload/*. */
+  /** Uploaded photo path from /landlord/upload/*. */
   image: string;
-  file: string;
 }
 
 // ---------------------------------------------------------------------------

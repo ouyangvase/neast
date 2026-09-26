@@ -143,7 +143,7 @@ class RentService
         $query = RentModel::query()
             ->with([
                 'user:id,account,first_name,last_name',
-                'landlord:id,name',
+                'landlord:id,name,bank_name,bank_account,account_holder_name',
                 'property:id,name,address',
             ]);
 
@@ -281,6 +281,9 @@ class RentService
             $rent->lease_months = $leaseMonths;
             $rent->expire_date = $this->calculateExpireDate($leaseMonths, $createdAt);
             $rent->status = RentModel::STATUS_APPROVED;
+            if ((int) ($rent->property_id ?? 0) > 0) {
+                $rent->link_status = RentModel::LINK_APPROVED;
+            }
             $rent->save();
 
             $this->historyService->createBatchForRentAudit($rent, $schedule);
@@ -368,8 +371,8 @@ class RentService
             throw new AppException('Rent is already terminated');
         }
 
-        if (! in_array($status, [RentModel::STATUS_APPROVED, RentModel::STATUS_PENDING_BIND], true)) {
-            throw new AppException('Only approved or pending bind records can be terminated');
+        if ($status !== RentModel::STATUS_APPROVED) {
+            throw new AppException('Only approved records can be terminated');
         }
 
         Db::transaction(function () use ($rent, $reason, $terminatedBy) {
@@ -509,7 +512,8 @@ class RentService
             $rent->property_id = $propertyId;
             $rent->landlord_id = (int) $property->landlord_id;
             $rent->property_name = (string) $property->name;
-            $rent->status = RentModel::STATUS_PENDING_BIND;
+            $rent->status = RentModel::STATUS_PENDING;
+            $rent->link_status = RentModel::LINK_PENDING;
         } else {
             $propertyName = trim((string) ($params['property_name'] ?? ''));
             if ($propertyName === '') {
@@ -517,6 +521,7 @@ class RentService
             }
             $rent->property_name = $propertyName;
             $rent->status = RentModel::STATUS_PENDING;
+            $rent->link_status = RentModel::LINK_NONE;
             $rent->owner_name = trim((string) ($params['owner_name'] ?? ''));
             $rent->landlord_bank = trim((string) ($params['landlord_bank'] ?? ''));
             $rent->landlord_bank_account = trim((string) ($params['landlord_bank_account'] ?? ''));
@@ -549,7 +554,6 @@ class RentService
         if (! in_array($status, [
             RentModel::STATUS_PENDING,
             RentModel::STATUS_REJECTED,
-            RentModel::STATUS_PENDING_BIND,
         ], true)) {
             throw new AppException('Only a pending or rejected tenancy can be edited');
         }
@@ -598,11 +602,10 @@ class RentService
         $rent->expire_date = $this->calculateExpireDate($leaseMonths, Carbon::parse((string) $rent->created_at));
 
         if ($propertyChanged) {
-            $rent->status = RentModel::STATUS_PENDING_BIND;
+            $rent->status = RentModel::STATUS_PENDING;
+            $rent->link_status = RentModel::LINK_PENDING;
         } elseif ($status === RentModel::STATUS_REJECTED) {
-            $rent->status = $rent->rejected_by === RentModel::REJECTED_BY_OWNER
-                ? RentModel::STATUS_PENDING_BIND
-                : RentModel::STATUS_PENDING;
+            $rent->status = RentModel::STATUS_PENDING;
         }
 
         $rent->rejected_by = '';
@@ -638,6 +641,73 @@ class RentService
             'owner_email' => (string) $rent->owner_email,
             'owner_phone' => (string) $rent->owner_phone,
         ];
+    }
+
+    /**
+     * 把未绑定物业的租约连到业主二维码。租客已填字段保持不变。
+     *
+     * @return array<string, mixed>
+     */
+    public function appLink(int $userId, int $rentId, string $sn): array
+    {
+        $rent = RentModel::query()
+            ->where('id', $rentId)
+            ->where('user_id', $userId)
+            ->first();
+
+        if (! $rent) {
+            throw new AppException('Rent not found');
+        }
+
+        if ((int) $rent->property_id > 0) {
+            throw new AppException('This tenancy is already linked to a property');
+        }
+
+        $status = (int) $rent->status;
+        if (! in_array($status, [
+            RentModel::STATUS_PENDING,
+            RentModel::STATUS_REJECTED,
+            RentModel::STATUS_APPROVED,
+        ], true)) {
+            throw new AppException('This tenancy cannot be linked');
+        }
+
+        $property = LandlordPropertyModel::query()->where('sn', $sn)->first();
+        if (! $property) {
+            throw new AppException('Property not found');
+        }
+
+        $landlord = LandlordModel::query()->find((int) $property->landlord_id);
+        if ($landlord === null || trim((string) $landlord->bank_account) === '') {
+            throw new AppException('Landlord bank details are incomplete');
+        }
+
+        $rent->property_id = (int) $property->id;
+        $rent->landlord_id = (int) $property->landlord_id;
+        $rent->link_status = RentModel::LINK_PENDING;
+
+        if ($status === RentModel::STATUS_REJECTED) {
+            $rent->status = RentModel::STATUS_PENDING;
+            $rent->rejected_by = '';
+        }
+
+        $rent->save();
+
+        return $this->formatAppItem($rent);
+    }
+
+    /**
+     * 已审核通过的租约：确认待审的业主关联，不改租期、协议和银行。
+     */
+    public function confirmLink(int $id): void
+    {
+        $rent = $this->findOrFail($id);
+        if ((int) $rent->status !== RentModel::STATUS_APPROVED || $rent->link_status !== RentModel::LINK_PENDING) {
+            throw new AppException('Only an approved tenancy with a pending link can be confirmed');
+        }
+
+        $rent->link_status = RentModel::LINK_APPROVED;
+        $rent->save();
     }
 
     /**
@@ -747,6 +817,7 @@ class RentService
             'lease_months' => (int) ($rent->lease_months ?? 0),
             'expire_date' => $rent->expire_date?->format('Y-m-d') ?? '',
             'status' => $rent->status,
+            'link_status' => $rent->link_status,
             'property_id' => $rent->property_id ? (int) $rent->property_id : null,
             'landlord_id' => $landlordId,
             'landlord_name' => $landlordName,
@@ -812,6 +883,9 @@ class RentService
         $data['landlord_bank'] = trim((string) ($rent->landlord_bank ?? ''));
         $data['landlord_bank_account'] = trim((string) ($rent->landlord_bank_account ?? ''));
         $data['landlord_account_name'] = trim((string) ($rent->landlord_account_name ?? ''));
+        $data['owner_bank'] = trim((string) ($landlord?->bank_name ?? ''));
+        $data['owner_bank_account'] = trim((string) ($landlord?->bank_account ?? ''));
+        $data['owner_account_name'] = trim((string) ($landlord?->account_holder_name ?? ''));
         $data['terminated_at'] = $rent->terminated_at?->format('Y-m-d H:i:s') ?? '';
         $data['terminate_reason'] = (string) ($rent->terminate_reason ?? '');
 
@@ -881,11 +955,7 @@ class RentService
             'created_at' => $rent->created_at?->format('Y-m-d H:i:s') ?? '',
             'file_url' => file_url((string) ($rent->file ?? '')),
             'status' => $status,
-            'can_terminate' => in_array(
-                $status,
-                [RentModel::STATUS_APPROVED, RentModel::STATUS_PENDING_BIND],
-                true
-            ),
+            'can_terminate' => $status === RentModel::STATUS_APPROVED,
         ];
     }
 

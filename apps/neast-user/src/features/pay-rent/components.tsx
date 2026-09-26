@@ -1,10 +1,15 @@
 import { useEffect, useRef } from 'react';
 import { Animated, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { MONTH_NAMES_SHORT } from '@neast/constant';
-import { formatRinggit, type RentListItem } from '@neast/types';
-import { Chevron, StatusTag, SuccessMark, textStyles, userHomeColors } from '@neast/ui-mobile';
+import { formatRinggit, LINK_STATUS, RENT_STATUS, type RentListItem } from '@neast/types';
+import { Chevron, StatusTag, SuccessMark, textStyles, Toast, userHomeColors } from '@neast/ui-mobile';
+
+import { apiErrorMessage } from '@/lib/api';
+import { openScanner } from '@/lib/callbacks';
+import { linkRent } from '@/lib/endpoints';
 
 import propertyPlaceholder from '@assets/images/home/property-hero-generated.png';
 
@@ -21,8 +26,12 @@ function leaseLabel(firstPayMonth: string, expireDate: string): string {
 
 /** One tenancy on the Pay Rent tab. `summary` is the static card on tenancy details. */
 export function TenancyCard({ rent, summary = false }: { rent: RentListItem; summary?: boolean }) {
+  const queryClient = useQueryClient();
   const setRent = useSelectionStore((state) => state.setRent);
   const status = rentStatusMeta(rent.status);
+  const showPhotoStatus =
+    !summary &&
+    (rent.status === RENT_STATUS.pending || rent.status === RENT_STATUS.rejected);
 
   const body = (
     <>
@@ -31,17 +40,20 @@ export function TenancyCard({ rent, summary = false }: { rent: RentListItem; sum
           <Image
             source={rent.property_image ? { uri: rent.property_image } : propertyPlaceholder}
             resizeMode="cover"
+            blurRadius={showPhotoStatus ? 4 : undefined}
             style={styles.image}
           />
+          {showPhotoStatus ? (
+            <View style={styles.statusOverlay}>
+              <StatusTag
+                label={status.label}
+                status={status.tag}
+                style={styles.statusTag}
+                labelStyle={styles.statusLabel}
+              />
+            </View>
+          ) : null}
         </View>
-        {summary ? null : (
-          <StatusTag
-            label={status.label}
-            status={status.tag}
-            style={styles.statusTag}
-            labelStyle={styles.statusLabel}
-          />
-        )}
       </View>
       <View style={[styles.copy, summary && styles.summaryCopy]}>
         <View style={styles.titleRow}>
@@ -62,21 +74,29 @@ export function TenancyCard({ rent, summary = false }: { rent: RentListItem; sum
         </Text>
         {summary ? null : (
           <View style={styles.actions}>
-            {rent.owner_linked ? (
-              <Text style={styles.connectedText} numberOfLines={1}>
-                Connected with owner
-              </Text>
-            ) : (
+            {rent.property_id === null ? (
               <Pressable
                 accessibilityRole="button"
                 onPress={() => {
-                  setRent(rent);
-                  router.push('/pay-rent/invite-owner');
+                  openScanner((value) => {
+                    linkRent(rent.id, value)
+                      .then(async () => {
+                        await queryClient.invalidateQueries({ queryKey: ['rent-list'] });
+                        Toast.success('Link waiting for review');
+                      })
+                      .catch((error: unknown) => Toast.error(apiErrorMessage(error)));
+                  });
                 }}
                 style={({ pressed }) => [styles.connectButton, pressed && styles.pressed]}
               >
                 <Text style={styles.connectText}>Connect with owner</Text>
               </Pressable>
+            ) : (
+              <Text style={styles.connectedText} numberOfLines={1}>
+                {rent.link_status === LINK_STATUS.pending
+                  ? 'Link waiting for review'
+                  : 'Connected with owner'}
+              </Text>
             )}
           </View>
         )}
@@ -243,6 +263,7 @@ const styles = StyleSheet.create({
     height: 72,
   },
   imageFrame: {
+    position: 'relative',
     width: '100%',
     height: '100%',
     borderRadius: 12,
@@ -279,21 +300,28 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  statusTag: {
+  statusOverlay: {
     position: 'absolute',
-    top: 4,
-    left: 4,
-    paddingHorizontal: 5,
-    paddingVertical: 1,
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statusTag: {
+    alignSelf: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
   },
   summaryStatus: {
     alignSelf: 'center',
-    paddingHorizontal: 5,
-    paddingVertical: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
   },
   statusLabel: {
-    fontSize: 8,
-    lineHeight: 10,
+    fontSize: 11,
+    lineHeight: 14,
   },
   copy: {
     flex: 1,

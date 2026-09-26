@@ -20,8 +20,8 @@ Spec source: `docs/users.md` (30 routes, 49 endpoints, 4 tabs).
 | 9   | `/pay-rent/history`        | `app/pay-rent/history/index.tsx`                                         | ✅ year chips (current − 0..9)                                                                                   |
 | 10  | `/pay-rent/history/detail` | `app/pay-rent/history/detail.tsx`                                        | ✅ status screen + owner-invite entry when payout held (mock-only field)                                         |
 | 11  | `/pay-rent/invite-owner`   | `app/pay-rent/invite-owner.tsx`                                          | ✅ mock-only endpoint tolerated; wa.me share                                                                     |
-| 12  | `/wallet`                  | `app/wallet/index.tsx`                                                   | ✅ balance, presets [500/1000/1500/2000] + custom, records + MonthPicker                                         |
-| 13  | `/wallet/payment`          | `app/wallet/payment.tsx`                                                 | ✅ quote w/ local fallback, FPX picker, create → H5 → success dialog                                             |
+| 12  | `/wallet`                  | `app/wallet/index.tsx`                                                   | ✅ balance, presets [500/1000/1500/2000] + custom, payment method, slide to pay; quote, FPX picker, create → H5 → success dialog |
+| 13  | `/wallet/history`          | `app/wallet/history.tsx`                                                 | ✅ top-up records + MonthPicker                                                                                  |
 | 14  | `/pay-h5-webview`          | `app/pay-h5-webview.tsx`                                                 | ✅ shared `FiuuH5WebView` + callback store (pop-with-result parity)                                              |
 | 15  | `/points`                  | —                                                                            | removed; balance and expiry stay on the Reward tab                                                                  |
 | 16  | `/points/history`          | `app/points/history.tsx`                                                 | ✅ paginated logs                                                                                                |
@@ -57,7 +57,8 @@ thin composition of `src/features/home/components/`, top → bottom:
    (`hone_logo.png`), one-line `Hello, {firstName}` greeting, then bell and scan
    (both `#0851AA` circles, 32px). Guests tap either icon to go to `/login`.
    Logged in: bell (unread count, `99+` above 99) → `/notification`,
-   scan looks up `getRentPropertyBySn` and opens
+   scan links the one unlinked manual tenancy (`PUT /app/rent/id/{id}/link`).
+   With none, it looks up `getRentPropertyBySn` and opens
    `/pay-rent/create/connect` with that property filled in (otherwise “Property not found”).
 2. **AmountCard** — guest: "Rent, made simple." / "Sign in to pay rent" → `/login`; logged in
    "Pay Rent Now" opens the Pay rent tab (with `nextRent`: amount and due line; without:
@@ -111,20 +112,21 @@ App-level wrappers live in `src/lib/endpoints.ts`; upload/push/refresh are insid
 | 6   | `POST /app/user/profile`          | `updateUserProfile`                                 | `app/full-data.tsx`, `app/personal-data/index.tsx`             |
 | 7   | `POST /app/user/delete-account`   | `deleteAccount`                                     | `AccountTab` (10s CountdownConfirmDialog)                      |
 | 8   | `GET /app/user/tent-score`        | `getTentScore`                                      | `AccountTab` snapshot, `app/account/tent-score.tsx`            |
-| 9   | `GET /app/config`                 | `getAppConfig`                                      | `useAppConfig` (fee fallback, alpha notice)                    |
+| 9   | `GET /app/config`                 | —                                                   | API remains; user app no longer calls it                       |
 | 10  | `GET /app/home/dashboard`         | `getHomeDashboard`                                  | `HomeTab`                                                      |
 | 11  | `GET /app/rent/list`              | `getRentList`                                       | `PayRentTab`                       |
 | 12  | `GET /app/rent/property`          | `getRentPropertyBySn`                               | `pay-rent/create/connect` (scan owner QR)                      |
 | 13  | `POST /app/rent/create`           | `createRent`                                        | `pay-rent/create/connect`, `pay-rent/create/manual`            |
+| 13a | `PUT /app/rent/id/{id}/link`      | `linkRent`                                          | Pay rent card Connect with owner; home scan when one unlinked tenancy exists |
 | 14  | `GET /app/rent/history/list`      | `getRentHistory`                                    | `PayRentTab`, history screens, payment polling                 |
 | 15  | `POST /app/rent/invite`           | `sendRentInvite`                                    | `pay-rent/invite-owner` — **mock-only**, failure tolerated     |
 | 16  | `POST /app/rent/pay/wallet`       | `payRentByWallet`                                   | `pay-rent/payment`                                             |
 | 18  | `POST /app/rent/pay/create`       | —                                                   | API only; pay rent tops up the wallet, then `pay/wallet`      |
 | 19  | `PUT /app/rent/id/{id}/terminate` | `terminateRent`                                     | `pay-rent/detail`                                              |
 | 20  | `GET /app/wallet/balance`         | `getWalletBalance`                                  | `wallet`, `pay-rent/payment`, `AccountTab`                     |
-| 21  | `GET /app/wallet/topup/list`      | `getWalletTopups`                                   | `wallet` (month filter)                                        |
-| 22  | `POST /app/wallet/topup/create`   | `createWalletTopup`                                 | `wallet/payment`, `pay-rent/payment` (when balance is short)   |
-| 23  | `GET /app/payment/quote`          | `getPaymentQuote`                                   | `wallet/payment`, `pay-rent/payment` (local fallback on error) |
+| 21  | `GET /app/wallet/topup/list`      | `getWalletTopups`                                   | `wallet/history` (month filter)                                |
+| 22  | `POST /app/wallet/topup/create`   | `createWalletTopup`                                 | `wallet`, `pay-rent/payment` (when balance is short)           |
+| 23  | `GET /app/payment/quote`          | `getPaymentQuote`                                   | `wallet`, `pay-rent/payment`                                   |
 | 24  | `GET /app/points/dashboard`       | —                                                   | API remains; user app no longer calls it                       |
 | 25  | `GET /app/points/logs`            | `getPointsLogs`                                     | `points/history`                                               |
 | 26  | `GET /app/reward/dashboard`       | `getRewardDashboard`                                | `RewardTab`, `reward/tier`                                     |
@@ -159,9 +161,8 @@ App-level wrappers live in `src/lib/endpoints.ts`; upload/push/refresh are insid
 - Mock-only fields rendered when present, absent tolerated: rent list
   `landlord_bank_name/landlord_bank_last4/payout_status/invite_sent`; merchant list
   `latitude/longitude/special_deal/min_spend`; history `user_paid_at/payout_status`.
-- Payment quote: real shape `{amount, methods: Record<method,{fee_percent,total_amount}>}`;
-  on request failure the app falls back to `buildLocalPaymentQuote` with `/app/config` fee
-  percents (Flutter `paymentQuoteProvider` parity).
+- Payment quote: real shape `{amount, methods: Record<method,{fee_percent,total_amount}>}`.
+  Slide to pay stays disabled until the selected method's `total_amount` is present.
 - Scanner gallery-pick fallback (`MobileScannerController.analyzeImage`) is **not**
   implemented — `@neast/ui-mobile` `QrScannerScreen` has no gallery affordance.
 - `Chevron` is imported from `@neast/ui-mobile` (integration landed; local copy removed).

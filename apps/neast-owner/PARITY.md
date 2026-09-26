@@ -5,7 +5,7 @@ section) to its implementation. All endpoint paths verified against the Hyperf P
 (`services/neast-api/app/Controller/Http/Landlord/*`) and smoke-tested live against the
 docker stack on `:9512`.
 
-## Routes (16)
+## Routes (14)
 
 | #   | Route (go_router)            | File                                                              | Status / notes                                                                                          |
 | --- | ---------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
@@ -16,9 +16,7 @@ docker stack on `:9512`.
 | 5   | `/rent-detail`               | `app/rent-detail.tsx`                                             | ✅ item via selection store (go_router `extra` parity); agreement view (image preview / external)       |
 | 6   | `/ack-list`                  | `app/ack-list.tsx`                                                | ✅ unpaginated list → detail                                                                            |
 | 7   | `/ack-detail`                | `app/ack-detail.tsx`                                              | ✅ confirm → `ack/confirm` → invalidate → back                                                          |
-| 8   | `/bind-request-list`         | `app/bind-request-list.tsx`                                       | ✅ unpaginated list → detail                                                                            |
-| 9   | `/bind-request-detail`       | `app/bind-request-detail.tsx`                                     | ✅ approve / reject → `bind-request/audit` → invalidate → back                                          |
-| 10  | `/add-property`              | `app/add-property.tsx`                                            | ✅ name/address + photo + doc (chunked upload via @neast/types) → `property/create` → success dialog    |
+| 10  | `/add-property`              | `app/add-property.tsx`                                            | ✅ name, address, and photo (chunked upload via @neast/types) → `property/create` → success dialog      |
 | 11  | `/bank-detail`               | `app/bank-detail.tsx`                                             | ✅ prefilled from `landlord/info`; header photo upload; save → `bank-detail`                            |
 | 12  | `/portfolio-snapshot`        | `app/portfolio-snapshot.tsx`                                      | ✅ `portfolio/detail` summary + tenant rows → drill-down                                                |
 | 13  | `/portfolio-tenant-detail`   | `app/portfolio-tenant-detail.tsx`                                 | ✅ `?id=` → `rent/id/{id}`; terminate w/ 5s countdown when `can_terminate`                              |
@@ -48,8 +46,6 @@ App-level wrappers live in `src/lib/endpoints.ts`; upload/refresh/push are insid
 | 6   | `GET /landlord/home/detail`                | `getHomeDashboard`                   | `HomeTab`                                           |
 | 7   | `GET /landlord/ack/list`                   | `getAckList`                         | `ack-list.tsx` (unpaginated `{items}`)              |
 | 8   | `POST /landlord/ack/confirm`               | `confirmAck`                         | `ack-detail.tsx`                                    |
-| 9   | `GET /landlord/bind-request/list`          | `getBindRequestList`                 | `bind-request-list.tsx` (unpaginated)               |
-| 10  | `POST /landlord/bind-request/audit`        | `auditBindRequest`                   | `bind-request-detail.tsx`                           |
 | 11  | `GET /landlord/portfolio/detail`           | `getPortfolioDetail`                 | `portfolio-snapshot.tsx`                            |
 | 12  | `GET /landlord/rent/id/{id}`               | `getRentDetail`                      | `portfolio-tenant-detail.tsx`                       |
 | 13  | `PUT /landlord/rent/id/{id}/terminate`     | `terminateRent` (no body)            | `portfolio-tenant-detail.tsx`                       |

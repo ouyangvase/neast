@@ -1,6 +1,5 @@
 import type {
   AgreementDetail,
-  AppConfig,
   AppLoginBody,
   AppLoginResponse,
   CountryCode,
@@ -66,10 +65,6 @@ export const deleteAccount = () => api.post('user/delete-account');
 
 export const getTentScore = () => api.get<TentScore>('user/tent-score');
 
-// ---- Config ----
-
-export const getAppConfig = () => api.get<AppConfig>('config');
-
 // ---- Home ----
 
 export const getHomeDashboard = (coords: Coords | null) =>
@@ -96,6 +91,9 @@ export const getRentHistory = (query: {
   year?: number;
   rent_id?: number;
 }) => api.get<PaginatedList<RentHistoryEntry>>('rent/history/list', query);
+
+export const linkRent = (rentId: number, sn: string) =>
+  api.put<CreateRentResponse>(`rent/id/${rentId}/link`, { sn });
 
 export const saveOwnerContact = (
   rentId: number,

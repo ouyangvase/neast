@@ -16,12 +16,11 @@ import {
 } from '@neast/ui-mobile';
 
 import photoUpload from '@assets/images/property/photo-upload.png';
-import docUpload from '@assets/images/property/doc-upload.png';
 import successImage from '@assets/images/property/success.png';
 
 import { apiErrorMessage } from '@/lib/api';
 import { createProperty } from '@/lib/endpoints';
-import { pickDocumentFile, pickImageFile } from '@/lib/pickers';
+import { pickImageFile } from '@/lib/pickers';
 import { useFileUpload } from '@/hooks/use-upload';
 import { Screen } from '@/components/Screen';
 
@@ -32,13 +31,12 @@ interface UploadedFile {
   uri?: string;
 }
 
-/** Add property (add_property_screen parity): name, address, photo + document upload, create. */
+/** Add property: name, address, and photo. A bank account is required before the QR. */
 export default function AddPropertyRoute() {
   const queryClient = useQueryClient();
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
   const [photo, setPhoto] = useState<UploadedFile | null>(null);
-  const [document, setDocument] = useState<UploadedFile | null>(null);
   const [successVisible, setSuccessVisible] = useState(false);
   const uploader = useFileUpload();
 
@@ -48,7 +46,6 @@ export default function AddPropertyRoute() {
         name: name.trim(),
         address: address.trim(),
         image: photo!.path,
-        file: document!.path,
       }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['property-list'] });
@@ -64,15 +61,7 @@ export default function AddPropertyRoute() {
     if (path) setPhoto({ path, label: file.name, uri: file.uri });
   };
 
-  const pickDocument = async () => {
-    const file = await pickDocumentFile();
-    if (!file) return;
-    const path = await uploader.upload(file);
-    if (path) setDocument({ path, label: file.name });
-  };
-
-  const ready =
-    name.trim() !== '' && address.trim() !== '' && photo !== null && document !== null;
+  const ready = name.trim() !== '' && address.trim() !== '' && photo !== null;
 
   return (
     <Screen>
@@ -95,14 +84,6 @@ export default function AddPropertyRoute() {
             resizeMode="cover"
           />
           <Text style={styles.uploadText}>{photo ? photo.label : 'Tap to upload a photo'}</Text>
-        </Pressable>
-
-        <Text style={styles.sectionLabel}>Document</Text>
-        <Pressable onPress={pickDocument} accessibilityRole="button" style={styles.uploadTile}>
-          <Image source={docUpload} style={styles.uploadPlaceholder} resizeMode="contain" />
-          <Text style={styles.uploadText}>
-            {document ? document.label : 'Tap to upload a document'}
-          </Text>
         </Pressable>
 
         <Button

@@ -1,6 +1,7 @@
 export * from './Button';
 export * from './Card';
 export * from './TextField';
+export * from './SelectField';
 export * from './OtpInput';
 export * from './PhoneField';
 export * from './CountryCodePicker';

@@ -16,7 +16,6 @@ use Hyperf\Database\Model\SoftDeletes;
  * @property string $name 名称
  * @property string $address 地址
  * @property string $image 图片URL
- * @property string $file 文件URL
  * @property string|null $created_at 创建时间
  * @property string|null $updated_at 更新时间
  * @property string|null $deleted_at 软删除时间
@@ -33,7 +32,6 @@ class LandlordPropertyModel extends Model
         'name',
         'address',
         'image',
-        'file',
     ];
 
     protected array $hidden = [

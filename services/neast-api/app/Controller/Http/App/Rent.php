@@ -315,6 +315,33 @@ class Rent extends AbstractController
     }
 
     /**
+     * 扫描业主物业二维码，关联已有手动租约
+     */
+    #[Middleware(AppAuthMiddleware::class)]
+    #[RequestMapping(path: 'id/{id}/link', methods: ['PUT'])]
+    public function link(int $id, RequestInterface $request): ResponseInterface
+    {
+        $validator = di(ValidatorFactory::class)->make($request->all(), [
+            'sn' => 'required|string|max:32',
+        ], [
+            'sn.required' => 'Property serial number is required',
+            'sn.max' => 'Invalid property serial number',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->error($validator->errors()->first());
+        }
+
+        $auth = Context::get('app_auth');
+
+        return $this->success($this->service->appLink(
+            (int) $auth->id,
+            $id,
+            (string) $request->input('sn')
+        ));
+    }
+
+    /**
      * 终止租约
      */
     #[Middleware(AppAuthMiddleware::class)]

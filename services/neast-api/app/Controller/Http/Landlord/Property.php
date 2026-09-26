@@ -44,14 +44,12 @@ class Property extends AbstractController
             'name' => 'required|string|max:128',
             'address' => 'required|string|max:255',
             'image' => 'required|string|max:512',
-            'file' => 'required|string|max:512',
         ], [
             'name.required' => 'Property name is required',
             'name.max' => 'Property name must be less than 128 characters',
             'address.required' => 'Address is required',
             'address.max' => 'Address must be less than 255 characters',
             'image.required' => 'Photo is required',
-            'file.required' => 'Document is required',
         ]);
 
         if ($validator->fails()) {

@@ -1,6 +1,7 @@
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { BellIcon, ScanIcon, Toast, userHomeColors } from '@neast/ui-mobile';
 
@@ -8,7 +9,7 @@ import logo from '@assets/images/home/hone_logo.png';
 
 import { apiErrorMessage } from '@/lib/api';
 import { openScanner } from '@/lib/callbacks';
-import { getRentPropertyBySn } from '@/lib/endpoints';
+import { getRentList, getRentPropertyBySn, linkRent } from '@/lib/endpoints';
 
 interface HomeHeaderProps {
   /** Greeting name; guests fall back to "there". */
@@ -20,6 +21,7 @@ interface HomeHeaderProps {
 /** Home header: brand mark, one-line greeting, bell and scan. */
 export function HomeHeader({ firstName, isLoggedIn, unreadCount }: HomeHeaderProps) {
   const insets = useSafeAreaInsets();
+  const queryClient = useQueryClient();
   const name = firstName ?? 'there';
 
   const onScan = () => {
@@ -28,8 +30,17 @@ export function HomeHeader({ firstName, isLoggedIn, unreadCount }: HomeHeaderPro
       return;
     }
     openScanner((value) => {
-      getRentPropertyBySn(value)
-        .then((property) => {
+      queryClient
+        .fetchQuery({ queryKey: ['rent-list'], queryFn: getRentList })
+        .then(async (list) => {
+          const unlinked = list.items.filter((item) => item.property_id === null);
+          if (unlinked.length === 1) {
+            await linkRent(unlinked[0].id, value);
+            await queryClient.invalidateQueries({ queryKey: ['rent-list'] });
+            Toast.success('Link waiting for review');
+            return;
+          }
+          const property = await getRentPropertyBySn(value);
           Toast.success(`Connected to ${property.name}`);
           router.push({
             pathname: '/pay-rent/create/connect',

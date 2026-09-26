@@ -37,7 +37,6 @@ export function HomeTab() {
   const dashboard = useQuery({ queryKey: ['home-dashboard'], queryFn: getHomeDashboard });
   const setDueItem = useSelectionStore((state) => state.setDueItem);
   const setAckItem = useSelectionStore((state) => state.setAckItem);
-  const setBindRequest = useSelectionStore((state) => state.setBindRequest);
   const addProperty = useAddPropertyGate();
 
   const data = dashboard.data;
@@ -107,11 +106,6 @@ export function HomeTab() {
               count={data.need_action.need_ack}
               onPress={() => router.push('/ack-list')}
             />
-            <ActionCard
-              label="Bind requests"
-              count={data.need_action.bind_req}
-              onPress={() => router.push('/bind-request-list')}
-            />
           </View>
 
           {data.need_ack ? (
@@ -131,27 +125,6 @@ export function HomeTab() {
               </Text>
               <Text style={styles.itemMeta} numberOfLines={1}>
                 {data.need_ack.property_name || data.need_ack.property_address}
-              </Text>
-            </Card>
-          ) : null}
-
-          {data.bind_request ? (
-            <Card
-              style={styles.itemCard}
-              onPress={() => {
-                setBindRequest(data.bind_request);
-                router.push('/bind-request-detail');
-              }}
-            >
-              <View style={styles.itemHeaderRow}>
-                <Text style={styles.itemTitle}>Bind request</Text>
-                <Text style={styles.itemAmount}>RM{data.bind_request.rent}</Text>
-              </View>
-              <Text style={styles.itemSubtitle}>
-                {data.bind_request.user_name} · {data.bind_request.payday}
-              </Text>
-              <Text style={styles.itemMeta} numberOfLines={1}>
-                {data.bind_request.property_name || data.bind_request.property_address}
               </Text>
             </Card>
           ) : null}

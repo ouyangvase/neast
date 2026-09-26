@@ -1,8 +1,6 @@
 import type {
   AckListResponse,
   AgreementDetail,
-  AuditBindRequestBody,
-  BindRequestListResponse,
   ConfirmAckBody,
   CountryCode,
   CreatePropertyBody,
@@ -60,14 +58,6 @@ export const getAckList = () => api.get<AckListResponse>('ack/list');
 
 export const confirmAck = (id: number) =>
   api.post('ack/confirm', { id } satisfies ConfirmAckBody);
-
-// ---- Bind requests ----
-
-/** Unpaginated — the backend returns the full pending-bind list. */
-export const getBindRequestList = () => api.get<BindRequestListResponse>('bind-request/list');
-
-export const auditBindRequest = (body: AuditBindRequestBody) =>
-  api.post('bind-request/audit', body);
 
 // ---- Properties ----
 

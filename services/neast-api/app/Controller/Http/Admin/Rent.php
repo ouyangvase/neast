@@ -106,6 +106,14 @@ class Rent extends AbstractController
         return $this->success();
     }
 
+    #[RequestMapping(path: 'id/{id}/confirm-link', methods: ['PUT'])]
+    public function confirmLink(int $id): ResponseInterface
+    {
+        $this->service->confirmLink($id);
+
+        return $this->success();
+    }
+
     #[RequestMapping(path: 'id/{id}/terminate', methods: ['PUT'])]
     public function terminate(int $id, RequestInterface $request): ResponseInterface
     {

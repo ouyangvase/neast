@@ -1,10 +1,8 @@
 import { MONTH_NAMES_LONG } from '@neast/constant';
 import {
-  PAYMENT_METHODS,
   RENT_HISTORY_STATUS,
   RENT_STATUS,
   type PaymentQuote,
-  type PaymentMethodQuote,
   type RentDueStatus,
 } from '@neast/types';
 import type { StatusTagStatus } from '@neast/ui-mobile';
@@ -14,11 +12,10 @@ export interface StatusMeta {
   tag: StatusTagStatus;
 }
 
-/** t_rent.status: 0 and 3 pending · 1 approved · 2 rejected · 4 terminated. */
+/** t_rent.status: 0 pending · 1 approved · 2 rejected · 4 terminated. */
 export function rentStatusMeta(status: number): StatusMeta {
   switch (status) {
     case RENT_STATUS.pending:
-    case RENT_STATUS.pendingBind:
       return { label: 'Pending', tag: 'pending' };
     case RENT_STATUS.approved:
       return { label: 'Approved', tag: 'success' };
@@ -140,18 +137,6 @@ export function monthOptionValue({ year, month }: MonthOption): string {
   return `${year}-${month < 10 ? `0${month}` : month}`;
 }
 
-/** Local quote fallback (buildLocalPaymentQuote parity) using /app/config fee percents. */
-export function buildLocalPaymentQuote(amount: string, fees: Record<string, number>): PaymentQuote {
-  const methods: Record<string, PaymentMethodQuote> = {};
-  const base = Number(amount);
-  for (const method of PAYMENT_METHODS) {
-    const percent = fees[method] ?? 0;
-    const total = Number.isFinite(base) ? (base * (1 + percent / 100)).toFixed(2) : amount;
-    methods[method] = { fee_percent: percent, total_amount: total };
-  }
-  return { amount, methods };
-}
-
 /** Trailing fee label for a payment method row (`+1.6%` / `No fee`). */
 export function feeLabel(quote: PaymentQuote | undefined, method: string): string | undefined {
   const methodQuote = quote?.methods?.[method];
@@ -159,13 +144,4 @@ export function feeLabel(quote: PaymentQuote | undefined, method: string): strin
     return undefined;
   }
   return methodQuote.fee_percent > 0 ? `+${methodQuote.fee_percent}%` : 'No fee';
-}
-
-/** Charged total for the selected method (falls back to the bare amount). */
-export function totalForMethod(
-  quote: PaymentQuote | undefined,
-  method: string,
-  fallbackAmount: string,
-): string {
-  return quote?.methods?.[method]?.total_amount ?? fallbackAmount;
 }

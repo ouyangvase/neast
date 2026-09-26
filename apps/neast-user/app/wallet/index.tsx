@@ -1,195 +1,261 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
-import { useQuery } from '@tanstack/react-query';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { PRESET_AMOUNTS } from '@neast/constant';
-import { formatRinggit, formatSimpleDate, type WalletTopupItem } from '@neast/types';
+import { formatRinggit, type FpxBank } from '@neast/types';
 import {
-  Button,
   Card,
-  coreColors,
-  MonthPicker,
-  userHomeColors,
-  type MonthValue,
-  formatMonthLabel,
-  RefreshList,
+  Chevron,
+  FpxBankPicker,
+  PaymentMethodSection,
+  SlidePayButton,
   spacing,
-  StatusTag,
   TextField,
-  textStyles,
+  Toast,
+  userHomeColors,
 } from '@neast/ui-mobile';
 
-import { getWalletBalance, getWalletTopups } from '@/lib/endpoints';
-import { topupStatusMeta } from '@/lib/format';
-import { usePaginatedList } from '@/hooks/use-paginated';
+import { apiErrorMessage } from '@/lib/api';
+import { openH5WebView } from '@/lib/callbacks';
+import { createWalletTopup, getPaymentQuote, getWalletBalance } from '@/lib/endpoints';
+import { buildPaymentMethodOptions, fiuuChannelFor } from '@/lib/payment-methods';
 import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 
-/** Wallet (wallet_screen parity): balance, preset/custom top-up, monthly records. */
+/** Wallet top-up: balance, presets, payment method, then Fiuu H5. */
 export default function WalletRoute() {
+  const insets = useSafeAreaInsets();
+  const queryClient = useQueryClient();
+
   const [amount, setAmount] = useState('');
-  const [month, setMonth] = useState<MonthValue | null>(null);
-  const [monthPickerVisible, setMonthPickerVisible] = useState(false);
+  const [method, setMethod] = useState('fpx');
+  const [bank, setBank] = useState<FpxBank | null>(null);
+  const [bankPickerVisible, setBankPickerVisible] = useState(false);
 
   const balance = useQuery({
     queryKey: ['wallet-balance'],
     queryFn: getWalletBalance,
   });
 
-  const topups = usePaginatedList(
-    ['wallet-topups', month?.year ?? null, month?.month ?? null],
-    (page, limit) => getWalletTopups({ page, limit, year: month?.year, month: month?.month }),
-    10,
-  );
+  const quote = useQuery({
+    queryKey: ['payment-quote', amount],
+    queryFn: () => getPaymentQuote(amount),
+    enabled: Number(amount) >= 1.01,
+  });
 
-  const proceed = (value: string) => {
-    const numeric = Number(value);
-    if (!Number.isFinite(numeric) || numeric <= 0) {
-      return;
+  const total = quote.data?.methods[method]?.total_amount;
+
+  const payMutation = useMutation({
+    mutationFn: () =>
+      createWalletTopup({
+        amount,
+        payment_method: method,
+        payment_channel: fiuuChannelFor(method, bank?.channel),
+      }),
+    onSuccess: (order) => {
+      openH5WebView(order.payment_url, 'Wallet Top-Up', {
+        onResult: (result) => {
+          if (result === 'success') {
+            void queryClient.invalidateQueries({ queryKey: ['wallet-balance'] });
+            void queryClient.invalidateQueries({ queryKey: ['wallet-topups'] });
+            Alert.alert('Top-up successful', 'Your wallet balance has been updated.');
+          } else if (result === 'pending') {
+            Toast.info('Payment is pending');
+          } else {
+            Toast.error('Payment failed');
+          }
+        },
+        onCancel: () => Toast.info('Payment cancelled'),
+      });
+    },
+    onError: (error) => Toast.error(apiErrorMessage(error)),
+  });
+
+  const submit = () => {
+    if (method === 'fpx' && !bank) {
+      setBankPickerVisible(true);
+      return false;
     }
-    router.push({
-      pathname: '/wallet/payment',
-      params: { amount: numeric.toFixed(2), amountLabel: formatRinggit(value) },
-    });
+    payMutation.mutate();
+    return true;
   };
 
   return (
     <Screen edges={[]}>
       <PageHeader title="Wallet" />
-      <RefreshList<WalletTopupItem>
-        data={topups.items}
-        keyExtractor={(item) => String(item.id)}
-        refreshing={topups.refreshing}
-        onRefresh={() => {
-          void balance.refetch();
-          void topups.refresh();
-        }}
-        onLoadMore={topups.loadMore}
-        hasMore={topups.hasMore}
-        loadingMore={topups.loadingMore}
-        contentContainerStyle={styles.listContent}
-        ListHeaderComponent={
-          <View style={styles.headerContent}>
-            <Card style={styles.balanceCard}>
-              <Text style={styles.balanceLabel}>Current balance</Text>
-              <Text style={styles.balanceValue}>
-                {formatRinggit(balance.data?.balance ?? '0.00')}
-              </Text>
-            </Card>
-
-            <Card style={styles.topupCard}>
-              <Text style={styles.sectionTitle}>Top up</Text>
-              <View style={styles.presetRow}>
-                {PRESET_AMOUNTS.map((preset) => (
-                  <Pressable
-                    key={preset}
-                    style={[
-                      styles.presetChip,
-                      amount === String(preset) && styles.presetChipActive,
-                    ]}
-                    onPress={() => setAmount(String(preset))}
-                    accessibilityRole="button"
-                  >
-                    <Text
-                      style={[
-                        styles.presetText,
-                        amount === String(preset) && styles.presetTextActive,
-                      ]}
-                    >
-                      RM{preset}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-              <TextField
-                label="Custom amount (RM)"
-                value={amount}
-                onChangeText={setAmount}
-                keyboardType="decimal-pad"
-                placeholder="0.00"
-              />
-              <Button
-                title="Top Up"
-                onPress={() => proceed(amount)}
-                disabled={!Number(amount) || Number(amount) <= 0}
-                style={styles.topupButton}
-              />
-            </Card>
-
-            <View style={styles.recordsHeader}>
-              <Text style={styles.sectionTitle}>Top-up records</Text>
+      <View style={styles.flex}>
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={[styles.body, { paddingBottom: insets.bottom + 78 }]}
+        >
+          <View style={styles.balanceCard}>
+            <View style={styles.balanceRow}>
+              <Text style={styles.balanceLabel}>Balance</Text>
               <Pressable
-                onPress={() => setMonthPickerVisible(true)}
                 accessibilityRole="button"
-                style={styles.monthButton}
+                onPress={() => router.push('/wallet/history')}
+                hitSlop={8}
+                style={({ pressed }) => [styles.historyLink, pressed && styles.pressed]}
               >
-                <Text style={styles.monthButtonText}>
-                  {month ? formatMonthLabel(month) : 'All months'}
-                </Text>
+                <Text style={styles.historyText}>Top-up history</Text>
+                <Chevron direction="right" color={userHomeColors.textOnNavy} size={8} />
               </Pressable>
             </View>
+            <Text style={styles.balanceValue}>
+              {balance.isSuccess ? formatRinggit(balance.data.balance) : '—'}
+            </Text>
           </View>
-        }
-        ListEmptyComponent={
-          <Text style={styles.emptyText}>No top-ups{month ? ' this month' : ''} yet.</Text>
-        }
-        renderItem={({ item }) => <TopupRow item={item} />}
-      />
 
-      <MonthPicker
-        visible={monthPickerVisible}
-        onClose={() => setMonthPickerVisible(false)}
-        onSelect={setMonth}
-        selected={month ?? undefined}
+          <Card style={styles.topupCard}>
+            <Text style={styles.sectionTitle}>Top up</Text>
+            <TextField
+              value={amount}
+              onChangeText={setAmount}
+              keyboardType="decimal-pad"
+              placeholder="0.00"
+              left={<Text style={styles.amountPrefix}>RM</Text>}
+              inputStyle={styles.amountInput}
+            />
+            <View style={styles.presetRow}>
+              {PRESET_AMOUNTS.map((preset) => {
+                const selected = amount === String(preset);
+                return (
+                  <Pressable
+                    key={preset}
+                    style={[styles.presetChip, selected && styles.presetChipActive]}
+                    onPress={() => setAmount(String(preset))}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected }}
+                  >
+                    <Text style={[styles.presetText, selected && styles.presetTextActive]}>
+                      {preset}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </Card>
+
+          <PaymentMethodSection
+            methods={buildPaymentMethodOptions(quote.data).map((item) =>
+              item.id === 'fpx'
+                ? {
+                    ...item,
+                    below: (
+                      <Pressable
+                        accessibilityRole="button"
+                        onPress={() => {
+                          setMethod('fpx');
+                          setBankPickerVisible(true);
+                        }}
+                        style={styles.bankRow}
+                      >
+                        <Text style={styles.bankText}>{bank ? bank.name : 'Select bank'}</Text>
+                        <Chevron direction="right" color={userHomeColors.navy} size={8} />
+                      </Pressable>
+                    ),
+                  }
+                : item,
+            )}
+            selectedId={method}
+            onSelect={(id) => {
+              setMethod(id);
+              if (id === 'fpx' && !bank) {
+                setBankPickerVisible(true);
+              }
+            }}
+          />
+        </ScrollView>
+        <SlidePayButton
+          title={total ? `Slide to pay ${formatRinggit(total)}` : 'Slide to pay'}
+          bottom={insets.bottom + 16}
+          disabled={!total}
+          loading={payMutation.isPending}
+          onConfirm={submit}
+        />
+      </View>
+
+      <FpxBankPicker
+        visible={bankPickerVisible}
+        onClose={() => setBankPickerVisible(false)}
+        onSelect={setBank}
+        selectedChannel={bank?.channel}
       />
     </Screen>
   );
 }
 
-function TopupRow({ item }: { item: WalletTopupItem }) {
-  const meta = topupStatusMeta(item.status);
-  return (
-    <Card style={styles.recordRow}>
-      <View style={styles.recordText}>
-        <Text style={styles.recordAmount}>{formatRinggit(item.amount)}</Text>
-        <Text style={styles.recordMeta}>
-          {item.payment_method.toUpperCase()}
-          {item.channel ? ` · ${item.channel}` : ''} · {formatSimpleDate(item.created_at)}
-        </Text>
-      </View>
-      <StatusTag status={meta.tag} label={meta.label} />
-    </Card>
-  );
-}
-
 const styles = StyleSheet.create({
-  listContent: {
-    padding: spacing.lg,
-    gap: spacing.sm,
+  flex: {
+    flex: 1,
   },
-  headerContent: {
+  body: {
+    padding: spacing.lg,
     gap: spacing.lg,
-    marginBottom: spacing.sm,
   },
   balanceCard: {
+    backgroundColor: userHomeColors.navy,
+    borderRadius: 16,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.lg,
+    gap: spacing.xs,
+  },
+  balanceRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.xl,
+    justifyContent: 'space-between',
+    gap: spacing.md,
   },
   balanceLabel: {
-    ...textStyles.bodySmall,
-    color: coreColors.textSecondary,
+    color: userHomeColors.gold,
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: '600',
   },
   balanceValue: {
-    ...textStyles.heading1,
-    fontSize: 34,
-    marginTop: spacing.xs,
+    color: userHomeColors.surface,
+    fontSize: 32,
+    lineHeight: 40,
+    fontWeight: '700',
+  },
+  historyLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  pressed: {
+    opacity: 0.7,
+  },
+  historyText: {
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: '600',
+    color: userHomeColors.textOnNavy,
   },
   topupCard: {
     gap: spacing.md,
+    borderRadius: 16,
   },
   sectionTitle: {
-    ...textStyles.heading3,
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '600',
+    color: userHomeColors.textSecondary,
+  },
+  amountPrefix: {
+    color: userHomeColors.navy,
+    fontSize: 16,
+    lineHeight: 22,
+    fontWeight: '700',
+    marginRight: spacing.xs,
+  },
+  amountInput: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: userHomeColors.textPrimary,
   },
   presetRow: {
     flexDirection: 'row',
@@ -198,62 +264,33 @@ const styles = StyleSheet.create({
   presetChip: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: spacing.sm,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: coreColors.border,
-    backgroundColor: coreColors.white,
+    paddingVertical: 10,
+    borderRadius: 999,
+    backgroundColor: userHomeColors.lightBlue,
   },
   presetChipActive: {
-    borderColor: userHomeColors.navy,
-    backgroundColor: coreColors.tintBlue,
+    backgroundColor: userHomeColors.navy,
   },
   presetText: {
-    ...textStyles.bodySmall,
-    color: coreColors.textSecondary,
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '600',
+    color: userHomeColors.navy,
   },
   presetTextActive: {
-    color: userHomeColors.navy,
-    fontWeight: '600',
+    color: userHomeColors.surface,
   },
-  topupButton: {
-    marginTop: spacing.xs,
-  },
-  recordsHeader: {
+  bankRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.md,
   },
-  monthButton: {
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.sm,
-  },
-  monthButtonText: {
-    ...textStyles.bodySmall,
+  bankText: {
     color: userHomeColors.navy,
-    fontWeight: '600',
-  },
-  emptyText: {
-    ...textStyles.bodySmall,
-    color: coreColors.textSecondary,
-    textAlign: 'center',
-    paddingVertical: spacing.lg,
-  },
-  recordRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: spacing.md,
-  },
-  recordText: {
-    flex: 1,
-    gap: 2,
-  },
-  recordAmount: {
-    ...textStyles.body,
-    fontWeight: '600',
-  },
-  recordMeta: {
-    ...textStyles.caption,
+    fontSize: 15,
+    lineHeight: 20,
+    fontWeight: '700',
   },
 });
