@@ -3,13 +3,12 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 
 import type { CouponListItem } from '@neast/types';
-import { coreColors, radii, RefreshList, spacing, textStyles, userHomeColors } from '@neast/ui-mobile';
+import { coreColors, radii, RefreshList, spacing, textStyles, userHomeColors, PageHeader } from '@neast/ui-mobile';
 
 import { getCouponCategories, getCouponList } from '@/lib/endpoints';
 import { usePaginatedList } from '@/hooks/use-paginated';
 import { useSelectionStore } from '@/stores/selection';
 import { CouponCard } from '@/features/coupon/components';
-import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 import { useQuery } from '@tanstack/react-query';
 

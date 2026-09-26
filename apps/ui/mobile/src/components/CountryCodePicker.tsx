@@ -1,6 +1,6 @@
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { coreColors } from '@ui/tokens/colors';
+import { coreColors, userHomeColors } from '@ui/tokens/colors';
 import { spacing } from '@ui/tokens/layout';
 import { textStyles } from '@ui/tokens/typography';
 import { BottomSheet } from './BottomSheet';
@@ -61,19 +61,19 @@ const styles = StyleSheet.create({
     borderBottomColor: coreColors.divider,
   },
   rowSelected: {
-    backgroundColor: coreColors.tintBlue,
+    backgroundColor: userHomeColors.lightBlue,
   },
   code: {
     ...textStyles.body,
   },
   codeSelected: {
-    color: coreColors.brandBlue,
+    color: userHomeColors.navy,
     fontWeight: '600',
   },
   dot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: coreColors.brandBlue,
+    backgroundColor: userHomeColors.navy,
   },
 });

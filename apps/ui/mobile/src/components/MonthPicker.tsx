@@ -2,7 +2,7 @@ import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 
 import { MONTH_NAMES_LONG } from '@neast/constant';
 
-import { coreColors } from '@ui/tokens/colors';
+import { userHomeColors } from '@ui/tokens/colors';
 import { radii, spacing } from '@ui/tokens/layout';
 import { textStyles } from '@ui/tokens/typography';
 import { BottomSheet } from './BottomSheet';
@@ -92,20 +92,20 @@ const styles = StyleSheet.create({
     flexBasis: '48%',
     flexGrow: 1,
     borderWidth: 1,
-    borderColor: coreColors.borderLight,
+    borderColor: userHomeColors.border,
     borderRadius: radii.button,
     paddingVertical: spacing.md,
     alignItems: 'center',
   },
   cellSelected: {
-    borderColor: coreColors.brandBlue,
-    backgroundColor: coreColors.tintBlue,
+    borderColor: userHomeColors.navy,
+    backgroundColor: userHomeColors.lightBlue,
   },
   cellText: {
     ...textStyles.bodySmall,
   },
   cellTextSelected: {
-    color: coreColors.brandBlue,
+    color: userHomeColors.navy,
     fontWeight: '600',
   },
 });

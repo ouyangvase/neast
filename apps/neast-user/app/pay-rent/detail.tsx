@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { MONTH_INDEX, MONTH_NAMES_SHORT } from '@neast/constant';
 import { formatRinggit, RENT_HISTORY_STATUS, RENT_STATUS, type RentPayStatus } from '@neast/types';
-import { Chevron, spacing, userHomeColors } from '@neast/ui-mobile';
+import { Chevron, spacing, userHomeColors, PageHeader } from '@neast/ui-mobile';
 
 import HouseIcon from '@assets/images/pay_rent/house.svg';
 
@@ -15,7 +15,6 @@ import { dueStatusLabel, payStatusLabel } from '@/lib/format';
 import { isPaidHistory, type RentHistoryEntry } from '@/lib/types';
 import { useSelectionStore } from '@/stores/selection';
 import { ErrorState } from '@/components/StateViews';
-import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 import { TenancyCard } from '@/features/pay-rent/components';
 

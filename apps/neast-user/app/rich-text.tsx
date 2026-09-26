@@ -2,11 +2,10 @@ import { ScrollView, StyleSheet } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 
-import { RichText, spacing } from '@neast/ui-mobile';
+import { RichText, spacing, PageHeader } from '@neast/ui-mobile';
 
 import { getAgreement } from '@/lib/endpoints';
 import { ErrorState, LoadingState } from '@/components/StateViews';
-import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 
 /** Agreement HTML page (rich_text_screen parity) — Privacy Policy / Terms. */

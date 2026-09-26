@@ -1,7 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 
 import type { MerchantListItem } from '@neast/types';
-import { RefreshList, spacing } from '@neast/ui-mobile';
+import { RefreshList, spacing, PageHeader } from '@neast/ui-mobile';
 
 import {
   getMerchantList,
@@ -11,7 +11,6 @@ import {
 import { useDeviceLocation } from '@/lib/location';
 import { usePaginatedList } from '@/hooks/use-paginated';
 import { MerchantCard } from '@/features/merchant/components';
-import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 
 type ListKind = 'all' | 'recommended' | 'nearby';

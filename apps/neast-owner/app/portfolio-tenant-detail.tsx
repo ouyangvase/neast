@@ -5,15 +5,14 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { formatSimpleDate } from '@neast/types';
 import {
-  BrandHeader,
   Button,
   Card,
   ConfirmDialog,
-  coreColors,
-  ownerAccentColors,
+  PageHeader,
   spacing,
   textStyles,
   Toast,
+  userHomeColors,
 } from '@neast/ui-mobile';
 
 import { apiErrorMessage } from '@/lib/api';
@@ -49,13 +48,10 @@ export default function PortfolioTenantDetailRoute() {
   const item = detail.data;
 
   return (
-    <Screen>
-      <BrandHeader title="Tenant Lease" onBack={() => router.back()} />
-      {detail.isLoading ? (
-        <LoadingState />
-      ) : detail.isError || !item ? (
-        <ErrorState onRetry={() => detail.refetch()} />
-      ) : (
+    <Screen edges={[]}>
+      <PageHeader title="Tenant Lease" />
+      {item ? (
+        <View style={styles.body}>
         <ScrollView contentContainerStyle={styles.scroll}>
           <Card style={styles.card}>
             <View style={styles.titleRow}>
@@ -99,6 +95,11 @@ export default function PortfolioTenantDetailRoute() {
             />
           ) : null}
         </ScrollView>
+        </View>
+      ) : detail.isError ? (
+        <ErrorState onRetry={() => detail.refetch()} />
+      ) : (
+        <LoadingState />
       )}
 
       <ConfirmDialog
@@ -129,6 +130,10 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
+  body: {
+    flex: 1,
+    backgroundColor: userHomeColors.background,
+  },
   scroll: {
     padding: spacing.lg,
     gap: spacing.md,
@@ -148,14 +153,14 @@ const styles = StyleSheet.create({
     borderRadius: 24,
   },
   avatarFallback: {
-    backgroundColor: ownerAccentColors.surfaceBlue,
+    backgroundColor: userHomeColors.lightBlue,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarText: {
     ...textStyles.body,
     fontWeight: '700',
-    color: coreColors.brandBlue,
+    color: userHomeColors.navy,
   },
   titleTexts: {
     flex: 1,
@@ -169,7 +174,7 @@ const styles = StyleSheet.create({
   },
   amount: {
     ...textStyles.heading1,
-    color: coreColors.brandBlue,
+    color: userHomeColors.navy,
   },
   infoRows: {
     gap: spacing.xs,
@@ -182,7 +187,7 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     ...textStyles.bodySmall,
-    color: coreColors.textSecondary,
+    color: userHomeColors.textSecondary,
   },
   infoValue: {
     ...textStyles.bodySmall,
@@ -192,7 +197,7 @@ const styles = StyleSheet.create({
   },
   agreementLink: {
     ...textStyles.bodySmall,
-    color: coreColors.brandBlue,
+    color: userHomeColors.navy,
     fontWeight: '600',
     marginTop: spacing.xs,
   },

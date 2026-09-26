@@ -2,7 +2,7 @@ import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 
 import { formatRinggit, formatSimpleDate } from '@neast/types';
-import { Button, Card, coreColors, spacing, textStyles } from '@neast/ui-mobile';
+import { Button, Card, coreColors, spacing, textStyles, PageHeader } from '@neast/ui-mobile';
 
 import { useSelectionStore } from '@/stores/selection';
 import {
@@ -11,7 +11,6 @@ import {
   useCouponActions,
 } from '@/features/coupon/components';
 import { ErrorState } from '@/components/StateViews';
-import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 
 /**

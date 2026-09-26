@@ -11,11 +11,11 @@ import {
   spacing,
   textStyles,
   Toast,
+  PageHeader,
 } from '@neast/ui-mobile';
 
 import { useUserProfile } from '@/hooks/use-profile';
 import { ErrorState, LoadingState } from '@/components/StateViews';
-import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 
 /** My QR (my_qr_screen parity): account QR + save-to-gallery via view-shot. */

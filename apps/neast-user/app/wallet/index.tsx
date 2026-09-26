@@ -16,13 +16,13 @@ import {
   TextField,
   Toast,
   userHomeColors,
+  PageHeader,
 } from '@neast/ui-mobile';
 
 import { apiErrorMessage } from '@/lib/api';
 import { openH5WebView } from '@/lib/callbacks';
 import { createWalletTopup, getPaymentQuote, getWalletBalance } from '@/lib/endpoints';
 import { buildPaymentMethodOptions, fiuuChannelFor } from '@/lib/payment-methods';
-import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 
 /** Wallet top-up: balance, presets, payment method, then Fiuu H5. */

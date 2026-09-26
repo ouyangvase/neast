@@ -14,6 +14,7 @@ export * from './NotFoundScreen';
 export * from './ComingSoon';
 export * from './ComingSoonDialog';
 export * from './BrandHeader';
+export * from './PageHeader';
 export * from './GradientHeader';
 export * from './Screen';
 export * from './SectionHeader';

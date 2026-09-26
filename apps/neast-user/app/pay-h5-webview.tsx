@@ -1,10 +1,9 @@
 import { useLayoutEffect } from 'react';
 import { router, useLocalSearchParams, useNavigation } from 'expo-router';
 
-import { FiuuH5WebView } from '@neast/ui-mobile';
+import { FiuuH5WebView, PageHeader } from '@neast/ui-mobile';
 
 import { clearH5Callbacks, getH5Callbacks } from '@/lib/callbacks';
-import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 
 /**

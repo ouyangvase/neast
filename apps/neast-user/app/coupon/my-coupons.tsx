@@ -4,13 +4,12 @@ import { router } from 'expo-router';
 
 import { COUPON_STATUS_TABS } from '@neast/constant';
 import type { CouponStatus, UserCouponItem } from '@neast/types';
-import { coreColors, RefreshList, spacing, textStyles, userHomeColors } from '@neast/ui-mobile';
+import { coreColors, RefreshList, spacing, textStyles, userHomeColors, PageHeader } from '@neast/ui-mobile';
 
 import { getMyCoupons } from '@/lib/endpoints';
 import { usePaginatedList } from '@/hooks/use-paginated';
 import { useSelectionStore } from '@/stores/selection';
 import { CouponCard, CouponQrDialog, useCouponActions } from '@/features/coupon/components';
-import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 
 /** My coupons: active / used / expired tabs. */

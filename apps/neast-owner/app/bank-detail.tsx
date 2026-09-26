@@ -1,18 +1,17 @@
 import { useEffect, useState } from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, Text } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
-  BrandHeader,
   Button,
-  coreColors,
-  ownerAccentColors,
+  PageHeader,
   spacing,
   TextField,
   textStyles,
   Toast,
   UploadProgressDialog,
+  userHomeColors,
 } from '@neast/ui-mobile';
 
 import photoUpload from '@assets/images/property/photo-upload.png';
@@ -21,10 +20,10 @@ import { apiErrorMessage } from '@/lib/api';
 import { getLandlordInfo, updateBankDetail } from '@/lib/endpoints';
 import { pickImageFile } from '@/lib/pickers';
 import { useFileUpload } from '@/hooks/use-upload';
-import { LoadingState } from '@/components/StateViews';
+import { ErrorState, LoadingState } from '@/components/StateViews';
 import { Screen } from '@/components/Screen';
 
-/** Bank detail (bank_detail_screen parity): payout bank form + bank-header photo upload. */
+/** Bank detail: payout bank form and bank-header photo upload. */
 export default function BankDetailRoute() {
   const queryClient = useQueryClient();
   const info = useQuery({ queryKey: ['landlord-info'], queryFn: getLandlordInfo });
@@ -36,7 +35,6 @@ export default function BankDetailRoute() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const uploader = useFileUpload();
 
-  // Prefill once the profile arrives.
   useEffect(() => {
     const data = info.data;
     if (!data) return;
@@ -44,7 +42,7 @@ export default function BankDetailRoute() {
     setBankAccount(data.bank_account);
     setHolderName(data.account_holder_name);
     setPhotoPath(data.bank_header_photo);
-    setPhotoPreview(data.bank_header_photo_url || null);
+    setPhotoPreview(data.bank_header_photo_url);
   }, [info.data]);
 
   const saveMutation = useMutation({
@@ -80,59 +78,69 @@ export default function BankDetailRoute() {
     photoPath !== '';
 
   return (
-    <Screen>
-      <BrandHeader title="Bank Detail" onBack={() => router.back()} />
-      {info.isLoading ? (
-        <LoadingState />
-      ) : (
-        <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scroll}>
-          <TextField label="Bank name" value={bankName} onChangeText={setBankName} />
-          <TextField
-            label="Bank account"
-            value={bankAccount}
-            onChangeText={setBankAccount}
-            keyboardType="number-pad"
-          />
-          <TextField
-            label="Account holder name"
-            value={holderName}
-            onChangeText={setHolderName}
-            autoCapitalize="words"
-          />
-
-          <Text style={styles.sectionLabel}>Bank header photo</Text>
-          <Pressable onPress={pickPhoto} accessibilityRole="button" style={styles.uploadTile}>
-            <Image
-              source={photoPreview ? { uri: photoPreview } : photoUpload}
-              style={photoPreview ? styles.uploadPreview : styles.uploadPlaceholder}
-              resizeMode="cover"
+    <Screen edges={[]}>
+      <PageHeader title="Bank Detail" />
+      {info.data ? (
+        <View style={styles.body}>
+          <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scroll}>
+            <TextField label="Bank name" value={bankName} onChangeText={setBankName} />
+            <TextField
+              label="Bank account"
+              value={bankAccount}
+              onChangeText={setBankAccount}
+              keyboardType="number-pad"
             />
-            <Text style={styles.uploadText}>
-              {photoPath ? 'Tap to replace the photo' : 'Tap to upload a photo'}
-            </Text>
-          </Pressable>
+            <TextField
+              label="Account holder name"
+              value={holderName}
+              onChangeText={setHolderName}
+              autoCapitalize="words"
+            />
 
-          <Button
-            title="Save"
-            onPress={() => saveMutation.mutate()}
-            disabled={!ready}
-            loading={saveMutation.isPending}
-            style={styles.submit}
-          />
-        </ScrollView>
+            <Text style={styles.sectionLabel}>Bank header photo</Text>
+            <Pressable onPress={pickPhoto} accessibilityRole="button" style={styles.uploadTile}>
+              <Image
+                source={photoPreview ? { uri: photoPreview } : photoUpload}
+                style={photoPreview ? styles.uploadPreview : styles.uploadPlaceholder}
+                resizeMode="cover"
+              />
+              <Text style={styles.uploadText}>
+                {photoPath ? 'Tap to replace the photo' : 'Tap to upload a photo'}
+              </Text>
+            </Pressable>
+
+            <Button
+              title="Save"
+              onPress={() => saveMutation.mutate()}
+              disabled={!ready}
+              loading={saveMutation.isPending}
+              style={styles.submit}
+            />
+          </ScrollView>
+        </View>
+      ) : info.isError ? (
+        <ErrorState onRetry={() => info.refetch()} />
+      ) : (
+        <LoadingState />
       )}
 
-      <UploadProgressDialog
-        visible={uploader.progress !== null}
-        progress={uploader.progress ?? 0}
-        fileName={uploader.fileName}
-        onCancel={uploader.cancel}
-      />
+      {uploader.progress !== null ? (
+        <UploadProgressDialog
+          visible
+          progress={uploader.progress}
+          fileName={uploader.fileName}
+          onCancel={uploader.cancel}
+        />
+      ) : null}
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  body: {
+    flex: 1,
+    backgroundColor: userHomeColors.background,
+  },
   scroll: {
     padding: spacing.lg,
     gap: spacing.md,
@@ -141,14 +149,15 @@ const styles = StyleSheet.create({
   sectionLabel: {
     ...textStyles.bodySmall,
     fontWeight: '500',
+    color: userHomeColors.textPrimary,
     marginTop: spacing.xs,
   },
   uploadTile: {
     borderWidth: 1,
-    borderColor: coreColors.border,
+    borderColor: userHomeColors.border,
     borderStyle: 'dashed',
     borderRadius: 12,
-    backgroundColor: ownerAccentColors.surfaceBlueLight,
+    backgroundColor: userHomeColors.lightBlue,
     alignItems: 'center',
     padding: spacing.lg,
     gap: spacing.sm,
@@ -164,7 +173,7 @@ const styles = StyleSheet.create({
   },
   uploadText: {
     ...textStyles.caption,
-    color: coreColors.textSecondary,
+    color: userHomeColors.textSecondary,
   },
   submit: {
     marginTop: spacing.md,

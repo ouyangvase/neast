@@ -9,7 +9,7 @@ import { Button } from './Button';
 
 const actionColor: Record<AppId, string> = {
   user: userHomeColors.navy,
-  owner: coreColors.brandBlue,
+  owner: userHomeColors.navy,
   merchant: merchantAccentColors.selected,
 };
 

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 
-import { RefreshList, userHomeColors } from '@neast/ui-mobile';
+import { RefreshList, userHomeColors, PageHeader } from '@neast/ui-mobile';
 
 import { getRentHistory } from '@/lib/endpoints';
 import { yearChips } from '@/lib/format';
@@ -10,7 +10,6 @@ import type { RentHistoryEntry } from '@/lib/types';
 import { usePaginatedList } from '@/hooks/use-paginated';
 import { useSelectionStore } from '@/stores/selection';
 import { HistoryRow } from '@/features/pay-rent/components';
-import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 
 /** Full rent history (rent_history_screen parity): year filter chips. */

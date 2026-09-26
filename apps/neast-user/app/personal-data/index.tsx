@@ -6,13 +6,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ID_TYPE_LABELS } from '@neast/constant';
 import type { IdType, UserProfile } from '@neast/types';
-import { Button, Card, spacing, TextField, Toast, userHomeColors } from '@neast/ui-mobile';
+import { Button, Card, spacing, TextField, Toast, userHomeColors, PageHeader } from '@neast/ui-mobile';
 
 import { apiErrorMessage } from '@/lib/api';
 import { updateUserProfile } from '@/lib/endpoints';
 import { useUserProfile } from '@/hooks/use-profile';
 import { DatePickerField, fromYmd, toYmd } from '@/components/DatePickerField';
-import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 import { ErrorState, LoadingState } from '@/components/StateViews';
 

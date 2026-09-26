@@ -10,7 +10,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 
-import { coreColors } from '@ui/tokens/colors';
+import { coreColors, userHomeColors } from '@ui/tokens/colors';
 import { radii, spacing } from '@ui/tokens/layout';
 import { textStyles } from '@ui/tokens/typography';
 
@@ -109,8 +109,8 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   rowSelected: {
-    borderColor: coreColors.brandBlue,
-    backgroundColor: coreColors.tintBlue,
+    borderColor: userHomeColors.navy,
+    backgroundColor: userHomeColors.lightBlue,
   },
   rowDisabled: {
     opacity: 0.5,
@@ -144,12 +144,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   radioSelected: {
-    borderColor: coreColors.brandBlue,
+    borderColor: userHomeColors.navy,
   },
   radioDot: {
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: coreColors.brandBlue,
+    backgroundColor: userHomeColors.navy,
   },
 });

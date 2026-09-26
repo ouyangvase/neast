@@ -4,15 +4,14 @@ import { router } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import {
-  BrandHeader,
   Button,
-  coreColors,
-  ownerAccentColors,
+  PageHeader,
   spacing,
   TextField,
   textStyles,
   Toast,
   UploadProgressDialog,
+  userHomeColors,
 } from '@neast/ui-mobile';
 
 import photoUpload from '@assets/images/property/photo-upload.png';
@@ -64,43 +63,47 @@ export default function AddPropertyRoute() {
   const ready = name.trim() !== '' && address.trim() !== '' && photo !== null;
 
   return (
-    <Screen>
-      <BrandHeader title="Add Property" onBack={() => router.back()} />
-      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scroll}>
-        <TextField label="Property name" value={name} onChangeText={setName} />
-        <TextField
-          label="Address"
-          value={address}
-          onChangeText={setAddress}
-          multiline
-          containerStyle={styles.addressField}
-        />
-
-        <Text style={styles.sectionLabel}>Property photo</Text>
-        <Pressable onPress={pickPhoto} accessibilityRole="button" style={styles.uploadTile}>
-          <Image
-            source={photo?.uri ? { uri: photo.uri } : photoUpload}
-            style={photo?.uri ? styles.uploadPreview : styles.uploadPlaceholder}
-            resizeMode="cover"
+    <Screen edges={[]}>
+      <PageHeader title="Add Property" />
+      <View style={styles.body}>
+        <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scroll}>
+          <TextField label="Property name" value={name} onChangeText={setName} />
+          <TextField
+            label="Address"
+            value={address}
+            onChangeText={setAddress}
+            multiline
+            containerStyle={styles.addressField}
           />
-          <Text style={styles.uploadText}>{photo ? photo.label : 'Tap to upload a photo'}</Text>
-        </Pressable>
 
-        <Button
-          title="Create Property"
-          onPress={() => createMutation.mutate()}
-          disabled={!ready}
-          loading={createMutation.isPending}
-          style={styles.submit}
+          <Text style={styles.sectionLabel}>Property photo</Text>
+          <Pressable onPress={pickPhoto} accessibilityRole="button" style={styles.uploadTile}>
+            <Image
+              source={photo?.uri ? { uri: photo.uri } : photoUpload}
+              style={photo?.uri ? styles.uploadPreview : styles.uploadPlaceholder}
+              resizeMode="cover"
+            />
+            <Text style={styles.uploadText}>{photo ? photo.label : 'Tap to upload a photo'}</Text>
+          </Pressable>
+
+          <Button
+            title="Create Property"
+            onPress={() => createMutation.mutate()}
+            disabled={!ready}
+            loading={createMutation.isPending}
+            style={styles.submit}
+          />
+        </ScrollView>
+      </View>
+
+      {uploader.progress !== null ? (
+        <UploadProgressDialog
+          visible
+          progress={uploader.progress}
+          fileName={uploader.fileName}
+          onCancel={uploader.cancel}
         />
-      </ScrollView>
-
-      <UploadProgressDialog
-        visible={uploader.progress !== null}
-        progress={uploader.progress ?? 0}
-        fileName={uploader.fileName}
-        onCancel={uploader.cancel}
-      />
+      ) : null}
 
       <Modal visible={successVisible} transparent animationType="fade">
         <View style={styles.successOverlay}>
@@ -125,6 +128,10 @@ export default function AddPropertyRoute() {
 }
 
 const styles = StyleSheet.create({
+  body: {
+    flex: 1,
+    backgroundColor: userHomeColors.background,
+  },
   scroll: {
     padding: spacing.lg,
     gap: spacing.md,
@@ -136,14 +143,15 @@ const styles = StyleSheet.create({
   sectionLabel: {
     ...textStyles.bodySmall,
     fontWeight: '500',
+    color: userHomeColors.textPrimary,
     marginTop: spacing.xs,
   },
   uploadTile: {
     borderWidth: 1,
-    borderColor: coreColors.border,
+    borderColor: userHomeColors.border,
     borderStyle: 'dashed',
     borderRadius: 12,
-    backgroundColor: ownerAccentColors.surfaceBlueLight,
+    backgroundColor: userHomeColors.lightBlue,
     alignItems: 'center',
     padding: spacing.lg,
     gap: spacing.sm,
@@ -159,7 +167,7 @@ const styles = StyleSheet.create({
   },
   uploadText: {
     ...textStyles.caption,
-    color: coreColors.textSecondary,
+    color: userHomeColors.textSecondary,
   },
   submit: {
     marginTop: spacing.md,
@@ -172,8 +180,8 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
   },
   successDialog: {
-    backgroundColor: coreColors.white,
-    borderRadius: 12,
+    backgroundColor: userHomeColors.surface,
+    borderRadius: 16,
     padding: spacing.xl,
     alignSelf: 'stretch',
     alignItems: 'center',
@@ -184,11 +192,12 @@ const styles = StyleSheet.create({
   },
   successTitle: {
     ...textStyles.heading3,
+    color: userHomeColors.navy,
     marginTop: spacing.md,
   },
   successMessage: {
     ...textStyles.bodySmall,
-    color: coreColors.textSecondary,
+    color: userHomeColors.textSecondary,
     textAlign: 'center',
     marginTop: spacing.xs,
     marginBottom: spacing.lg,

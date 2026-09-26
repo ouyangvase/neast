@@ -6,12 +6,11 @@ import type { LandlordAckItem } from '@neast/types';
 import {
   Card,
   coreColors,
-  GradientHeader,
-  ownerAccentColors,
+  PageHeader,
   RefreshList,
   spacing,
   textStyles,
-  useUiTheme,
+  userHomeColors,
 } from '@neast/ui-mobile';
 
 import { getAckList } from '@/lib/endpoints';
@@ -19,44 +18,41 @@ import { useSelectionStore } from '@/stores/selection';
 import { ErrorState, ListSkeleton } from '@/components/StateViews';
 import { Screen } from '@/components/Screen';
 
-/** Ack list (ack_list_screen parity): settled payments awaiting receipt confirmation. */
+/** Ack list: settled payments awaiting receipt confirmation. */
 export default function AckListRoute() {
-  const theme = useUiTheme();
   const setAckItem = useSelectionStore((state) => state.setAckItem);
   const list = useQuery({ queryKey: ['ack-list'], queryFn: getAckList });
 
   return (
     <Screen edges={[]}>
-      <GradientHeader
-        colors={theme.gradients.header}
-        title="Confirm Receipts"
-        lightContent={false}
-        onBack={() => router.back()}
-      />
-      {list.isLoading ? (
-        <ListSkeleton rows={4} />
-      ) : list.isError ? (
-        <ErrorState onRetry={() => list.refetch()} />
-      ) : (
-        <RefreshList
-          data={list.data?.items ?? []}
-          keyExtractor={(item) => String(item.id)}
-          refreshing={list.isRefetching}
-          onRefresh={() => list.refetch()}
-          emptyTitle="Nothing to confirm"
-          emptyMessage="Settled tenant payments will appear here."
-          contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => (
-            <AckRow
-              item={item}
-              onPress={() => {
-                setAckItem(item);
-                router.push('/ack-detail');
-              }}
-            />
-          )}
-        />
-      )}
+      <PageHeader title="Confirm Receipts" />
+      <View style={styles.body}>
+        {list.data ? (
+          <RefreshList
+            data={list.data.items}
+            keyExtractor={(item) => String(item.id)}
+            refreshing={list.isRefetching}
+            onRefresh={() => list.refetch()}
+            emptyTitle="Nothing to confirm"
+            emptyMessage="Settled tenant payments will appear here."
+            contentContainerStyle={styles.listContent}
+            style={styles.list}
+            renderItem={({ item }) => (
+              <AckRow
+                item={item}
+                onPress={() => {
+                  setAckItem(item);
+                  router.push('/ack-detail');
+                }}
+              />
+            )}
+          />
+        ) : list.isError ? (
+          <ErrorState onRetry={() => list.refetch()} />
+        ) : (
+          <ListSkeleton rows={4} />
+        )}
+      </View>
     </Screen>
   );
 }
@@ -82,6 +78,13 @@ function AckRow({ item, onPress }: { item: LandlordAckItem; onPress: () => void 
 }
 
 const styles = StyleSheet.create({
+  body: {
+    flex: 1,
+    backgroundColor: userHomeColors.background,
+  },
+  list: {
+    flex: 1,
+  },
   listContent: {
     padding: spacing.lg,
     paddingBottom: spacing.xxl,
@@ -91,19 +94,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
+    backgroundColor: userHomeColors.surface,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: userHomeColors.border,
   },
   avatar: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: ownerAccentColors.surfaceBlue,
+    backgroundColor: userHomeColors.lightBlue,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarText: {
     ...textStyles.bodySmall,
     fontWeight: '700',
-    color: coreColors.brandBlue,
+    color: userHomeColors.navy,
   },
   rowBody: {
     flex: 1,
@@ -111,9 +117,11 @@ const styles = StyleSheet.create({
   rowName: {
     ...textStyles.body,
     fontWeight: '600',
+    color: userHomeColors.textPrimary,
   },
   rowMeta: {
     ...textStyles.caption,
+    color: userHomeColors.textSecondary,
     marginTop: 2,
   },
   rowDate: {
@@ -124,6 +132,6 @@ const styles = StyleSheet.create({
   rowAmount: {
     ...textStyles.body,
     fontWeight: '700',
-    color: coreColors.brandBlue,
+    color: userHomeColors.navy,
   },
 });

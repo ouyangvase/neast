@@ -2,13 +2,12 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 
 import {
-  BrandHeader,
   Card,
-  coreColors,
-  ownerAccentColors,
+  PageHeader,
   spacing,
   StatusTag,
   textStyles,
+  userHomeColors,
 } from '@neast/ui-mobile';
 
 import { useFileViewer } from '@/hooks/use-file-viewer';
@@ -27,8 +26,8 @@ export default function RentDetailRoute() {
 
   if (!item) {
     return (
-      <Screen>
-        <BrandHeader title="Rent Detail" onBack={() => router.back()} />
+      <Screen edges={[]}>
+        <PageHeader title="Rent Detail" />
         <ErrorState message="Record unavailable." onRetry={() => router.back()} />
       </Screen>
     );
@@ -37,8 +36,9 @@ export default function RentDetailRoute() {
   const overdue = item.status === 'overdue';
 
   return (
-    <Screen>
-      <BrandHeader title="Rent Detail" onBack={() => router.back()} />
+    <Screen edges={[]}>
+      <PageHeader title="Rent Detail" />
+      <View style={styles.body}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <Card style={styles.card}>
           <View style={styles.titleRow}>
@@ -55,9 +55,9 @@ export default function RentDetailRoute() {
             </View>
             <StatusTag
               label={item.status_text}
-              status={overdue ? 'overdue' : 'pending'}
-              color={overdue ? undefined : ownerAccentColors.orange}
-              backgroundColor={overdue ? undefined : ownerAccentColors.gradientWarmStart}
+              status={overdue ? 'overdue' : 'info'}
+              color={overdue ? undefined : userHomeColors.gold}
+              backgroundColor={overdue ? undefined : userHomeColors.cream}
             />
           </View>
           <Text style={styles.amount}>RM{item.amount}</Text>
@@ -70,6 +70,7 @@ export default function RentDetailRoute() {
           </Pressable>
         </Card>
       </ScrollView>
+      </View>
       {fileViewer.preview}
     </Screen>
   );
@@ -85,6 +86,10 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
+  body: {
+    flex: 1,
+    backgroundColor: userHomeColors.background,
+  },
   scroll: {
     padding: spacing.lg,
     paddingBottom: spacing.xxl,
@@ -101,14 +106,14 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: ownerAccentColors.surfaceBlue,
+    backgroundColor: userHomeColors.lightBlue,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarText: {
     ...textStyles.body,
     fontWeight: '700',
-    color: coreColors.brandBlue,
+    color: userHomeColors.navy,
   },
   titleTexts: {
     flex: 1,
@@ -122,7 +127,7 @@ const styles = StyleSheet.create({
   },
   amount: {
     ...textStyles.heading1,
-    color: coreColors.brandBlue,
+    color: userHomeColors.navy,
   },
   infoRows: {
     gap: spacing.xs,
@@ -135,7 +140,7 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     ...textStyles.bodySmall,
-    color: coreColors.textSecondary,
+    color: userHomeColors.textSecondary,
   },
   infoValue: {
     ...textStyles.bodySmall,
@@ -145,7 +150,7 @@ const styles = StyleSheet.create({
   },
   agreementLink: {
     ...textStyles.bodySmall,
-    color: coreColors.brandBlue,
+    color: userHomeColors.navy,
     fontWeight: '600',
     marginTop: spacing.xs,
   },

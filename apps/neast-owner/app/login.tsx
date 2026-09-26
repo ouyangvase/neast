@@ -1,33 +1,32 @@
 import { useState } from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, ImageBackground, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { joinPhoneAccount } from '@neast/types';
 import {
   Button,
-  coreColors,
   CountryCodePicker,
-  GradientHeader,
   PhoneField,
   spacing,
   TextField,
-  textStyles,
   Toast,
-  useUiTheme,
+  userHomeColors,
 } from '@neast/ui-mobile';
 
 import logo from '@assets/images/app_header.png';
+import metallicBackground from '@assets/images/home/neast-metallic-background.png';
 
 import { apiErrorMessage } from '@/lib/api';
 import { getCountryCodes, sendCode } from '@/lib/endpoints';
-import { Screen } from '@/components/Screen';
 
 type AuthMode = 'login' | 'signup';
 
-/** Login (login_screen parity): phone OTP tabs — Log in / Sign up, default +60. */
+/** Login: phone OTP on the metallic background, with Log in / Sign up. */
 export default function LoginRoute() {
-  const theme = useUiTheme();
+  const insets = useSafeAreaInsets();
   const [mode, setMode] = useState<AuthMode>('login');
   const [dialCode, setDialCode] = useState('+60');
   const [phone, setPhone] = useState('');
@@ -70,33 +69,43 @@ export default function LoginRoute() {
   const codes = (countryCodes.data ?? []).map((item) => item.code);
 
   return (
-    <Screen edges={[]}>
+    <View style={styles.container}>
+      <StatusBar style="light" />
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scroll}>
-        <GradientHeader colors={theme.gradients.header} style={styles.header}>
-          <Image source={logo} style={styles.logo} resizeMode="contain" />
-          <Text style={styles.headerTitle}>Welcome to NEAST Owner</Text>
-          <Text style={styles.headerSubtitle}>Manage your properties and tenants</Text>
-        </GradientHeader>
+        <ImageBackground
+          source={metallicBackground}
+          resizeMode="cover"
+          style={[styles.hero, { paddingTop: insets.top + 20 }]}
+        >
+          <Image
+            source={logo}
+            style={styles.logo}
+            resizeMode="contain"
+            accessibilityLabel="NEAST"
+          />
+          <Text style={styles.title}>Welcome to NEAST Owner</Text>
+          <Text style={styles.subtitle}>Manage your properties and tenants</Text>
+        </ImageBackground>
 
-        <View style={styles.tabs}>
-          {(['login', 'signup'] as const).map((value) => (
-            <Pressable
-              key={value}
-              style={[styles.tab, mode === value && styles.tabActive]}
-              onPress={() => {
-                setMode(value);
-                setError(undefined);
-              }}
-              accessibilityRole="button"
-            >
-              <Text style={[styles.tabText, mode === value && styles.tabTextActive]}>
-                {value === 'login' ? 'Log In' : 'Sign Up'}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+        <View style={[styles.sheet, { paddingBottom: insets.bottom + 24 }]}>
+          <View style={styles.tabs}>
+            {(['login', 'signup'] as const).map((value) => (
+              <Pressable
+                key={value}
+                style={[styles.tab, mode === value && styles.tabActive]}
+                onPress={() => {
+                  setMode(value);
+                  setError(undefined);
+                }}
+                accessibilityRole="button"
+              >
+                <Text style={[styles.tabText, mode === value && styles.tabTextActive]}>
+                  {value === 'login' ? 'Log In' : 'Sign Up'}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
 
-        <View style={styles.form}>
           {mode === 'signup' ? (
             <View style={styles.nameRow}>
               <TextField
@@ -125,12 +134,12 @@ export default function LoginRoute() {
             autoFocus
           />
           <Button
-            title="Send Code"
+            title="Send code"
             onPress={submit}
             loading={sendMutation.isPending}
+            size="large"
             style={styles.submit}
           />
-
           <Text style={styles.terms}>
             By continuing you agree to our{' '}
             <Text
@@ -162,62 +171,74 @@ export default function LoginRoute() {
         selectedCode={dialCode}
         onSelect={setDialCode}
       />
-    </Screen>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: userHomeColors.navy,
+  },
   scroll: {
     flexGrow: 1,
   },
-  header: {
-    alignItems: 'center',
-    paddingBottom: spacing.xxl,
+  hero: {
+    backgroundColor: userHomeColors.navy,
+    overflow: 'hidden',
+    paddingHorizontal: 24,
+    paddingBottom: 56,
   },
   logo: {
     width: 120,
     height: 44,
-    marginTop: spacing.xl,
+    marginBottom: 20,
   },
-  headerTitle: {
-    ...textStyles.heading1,
-    color: coreColors.white,
-    marginTop: spacing.lg,
+  title: {
+    color: userHomeColors.surface,
+    fontSize: 28,
+    lineHeight: 34,
+    fontWeight: '700',
+    letterSpacing: -0.6,
   },
-  headerSubtitle: {
-    ...textStyles.bodySmall,
-    color: coreColors.white,
-    opacity: 0.85,
-    marginTop: spacing.xs,
+  subtitle: {
+    color: userHomeColors.textOnNavyAlt,
+    fontSize: 15,
+    lineHeight: 22,
+    marginTop: 8,
+  },
+  sheet: {
+    flexGrow: 1,
+    marginTop: -28,
+    paddingHorizontal: 20,
+    paddingTop: 28,
+    gap: 16,
+    backgroundColor: userHomeColors.surface,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
   },
   tabs: {
     flexDirection: 'row',
-    marginHorizontal: spacing.lg,
-    marginTop: spacing.lg,
-    borderRadius: 8,
-    backgroundColor: coreColors.appBarBackground,
+    borderRadius: 12,
+    backgroundColor: userHomeColors.lightBlue,
     padding: 4,
   },
   tab: {
     flex: 1,
     alignItems: 'center',
     paddingVertical: spacing.sm,
-    borderRadius: 6,
+    borderRadius: 8,
   },
   tabActive: {
-    backgroundColor: coreColors.white,
+    backgroundColor: userHomeColors.navy,
   },
   tabText: {
-    ...textStyles.bodySmall,
-    color: coreColors.textSecondary,
+    color: userHomeColors.textSecondary,
+    fontSize: 14,
     fontWeight: '600',
   },
   tabTextActive: {
-    color: coreColors.brandBlue,
-  },
-  form: {
-    padding: spacing.lg,
-    gap: spacing.md,
+    color: userHomeColors.surface,
   },
   nameRow: {
     flexDirection: 'row',
@@ -227,14 +248,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   submit: {
-    marginTop: spacing.sm,
+    borderRadius: 16,
   },
   terms: {
-    ...textStyles.caption,
+    color: userHomeColors.textSecondary,
+    fontSize: 12,
+    lineHeight: 18,
     textAlign: 'center',
-    marginTop: spacing.md,
+    marginTop: 8,
   },
   termsLink: {
-    color: coreColors.brandBlue,
+    color: userHomeColors.navy,
+    fontWeight: '600',
   },
 });

@@ -3,13 +3,12 @@ import { StyleSheet } from 'react-native';
 import { router } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 
-import { RefreshList, spacing } from '@neast/ui-mobile';
+import { RefreshList, spacing, PageHeader } from '@neast/ui-mobile';
 
 import { getRentHistory } from '@/lib/endpoints';
 import { isPaidHistory, type RentHistoryEntry } from '@/lib/types';
 import { useSelectionStore } from '@/stores/selection';
 import { ErrorState } from '@/components/StateViews';
-import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 import { HistoryRow } from '@/features/pay-rent/components';
 

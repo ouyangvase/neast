@@ -16,6 +16,7 @@ import {
   TextField,
   Toast,
   userHomeColors,
+  PageHeader,
 } from '@neast/ui-mobile';
 
 import { apiErrorMessage } from '@/lib/api';
@@ -29,7 +30,6 @@ import {
 import { buildPaymentMethodOptions, fiuuChannelFor } from '@/lib/payment-methods';
 import type { RentHistoryEntry } from '@/lib/types';
 import { useSelectionStore } from '@/stores/selection';
-import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 import { PaymentReceipt } from '@/features/pay-rent/receipt';
 

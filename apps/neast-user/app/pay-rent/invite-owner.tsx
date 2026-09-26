@@ -3,12 +3,11 @@ import { Linking, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Redirect } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { Button, MailIcon, TextField, Toast, userHomeColors, WhatsAppIcon } from '@neast/ui-mobile';
+import { Button, MailIcon, TextField, Toast, userHomeColors, WhatsAppIcon, PageHeader } from '@neast/ui-mobile';
 
 import { apiErrorMessage } from '@/lib/api';
 import { saveOwnerContact } from '@/lib/endpoints';
 import { useSelectionStore } from '@/stores/selection';
-import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 
 /** Invite an owner who is not a NEAST landlord. Opened from an unlinked tenancy card. */

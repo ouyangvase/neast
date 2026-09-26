@@ -1,47 +1,45 @@
-import { ScrollView, StyleSheet } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 
-import { GradientHeader, RichText, spacing, useUiTheme } from '@neast/ui-mobile';
+import { PageHeader, RichText, spacing, userHomeColors } from '@neast/ui-mobile';
 
 import { getAgreement } from '@/lib/endpoints';
 import { ErrorState, LoadingState } from '@/components/StateViews';
 import { Screen } from '@/components/Screen';
 
-/** Agreement HTML page (rich_text_screen parity) — About Us / Terms / Privacy. */
+/** Agreement HTML page — About Us / Terms / Privacy. */
 export default function RichTextRoute() {
-  const theme = useUiTheme();
   const { title } = useLocalSearchParams<{ title: string }>();
-  const pageTitle = title ?? '';
 
   const agreement = useQuery({
-    queryKey: ['agreement', pageTitle],
-    queryFn: () => getAgreement(pageTitle),
-    enabled: pageTitle.length > 0,
+    queryKey: ['agreement', title],
+    queryFn: () => getAgreement(title),
   });
 
   return (
     <Screen edges={[]}>
-      <GradientHeader
-        colors={theme.gradients.header}
-        title={pageTitle}
-        lightContent={false}
-        onBack={() => router.back()}
-      />
-      {agreement.isLoading ? (
-        <LoadingState />
+      <PageHeader title={title} />
+      {agreement.data ? (
+        <View style={styles.body}>
+          <ScrollView contentContainerStyle={styles.content}>
+            <RichText html={agreement.data.content} contentPadding={spacing.lg} />
+          </ScrollView>
+        </View>
       ) : agreement.isError ? (
         <ErrorState onRetry={() => agreement.refetch()} />
-      ) : (
-        <ScrollView contentContainerStyle={styles.content}>
-          <RichText html={agreement.data?.content ?? ''} contentPadding={spacing.lg} />
-        </ScrollView>
-      )}
+      ) : agreement.isPending ? (
+        <LoadingState />
+      ) : null}
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  body: {
+    flex: 1,
+    backgroundColor: userHomeColors.background,
+  },
   content: {
     padding: spacing.lg,
     paddingBottom: spacing.xxl,

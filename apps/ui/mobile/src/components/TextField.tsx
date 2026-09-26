@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import type { ReactNode } from 'react';
 
-import { coreColors } from '@ui/tokens/colors';
+import { coreColors, userHomeColors } from '@ui/tokens/colors';
 import { radii, spacing } from '@ui/tokens/layout';
 import { textStyles } from '@ui/tokens/typography';
 
@@ -91,14 +91,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: coreColors.border,
+    borderColor: userHomeColors.border,
     borderRadius: radii.button,
-    backgroundColor: coreColors.white,
+    backgroundColor: userHomeColors.lightBlue,
     paddingHorizontal: spacing.md,
     minHeight: 48,
   },
   fieldFocused: {
-    borderColor: coreColors.brandBlue,
+    borderColor: userHomeColors.navy,
+    backgroundColor: userHomeColors.surface,
   },
   fieldError: {
     borderColor: coreColors.error,
@@ -110,7 +111,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: textStyles.body.fontSize,
     fontWeight: textStyles.body.fontWeight,
-    color: textStyles.body.color,
+    color: userHomeColors.textPrimary,
     paddingVertical: 0,
   },
   inputMultiline: {

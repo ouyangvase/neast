@@ -4,12 +4,11 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import type { CreateRentBody } from '@neast/types';
-import { Chevron, QrCodeIcon, Toast, userHomeColors } from '@neast/ui-mobile';
+import { Chevron, QrCodeIcon, Toast, userHomeColors, PageHeader } from '@neast/ui-mobile';
 
 import { apiErrorMessage } from '@/lib/api';
 import { openScanner } from '@/lib/callbacks';
 import { createRent, getRentPropertyBySn, updateRent } from '@/lib/endpoints';
-import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 import { TenancyForm } from '@/features/pay-rent/tenancy-form';
 import { useSelectionStore } from '@/stores/selection';

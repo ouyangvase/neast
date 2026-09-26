@@ -3,20 +3,18 @@ import { StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BrandHeader, userHomeColors } from '@neast/ui-mobile';
+import { userHomeColors } from '@ui/tokens/colors';
+import { BrandHeader } from './BrandHeader';
 
-/** Centered title and left back control on the navy bar used by tab subpages. */
-export function PageHeader({
-  title,
-  onBack,
-  showBack = true,
-  right,
-}: {
+export interface PageHeaderProps {
   title: string;
   onBack?: () => void;
   showBack?: boolean;
   right?: ReactNode;
-}) {
+}
+
+/** Centered title and left back control on the navy bar used by tab subpages. */
+export function PageHeader({ title, onBack, showBack = true, right }: PageHeaderProps) {
   const insets = useSafeAreaInsets();
 
   return (

@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { coreColors } from '@ui/tokens/colors';
+import { coreColors, userHomeColors } from '@ui/tokens/colors';
 import { radii, spacing } from '@ui/tokens/layout';
 import { textStyles } from '@ui/tokens/typography';
 import { Chevron } from './Chevron';
@@ -38,7 +38,7 @@ export function SelectField({
         <Text numberOfLines={1} style={[styles.value, !value && styles.placeholder]}>
           {value || placeholder}
         </Text>
-        <Chevron direction="down" size={8} color={coreColors.textHint} />
+        <Chevron direction="down" size={8} color={userHomeColors.navy} />
       </Pressable>
     </View>
   );
@@ -58,9 +58,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.sm,
     borderWidth: 1,
-    borderColor: coreColors.border,
+    borderColor: userHomeColors.border,
     borderRadius: radii.button,
-    backgroundColor: coreColors.white,
+    backgroundColor: userHomeColors.lightBlue,
     paddingHorizontal: spacing.md,
     minHeight: 48,
   },
@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: textStyles.body.fontSize,
     fontWeight: textStyles.body.fontWeight,
-    color: textStyles.body.color,
+    color: userHomeColors.textPrimary,
   },
   placeholder: {
     color: coreColors.textHint,

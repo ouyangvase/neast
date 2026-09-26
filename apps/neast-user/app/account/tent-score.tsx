@@ -2,11 +2,10 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import Svg, { Circle, G } from 'react-native-svg';
 
-import { userHomeColors } from '@neast/ui-mobile';
+import { userHomeColors, PageHeader } from '@neast/ui-mobile';
 
 import { getTentScore } from '@/lib/endpoints';
 import { ErrorState, LoadingState } from '@/components/StateViews';
-import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 
 const GAUGE_SIZE = 220;

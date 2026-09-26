@@ -12,13 +12,13 @@ import {
   TextField,
   textStyles,
   Toast,
+  PageHeader,
 } from '@neast/ui-mobile';
 
 import { apiErrorMessage } from '@/lib/api';
 import { navigateAfterAuth } from '@/lib/auth';
 import { updateUserProfile } from '@/lib/endpoints';
 import { DatePickerField, toYmd } from '@/components/DatePickerField';
-import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 
 /**

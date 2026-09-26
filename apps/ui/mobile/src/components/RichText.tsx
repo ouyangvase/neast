@@ -4,7 +4,7 @@ import RenderHTML, {
   type RenderHTMLProps,
 } from 'react-native-render-html';
 
-import { coreColors } from '@ui/tokens/colors';
+import { coreColors, userHomeColors } from '@ui/tokens/colors';
 
 export interface RichTextProps {
   /** Agreement / legal HTML (from the agreement detail endpoint). */
@@ -31,7 +31,7 @@ export function RichText({ html, contentPadding = 0, baseStyle, tagsStyles }: Ri
       tagsStyles={{
         h1: { fontSize: 22, lineHeight: 30 },
         h2: { fontSize: 18, lineHeight: 26 },
-        a: { color: coreColors.brandBlue },
+        a: { color: userHomeColors.navy },
         ...tagsStyles,
       }}
     />

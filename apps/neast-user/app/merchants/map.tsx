@@ -6,12 +6,11 @@ import MapView, { Marker, UrlTile } from 'react-native-maps';
 
 import { FIVE_X_POINTS_CATEGORY } from '@neast/constant';
 import { type NearbyMerchantItem } from '@neast/types';
-import { Card, coreColors, radii, spacing, textStyles, userHomeColors } from '@neast/ui-mobile';
+import { Card, coreColors, radii, spacing, textStyles, userHomeColors, PageHeader } from '@neast/ui-mobile';
 
 import { getMerchantCategories, getNearbyMerchants } from '@/lib/endpoints';
 import { useDeviceLocation } from '@/lib/location';
 import { ErrorState, LoadingState } from '@/components/StateViews';
-import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 
 const OSM_TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';

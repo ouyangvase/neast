@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import { Modal, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 
-import { Button, coreColors, radii, spacing, textStyles, Toast } from '@neast/ui-mobile';
+import { Button, radii, spacing, textStyles, Toast, userHomeColors } from '@neast/ui-mobile';
 
 import { apiErrorMessage } from '@/lib/api';
 import { getLandlordInfo } from '@/lib/endpoints';
@@ -71,18 +71,19 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
   },
   dialog: {
-    backgroundColor: coreColors.white,
+    backgroundColor: userHomeColors.surface,
     borderRadius: radii.card,
     padding: spacing.xl,
     alignSelf: 'stretch',
   },
   title: {
     ...textStyles.heading3,
+    color: userHomeColors.navy,
     textAlign: 'center',
   },
   message: {
     ...textStyles.bodySmall,
-    color: coreColors.textSecondary,
+    color: userHomeColors.textSecondary,
     textAlign: 'center',
     marginTop: spacing.sm,
     marginBottom: spacing.lg,

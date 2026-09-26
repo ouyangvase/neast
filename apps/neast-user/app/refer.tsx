@@ -10,13 +10,13 @@ import {
   spacing,
   textStyles,
   Toast,
+  PageHeader,
 } from '@neast/ui-mobile';
 
 import referBanner from '@assets/images/refer/refer-banner.png';
 
 import { getReferDashboard } from '@/lib/endpoints';
 import { ErrorState, LoadingState } from '@/components/StateViews';
-import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 
 /** Refer & earn (refer_screen parity): stats, invite code copy, share H5 link. */

@@ -1,27 +1,29 @@
 import { useState } from 'react';
-import { Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, ImageBackground, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { LandlordProperty } from '@neast/types';
 import {
   Button,
   Card,
-  coreColors,
   QrCodeView,
   RefreshList,
   spacing,
   textStyles,
+  userHomeColors,
 } from '@neast/ui-mobile';
 
+import metallicBackground from '@assets/images/home/neast-metallic-background.png';
 import housePlaceholder from '@assets/images/house-eg.png';
 
-import { Screen } from '@/components/Screen';
 import { getPropertyList } from '@/lib/endpoints';
 import { usePaginatedList } from '@/hooks/use-paginated';
 import { ListSkeleton } from '@/components/StateViews';
 import { useAddPropertyGate } from './AddPropertyGate';
 
-/** Properties tab (properties_screen parity): paginated list + per-property QR dialog. */
+/** Properties tab: paginated list and a per-property QR dialog. */
 export function PropertiesTab() {
+  const insets = useSafeAreaInsets();
   const list = usePaginatedList<LandlordProperty>(['property-list'], (page, limit) =>
     getPropertyList(page, limit),
   );
@@ -29,61 +31,72 @@ export function PropertiesTab() {
   const addProperty = useAddPropertyGate();
 
   return (
-    <Screen>
-      <View style={styles.container}>
-      <View style={styles.titleRow}>
-        <Text style={styles.title}>Properties</Text>
-        <Button
-          title="Add Property"
-          size="small"
-          fullWidth={false}
-          onPress={addProperty.checkAndGo}
-        />
-      </View>
-
-      {list.isLoading ? (
-        <ListSkeleton rows={4} />
-      ) : (
-        <RefreshList
-          data={list.items}
-          keyExtractor={(item) => String(item.id)}
-          refreshing={list.refreshing}
-          onRefresh={list.refresh}
-          onLoadMore={list.loadMore}
-          hasMore={list.hasMore}
-          loadingMore={list.loadingMore}
-          emptyTitle="No properties yet"
-          emptyMessage="Add your first property to start binding tenants."
-          contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => (
-            <PropertyRow property={item} onShowQr={() => setQrProperty(item)} />
-          )}
-        />
-      )}
-
-      <Modal
-        visible={qrProperty !== null}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setQrProperty(null)}
+    <View style={styles.container}>
+      <ImageBackground
+        source={metallicBackground}
+        resizeMode="cover"
+        style={[styles.backdrop, { paddingTop: insets.top + 8 }]}
       >
-        <View style={styles.qrOverlay}>
-          <View style={styles.qrDialog}>
-            <Text style={styles.qrTitle} numberOfLines={1}>
-              {qrProperty?.name}
-            </Text>
-            <Text style={styles.qrSubtitle}>
-              Have your tenant scan this code to connect with this property.
-            </Text>
-            <QrCodeView value={qrProperty?.sn ?? ''} size={200} style={styles.qr} />
-            <Text style={styles.qrSn}>{qrProperty?.sn}</Text>
-            <Button title="Close" variant="ghost" onPress={() => setQrProperty(null)} />
-          </View>
+        <View style={styles.titleRow}>
+          <Text style={styles.title}>Properties</Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Add Property"
+            onPress={addProperty.checkAndGo}
+            style={({ pressed }) => [styles.addButton, pressed && styles.pressed]}
+          >
+            <Text style={styles.addButtonText}>Add Property</Text>
+          </Pressable>
         </View>
-      </Modal>
-      {addProperty.dialog}
+      </ImageBackground>
+
+      <View style={styles.sheet}>
+        {list.isLoading ? (
+          <ListSkeleton rows={4} />
+        ) : (
+          <RefreshList
+            data={list.items}
+            keyExtractor={(item) => String(item.id)}
+            refreshing={list.refreshing}
+            onRefresh={list.refresh}
+            onLoadMore={list.loadMore}
+            hasMore={list.hasMore}
+            loadingMore={list.loadingMore}
+            emptyTitle="No properties yet"
+            emptyMessage="Add your first property to start binding tenants."
+            contentContainerStyle={styles.listContent}
+            style={styles.list}
+            renderItem={({ item }) => (
+              <PropertyRow property={item} onShowQr={() => setQrProperty(item)} />
+            )}
+          />
+        )}
       </View>
-    </Screen>
+
+      {qrProperty ? (
+        <Modal
+          visible
+          transparent
+          animationType="fade"
+          onRequestClose={() => setQrProperty(null)}
+        >
+          <View style={styles.qrOverlay}>
+            <View style={styles.qrDialog}>
+              <Text style={styles.qrTitle} numberOfLines={1}>
+                {qrProperty.name}
+              </Text>
+              <Text style={styles.qrSubtitle}>
+                Have your tenant scan this code to connect with this property.
+              </Text>
+              <QrCodeView value={qrProperty.sn} size={200} style={styles.qr} />
+              <Text style={styles.qrSn}>{qrProperty.sn}</Text>
+              <Button title="Close" variant="ghost" onPress={() => setQrProperty(null)} />
+            </View>
+          </View>
+        </Modal>
+      ) : null}
+      {addProperty.dialog}
+    </View>
   );
 }
 
@@ -125,20 +138,55 @@ function PropertyRow({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: coreColors.white,
+    backgroundColor: userHomeColors.background,
+  },
+  backdrop: {
+    backgroundColor: userHomeColors.navy,
+    overflow: 'hidden',
+    paddingHorizontal: 20,
+    paddingBottom: 36,
   },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.md,
+    gap: spacing.md,
   },
   title: {
-    ...textStyles.heading1,
+    color: userHomeColors.surface,
+    fontSize: 18,
+    lineHeight: 24,
+    fontWeight: '700',
+    letterSpacing: -0.4,
+  },
+  addButton: {
+    borderRadius: 999,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    backgroundColor: userHomeColors.surface,
+  },
+  addButtonText: {
+    ...textStyles.bodySmall,
+    color: userHomeColors.navy,
+    fontWeight: '600',
+  },
+  pressed: {
+    opacity: 0.7,
+  },
+  sheet: {
+    flex: 1,
+    marginTop: -20,
+    backgroundColor: userHomeColors.background,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    overflow: 'hidden',
+  },
+  list: {
+    flex: 1,
   },
   listContent: {
     paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
     paddingBottom: spacing.xxl,
     gap: spacing.md,
   },
@@ -146,12 +194,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
+    backgroundColor: userHomeColors.surface,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: userHomeColors.border,
   },
   thumb: {
     width: 64,
     height: 64,
     borderRadius: 8,
-    backgroundColor: coreColors.appBarBackground,
+    backgroundColor: userHomeColors.lightBlue,
   },
   rowBody: {
     flex: 1,
@@ -159,21 +210,23 @@ const styles = StyleSheet.create({
   rowName: {
     ...textStyles.body,
     fontWeight: '600',
+    color: userHomeColors.textPrimary,
   },
   rowAddress: {
     ...textStyles.caption,
+    color: userHomeColors.textSecondary,
     marginTop: 2,
   },
   qrButton: {
     borderWidth: 1,
-    borderColor: coreColors.brandBlue,
+    borderColor: userHomeColors.navy,
     borderRadius: 8,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
   },
   qrButtonText: {
     ...textStyles.bodySmall,
-    color: coreColors.brandBlue,
+    color: userHomeColors.navy,
     fontWeight: '600',
   },
   qrOverlay: {
@@ -184,17 +237,19 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
   },
   qrDialog: {
-    backgroundColor: coreColors.white,
-    borderRadius: 12,
+    backgroundColor: userHomeColors.surface,
+    borderRadius: 16,
     padding: spacing.xl,
     alignSelf: 'stretch',
     alignItems: 'center',
   },
   qrTitle: {
     ...textStyles.heading3,
+    color: userHomeColors.navy,
   },
   qrSubtitle: {
     ...textStyles.caption,
+    color: userHomeColors.textSecondary,
     textAlign: 'center',
     marginTop: spacing.xs,
   },
@@ -203,7 +258,7 @@ const styles = StyleSheet.create({
   },
   qrSn: {
     ...textStyles.bodySmall,
-    color: coreColors.textSecondary,
+    color: userHomeColors.textSecondary,
     marginTop: spacing.md,
     marginBottom: spacing.md,
   },

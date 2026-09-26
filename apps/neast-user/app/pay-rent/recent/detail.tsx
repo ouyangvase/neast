@@ -1,11 +1,10 @@
 import { ScrollView, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
 
-import { spacing } from '@neast/ui-mobile';
+import { spacing, PageHeader } from '@neast/ui-mobile';
 
 import { useSelectionStore } from '@/stores/selection';
 import { ErrorState } from '@/components/StateViews';
-import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 import { PaymentReceipt } from '@/features/pay-rent/receipt';
 

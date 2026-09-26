@@ -5,11 +5,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import type { CreateRentBody } from '@neast/types';
-import { Button, Card, JourneyBar, spacing, TextField, Toast, userHomeColors } from '@neast/ui-mobile';
+import { Button, Card, JourneyBar, spacing, TextField, Toast, userHomeColors, PageHeader } from '@neast/ui-mobile';
 
 import { apiErrorMessage } from '@/lib/api';
 import { createRent, updateRent } from '@/lib/endpoints';
-import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 import { TenancyForm, type TenancyFormValues } from '@/features/pay-rent/tenancy-form';
 import { useSelectionStore } from '@/stores/selection';

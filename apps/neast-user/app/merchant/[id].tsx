@@ -3,7 +3,7 @@ import { Image, Linking, Pressable, ScrollView, Share, StyleSheet, Text, View } 
 import { router, useLocalSearchParams } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 
-import { BottomSheet, coreColors, spacing, textStyles, Toast, userHomeColors } from '@neast/ui-mobile';
+import { BottomSheet, coreColors, spacing, textStyles, Toast, userHomeColors, PageHeader } from '@neast/ui-mobile';
 
 import { getMerchantCoupons, getMerchantDetail } from '@/lib/endpoints';
 import { merchantShareUrl } from '@/lib/deep-links';
@@ -12,7 +12,6 @@ import { useSelectionStore } from '@/stores/selection';
 import { couponValidityLabel } from '@/features/coupon/components';
 import { distanceLabel, MerchantCard } from '@/features/merchant/components';
 import { ErrorState, LoadingState } from '@/components/StateViews';
-import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 
 /** Merchant detail (merchant_detail_screen parity): info, coupons, map, share, nearest. */

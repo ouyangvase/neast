@@ -14,16 +14,16 @@ import { useQuery } from '@tanstack/react-query';
 
 import { formatRinggit, type LandlordDueItem } from '@neast/types';
 import {
+  BellIcon,
   Card,
   coreColors,
-  ownerAccentColors,
   SectionHeader,
   spacing,
   textStyles,
+  userHomeColors,
 } from '@neast/ui-mobile';
 
-import headerBg from '@assets/images/home/header-bg.png';
-import msgIcon from '@assets/images/home/msg-icon.png';
+import metallicBackground from '@assets/images/home/neast-metallic-background.png';
 import addPropertyIcon from '@assets/images/home/quick_actions/add_property.png';
 
 import { getHomeDashboard } from '@/lib/endpoints';
@@ -31,7 +31,9 @@ import { useSelectionStore } from '@/stores/selection';
 import { ErrorState, LoadingState } from '@/components/StateViews';
 import { useAddPropertyGate } from '@/features/properties/AddPropertyGate';
 
-/** Home tab (home_screen parity): dashboard header, need-action, portfolio, quick actions. */
+type ActionTone = 'overdue' | 'soon' | 'confirm';
+
+/** Home tab: dashboard header, need-action, portfolio, and add property. */
 export function HomeTab() {
   const insets = useSafeAreaInsets();
   const dashboard = useQuery({ queryKey: ['home-dashboard'], queryFn: getHomeDashboard });
@@ -48,138 +50,147 @@ export function HomeTab() {
 
   return (
     <View style={styles.container}>
-      <ImageBackground
-        source={headerBg}
-        style={[styles.header, { paddingTop: insets.top + spacing.md }]}
-        resizeMode="cover"
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={dashboard.isRefetching}
+            onRefresh={() => dashboard.refetch()}
+            colors={[userHomeColors.emptyGrey]}
+            tintColor={userHomeColors.emptyGrey}
+          />
+        }
       >
-        <View style={styles.headerTopRow}>
-          <Text style={styles.headerTitle}>NEAST Owner</Text>
-          <Pressable
-            onPress={() => router.push('/notification')}
-            accessibilityRole="button"
-            accessibilityLabel="Notifications"
-            hitSlop={12}
-          >
-            <Image source={msgIcon} style={styles.bellIcon} />
-            {data?.has_unread_message ? <View style={styles.unreadDot} /> : null}
-          </Pressable>
-        </View>
-        <Text style={styles.collectedLabel}>Collected this month</Text>
-        <Text style={styles.collectedAmount}>{formatRinggit(data?.header.collected ?? 0)}</Text>
-        <View style={styles.statRow}>
-          <View style={styles.statCell}>
-            <Text style={styles.statValue}>{data?.header.collection_rate ?? 0}%</Text>
-            <Text style={styles.statLabel}>Collection rate</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statCell}>
-            <Text style={[styles.statValue, styles.overdueValue]}>
-              {formatRinggit(data?.header.overdue_amount ?? 0)}
-            </Text>
-            <Text style={styles.statLabel}>Overdue</Text>
-          </View>
-        </View>
-      </ImageBackground>
-
-      {dashboard.isLoading ? (
-        <LoadingState />
-      ) : dashboard.isError || !data ? (
-        <ErrorState onRetry={() => dashboard.refetch()} />
-      ) : (
-        <ScrollView
-          contentContainerStyle={styles.scroll}
-          refreshControl={
-            <RefreshControl
-              refreshing={dashboard.isRefetching}
-              onRefresh={() => dashboard.refetch()}
-              colors={[coreColors.actionGreen]}
-              tintColor={coreColors.actionGreen}
-            />
-          }
+        <ImageBackground
+          source={metallicBackground}
+          resizeMode="cover"
+          style={[styles.header, { paddingTop: insets.top + 8 }]}
         >
-          <View style={styles.actionGrid}>
-            <ActionCard label="Overdue" count={data.need_action.overdue} />
-            <ActionCard label="Due soon" count={data.need_action.due_soon} />
-            <ActionCard
-              label="To confirm"
-              count={data.need_action.need_ack}
-              onPress={() => router.push('/ack-list')}
-            />
-          </View>
-
-          {data.need_ack ? (
-            <Card
-              style={styles.itemCard}
-              onPress={() => {
-                setAckItem(data.need_ack);
-                router.push('/ack-detail');
-              }}
+          <View style={styles.headerTopRow}>
+            <Text style={styles.headerTitle}>NEAST Owner</Text>
+            <Pressable
+              onPress={() => router.push('/notification')}
+              accessibilityRole="button"
+              accessibilityLabel="Notifications"
+              hitSlop={12}
             >
-              <View style={styles.itemHeaderRow}>
-                <Text style={styles.itemTitle}>Confirm receipt</Text>
-                <Text style={styles.itemAmount}>RM{data.need_ack.amount}</Text>
+              <BellIcon size={32} />
+              {data?.has_unread_message ? <View style={styles.unreadDot} /> : null}
+            </Pressable>
+          </View>
+          <Text style={styles.collectedLabel}>Collected this month</Text>
+          {data ? (
+            <>
+              <Text style={styles.collectedAmount}>{formatRinggit(data.header.collected)}</Text>
+              <View style={styles.statRow}>
+                <View style={styles.statCell}>
+                  <Text style={styles.statValue}>{data.header.collection_rate}%</Text>
+                  <Text style={styles.statLabel}>Collection rate</Text>
+                </View>
+                <View style={styles.statDivider} />
+                <View style={styles.statCell}>
+                  <Text style={[styles.statValue, styles.overdueValue]}>
+                    {formatRinggit(data.header.overdue_amount)}
+                  </Text>
+                  <Text style={styles.statLabel}>Overdue</Text>
+                </View>
               </View>
-              <Text style={styles.itemSubtitle}>
-                {data.need_ack.name} · {data.need_ack.paid_text}
-              </Text>
-              <Text style={styles.itemMeta} numberOfLines={1}>
-                {data.need_ack.property_name || data.need_ack.property_address}
-              </Text>
-            </Card>
+            </>
           ) : null}
+        </ImageBackground>
 
-          {data.overdue_list.length > 0 ? (
-            <View>
-              <SectionHeader title="Overdue" />
-              {data.overdue_list.map((item) => (
-                <DueRow key={item.id} item={item} onPress={() => openDueItem(item)} />
-              ))}
+        {data ? (
+          <View style={styles.sheet}>
+            <View style={styles.actionGrid}>
+              <ActionCard label="Overdue" count={data.need_action.overdue} tone="overdue" />
+              <ActionCard label="Due soon" count={data.need_action.due_soon} tone="soon" />
+              <ActionCard
+                label="To confirm"
+                count={data.need_action.need_ack}
+                tone="confirm"
+                onPress={() => router.push('/ack-list')}
+              />
             </View>
-          ) : null}
 
-          {data.due_soon_list.length > 0 ? (
-            <View>
-              <SectionHeader title="Due soon" />
-              {data.due_soon_list.map((item) => (
-                <DueRow key={item.id} item={item} onPress={() => openDueItem(item)} />
-              ))}
-            </View>
-          ) : null}
-
-          <Card style={styles.portfolioCard} onPress={() => router.push('/portfolio-snapshot')}>
-            <Text style={styles.portfolioTitle}>Portfolio snapshot</Text>
-            <View style={styles.portfolioRow}>
-              <View style={styles.portfolioCell}>
-                <Text style={styles.portfolioValue}>{data.portfolio.properties}</Text>
-                <Text style={styles.portfolioLabel}>Properties</Text>
-              </View>
-              <View style={styles.portfolioCell}>
-                <Text style={styles.portfolioValue}>{data.portfolio.tenants}</Text>
-                <Text style={styles.portfolioLabel}>Tenants</Text>
-              </View>
-              <View style={styles.portfolioCell}>
-                <Text style={styles.portfolioValue}>{formatRinggit(data.portfolio.rent_roll)}</Text>
-                <Text style={styles.portfolioLabel}>Rent roll</Text>
-              </View>
-            </View>
-          </Card>
-
-          <View>
-            <SectionHeader title="Quick actions" />
-            <View style={styles.quickRow}>
-              <Pressable
-                style={styles.quickAction}
-                onPress={addProperty.checkAndGo}
-                accessibilityRole="button"
+            {data.need_ack ? (
+              <Card
+                style={styles.itemCard}
+                onPress={() => {
+                  setAckItem(data.need_ack);
+                  router.push('/ack-detail');
+                }}
               >
-                <Image source={addPropertyIcon} style={styles.quickIcon} />
-                <Text style={styles.quickLabel}>Add Property</Text>
-              </Pressable>
+                <View style={styles.itemHeaderRow}>
+                  <Text style={styles.itemTitle}>Confirm receipt</Text>
+                  <Text style={styles.itemAmount}>RM{data.need_ack.amount}</Text>
+                </View>
+                <Text style={styles.itemSubtitle}>
+                  {data.need_ack.name} · {data.need_ack.paid_text}
+                </Text>
+                <Text style={styles.itemMeta} numberOfLines={1}>
+                  {data.need_ack.property_name || data.need_ack.property_address}
+                </Text>
+              </Card>
+            ) : null}
+
+            {data.overdue_list.length > 0 ? (
+              <View>
+                <SectionHeader title="Overdue" />
+                {data.overdue_list.map((item) => (
+                  <DueRow key={item.id} item={item} onPress={() => openDueItem(item)} />
+                ))}
+              </View>
+            ) : null}
+
+            {data.due_soon_list.length > 0 ? (
+              <View>
+                <SectionHeader title="Due soon" />
+                {data.due_soon_list.map((item) => (
+                  <DueRow key={item.id} item={item} onPress={() => openDueItem(item)} />
+                ))}
+              </View>
+            ) : null}
+
+            <Card style={styles.portfolioCard} onPress={() => router.push('/portfolio-snapshot')}>
+              <Text style={styles.portfolioTitle}>Portfolio snapshot</Text>
+              <View style={styles.portfolioRow}>
+                <View style={styles.portfolioCell}>
+                  <Text style={styles.portfolioValue}>{data.portfolio.properties}</Text>
+                  <Text style={styles.portfolioLabel}>Properties</Text>
+                </View>
+                <View style={styles.portfolioCell}>
+                  <Text style={styles.portfolioValue}>{data.portfolio.tenants}</Text>
+                  <Text style={styles.portfolioLabel}>Tenants</Text>
+                </View>
+                <View style={styles.portfolioCell}>
+                  <Text style={styles.portfolioValue}>
+                    {formatRinggit(data.portfolio.rent_roll)}
+                  </Text>
+                  <Text style={styles.portfolioLabel}>Rent roll</Text>
+                </View>
+              </View>
+            </Card>
+
+            <View>
+              <SectionHeader title="Quick actions" />
+              <View style={styles.quickRow}>
+                <Pressable
+                  style={styles.quickAction}
+                  onPress={addProperty.checkAndGo}
+                  accessibilityRole="button"
+                >
+                  <Image source={addPropertyIcon} style={styles.quickIcon} />
+                  <Text style={styles.quickLabel}>Add Property</Text>
+                </Pressable>
+              </View>
             </View>
           </View>
-        </ScrollView>
-      )}
+        ) : dashboard.isError ? (
+          <ErrorState onRetry={() => dashboard.refetch()} />
+        ) : (
+          <LoadingState />
+        )}
+      </ScrollView>
       {addProperty.dialog}
     </View>
   );
@@ -188,15 +199,23 @@ export function HomeTab() {
 function ActionCard({
   label,
   count,
+  tone,
   onPress,
 }: {
   label: string;
   count: number;
+  tone: ActionTone;
   onPress?: () => void;
 }) {
+  const activeColor =
+    tone === 'overdue'
+      ? coreColors.error
+      : tone === 'soon'
+        ? userHomeColors.gold
+        : userHomeColors.navy;
   return (
     <Card style={styles.actionCard} onPress={onPress}>
-      <Text style={[styles.actionCount, count > 0 && styles.actionCountActive]}>{count}</Text>
+      <Text style={[styles.actionCount, count > 0 && { color: activeColor }]}>{count}</Text>
       <Text style={styles.actionLabel}>{label}</Text>
     </Card>
   );
@@ -230,11 +249,16 @@ function DueRow({ item, onPress }: { item: LandlordDueItem; onPress: () => void 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: coreColors.white,
+    backgroundColor: userHomeColors.background,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   header: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.lg,
+    backgroundColor: userHomeColors.navy,
+    overflow: 'hidden',
+    paddingHorizontal: 20,
+    paddingBottom: 36,
   },
   headerTopRow: {
     flexDirection: 'row',
@@ -242,38 +266,34 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   headerTitle: {
-    ...textStyles.heading3,
-    color: coreColors.brandBlue,
-  },
-  bellIcon: {
-    width: 24,
-    height: 24,
+    color: userHomeColors.surface,
+    fontSize: 18,
+    lineHeight: 24,
+    fontWeight: '700',
+    letterSpacing: -0.4,
   },
   unreadDot: {
     position: 'absolute',
-    top: 0,
-    right: 0,
+    top: 2,
+    right: 2,
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: coreColors.error,
+    backgroundColor: userHomeColors.badgeRed,
   },
   collectedLabel: {
     ...textStyles.bodySmall,
-    color: coreColors.textSecondary,
+    color: userHomeColors.textOnNavyAlt,
     marginTop: spacing.lg,
   },
   collectedAmount: {
     ...textStyles.displayLarge,
-    color: coreColors.brandBlue,
+    color: userHomeColors.surface,
     marginTop: spacing.xs,
   },
   statRow: {
     flexDirection: 'row',
     marginTop: spacing.lg,
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
-    borderRadius: 12,
-    paddingVertical: spacing.md,
   },
   statCell: {
     flex: 1,
@@ -281,23 +301,28 @@ const styles = StyleSheet.create({
   },
   statDivider: {
     width: StyleSheet.hairlineWidth,
-    backgroundColor: coreColors.border,
+    backgroundColor: userHomeColors.textOnNavyMuted,
   },
   statValue: {
     ...textStyles.heading2,
-    color: coreColors.brandBlue,
+    color: userHomeColors.surface,
   },
   overdueValue: {
-    color: ownerAccentColors.orange,
+    color: coreColors.error,
   },
   statLabel: {
     ...textStyles.caption,
+    color: userHomeColors.textOnNavyMuted,
     marginTop: 2,
   },
-  scroll: {
+  sheet: {
+    marginTop: -20,
     padding: spacing.lg,
-    gap: spacing.md,
     paddingBottom: spacing.xxl,
+    gap: spacing.md,
+    backgroundColor: userHomeColors.background,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
   },
   actionGrid: {
     flexDirection: 'row',
@@ -308,20 +333,24 @@ const styles = StyleSheet.create({
     flexBasis: '47%',
     flexGrow: 1,
     alignItems: 'center',
+    backgroundColor: userHomeColors.surface,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: userHomeColors.border,
   },
   actionCount: {
     ...textStyles.heading1,
-    color: coreColors.textHint,
-  },
-  actionCountActive: {
-    color: ownerAccentColors.orange,
+    color: userHomeColors.emptyGrey,
   },
   actionLabel: {
     ...textStyles.caption,
+    color: userHomeColors.textSecondary,
     marginTop: spacing.xs,
   },
   itemCard: {
     gap: spacing.xs,
+    backgroundColor: userHomeColors.surface,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: userHomeColors.border,
   },
   itemHeaderRow: {
     flexDirection: 'row',
@@ -330,35 +359,41 @@ const styles = StyleSheet.create({
   },
   itemTitle: {
     ...textStyles.heading3,
+    color: userHomeColors.textPrimary,
   },
   itemAmount: {
     ...textStyles.heading3,
-    color: coreColors.brandBlue,
+    color: userHomeColors.navy,
   },
   itemSubtitle: {
     ...textStyles.bodySmall,
+    color: userHomeColors.textPrimary,
   },
   itemMeta: {
     ...textStyles.caption,
+    color: userHomeColors.textSecondary,
   },
   dueRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
     marginBottom: spacing.sm,
+    backgroundColor: userHomeColors.surface,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: userHomeColors.border,
   },
   dueAvatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: ownerAccentColors.surfaceBlue,
+    backgroundColor: userHomeColors.lightBlue,
     alignItems: 'center',
     justifyContent: 'center',
   },
   dueAvatarText: {
     ...textStyles.bodySmall,
     fontWeight: '700',
-    color: coreColors.brandBlue,
+    color: userHomeColors.navy,
   },
   dueBody: {
     flex: 1,
@@ -366,9 +401,11 @@ const styles = StyleSheet.create({
   dueName: {
     ...textStyles.bodySmall,
     fontWeight: '600',
+    color: userHomeColors.textPrimary,
   },
   dueMeta: {
     ...textStyles.caption,
+    color: userHomeColors.textSecondary,
     marginTop: 2,
   },
   dueRight: {
@@ -377,6 +414,7 @@ const styles = StyleSheet.create({
   dueAmount: {
     ...textStyles.bodySmall,
     fontWeight: '700',
+    color: userHomeColors.textPrimary,
   },
   dueStatus: {
     ...textStyles.caption,
@@ -387,13 +425,16 @@ const styles = StyleSheet.create({
     color: coreColors.error,
   },
   statusDueSoon: {
-    color: ownerAccentColors.orange,
+    color: userHomeColors.gold,
   },
   portfolioCard: {
-    backgroundColor: ownerAccentColors.gradientWarmStart,
+    backgroundColor: userHomeColors.surface,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: userHomeColors.border,
   },
   portfolioTitle: {
     ...textStyles.heading3,
+    color: userHomeColors.textPrimary,
   },
   portfolioRow: {
     flexDirection: 'row',
@@ -406,10 +447,11 @@ const styles = StyleSheet.create({
   portfolioValue: {
     ...textStyles.body,
     fontWeight: '700',
-    color: ownerAccentColors.orange,
+    color: userHomeColors.navy,
   },
   portfolioLabel: {
     ...textStyles.caption,
+    color: userHomeColors.textSecondary,
     marginTop: 2,
   },
   quickRow: {
@@ -426,6 +468,7 @@ const styles = StyleSheet.create({
   },
   quickLabel: {
     ...textStyles.caption,
+    color: userHomeColors.textSecondary,
     textAlign: 'center',
     marginTop: spacing.xs,
   },

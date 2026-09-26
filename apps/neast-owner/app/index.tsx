@@ -3,7 +3,7 @@ import { BackHandler, Platform, StyleSheet, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 
 import { useIsLoggedIn } from '@neast/types';
-import { coreColors, TabBar, Toast, type TabBarItem } from '@neast/ui-mobile';
+import { TabBar, Toast, userHomeColors, type TabBarItem } from '@neast/ui-mobile';
 
 import HomeIcon from '@assets/images/main/home.svg';
 import HomeActiveIcon from '@assets/images/main/home-act.svg';
@@ -97,7 +97,7 @@ export default function MainRoute() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: coreColors.white,
+    backgroundColor: userHomeColors.background,
   },
   content: {
     flex: 1,

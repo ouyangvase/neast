@@ -1,50 +1,47 @@
 import { useState } from 'react';
 import {
-  Image,
   ImageBackground,
   Pressable,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
   View,
-  type ImageSourcePropType,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 import {
-  Card,
   Chevron,
   ConfirmDialog,
   coreColors,
-  sharedAssets,
   spacing,
-  textStyles,
   Toast,
+  userHomeColors,
 } from '@neast/ui-mobile';
 
-import { Screen } from '@/components/Screen';
-import bankIcon from '@assets/images/coin.png';
-import aboutIcon from '@assets/images/account/about_us.png';
-import termsIcon from '@assets/images/account/terms_and_conditions.png';
-import privacyIcon from '@assets/images/account/privacy_policy.png';
-import deleteIcon from '@assets/images/account/delete_account.png';
-import logoutIcon from '@assets/images/account/log_out.png';
+import metallicBackground from '@assets/images/home/neast-metallic-background.png';
 
 import { apiErrorMessage } from '@/lib/api';
 import { performLogout } from '@/lib/auth';
 import { deleteAccount, getLandlordInfo } from '@/lib/endpoints';
 
+type IonName = keyof typeof Ionicons.glyphMap;
+
 interface MenuItem {
   key: string;
   label: string;
-  icon: ImageSourcePropType;
+  icon: IonName;
   onPress: () => void;
   danger?: boolean;
 }
 
-/** Account tab (account_screen parity): profile header + operations menu. */
+/** Account tab: identity header, then a full-width settings table. */
 export function AccountTab() {
+  const insets = useSafeAreaInsets();
   const info = useQuery({ queryKey: ['landlord-info'], queryFn: getLandlordInfo });
   const [deleteVisible, setDeleteVisible] = useState(false);
   const [logoutVisible, setLogoutVisible] = useState(false);
@@ -57,89 +54,124 @@ export function AccountTab() {
     onError: (error) => Toast.error(apiErrorMessage(error)),
   });
 
-  const menu: MenuItem[] = [
+  const rows: MenuItem[] = [
     {
       key: 'bank',
       label: 'Bank Detail',
-      icon: bankIcon,
+      icon: 'card-outline',
       onPress: () => router.push('/bank-detail'),
     },
     {
       key: 'about',
       label: 'About Us',
-      icon: aboutIcon,
+      icon: 'information-circle-outline',
       onPress: () => router.push({ pathname: '/rich-text', params: { title: 'About Us' } }),
     },
     {
       key: 'terms',
       label: 'Terms and Conditions',
-      icon: termsIcon,
+      icon: 'document-text-outline',
       onPress: () =>
         router.push({ pathname: '/rich-text', params: { title: 'Terms and Conditions' } }),
     },
     {
       key: 'privacy',
       label: 'Privacy Policy',
-      icon: privacyIcon,
+      icon: 'shield-checkmark-outline',
       onPress: () => router.push({ pathname: '/rich-text', params: { title: 'Privacy Policy' } }),
-    },
-    {
-      key: 'delete',
-      label: 'Delete Account',
-      icon: deleteIcon,
-      onPress: () => setDeleteVisible(true),
-      danger: true,
     },
     {
       key: 'logout',
       label: 'Log Out',
-      icon: logoutIcon,
+      icon: 'log-out-outline',
       onPress: () => setLogoutVisible(true),
+    },
+    {
+      key: 'delete',
+      label: 'Delete Account',
+      icon: 'trash-outline',
       danger: true,
+      onPress: () => setDeleteVisible(true),
     },
   ];
 
-  const name = info.data?.name ?? '';
-  const initial = (info.data?.first_name ?? '').charAt(0).toUpperCase() || 'N';
+  const profile = info.data;
 
   return (
-    <Screen>
-      <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+    <View style={styles.container}>
+      <ScrollView
+        refreshControl={
+          <RefreshControl
+            refreshing={info.isRefetching}
+            onRefresh={() => {
+              void info.refetch();
+            }}
+            colors={[userHomeColors.emptyGrey]}
+            tintColor={userHomeColors.emptyGrey}
+          />
+        }
+        contentContainerStyle={styles.scrollContent}
+      >
         <ImageBackground
-          source={sharedAssets.accountHeader}
-          style={styles.header}
+          source={metallicBackground}
           resizeMode="cover"
+          style={[styles.backdrop, { paddingTop: insets.top + 8 }]}
         >
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{initial}</Text>
+          <Text style={styles.title}>Account</Text>
+          <View style={styles.identity}>
+            {profile ? (
+              <>
+                <View style={styles.avatar}>
+                  <Text style={styles.avatarText}>
+                    {profile.first_name.charAt(0).toUpperCase()}
+                  </Text>
+                </View>
+                <View style={styles.identityCopy}>
+                  <Text style={styles.name} numberOfLines={1}>
+                    {profile.name}
+                  </Text>
+                  <Text style={styles.contact} numberOfLines={1}>
+                    +{profile.phone}
+                  </Text>
+                </View>
+              </>
+            ) : null}
           </View>
-          <Text style={styles.name} numberOfLines={1}>
-            {name || 'NEAST Owner'}
-          </Text>
-          <Text style={styles.phone} numberOfLines={1}>
-            {info.data?.phone ? `+${info.data.phone}` : ''}
-          </Text>
         </ImageBackground>
 
-        <Card padded={false} style={styles.menuCard}>
-          {menu.map((item, index) => (
-            <Pressable
-              key={item.key}
-              style={[styles.menuRow, index > 0 && styles.menuRowBorder]}
-              onPress={item.onPress}
-              accessibilityRole="button"
-            >
-              <Image source={item.icon} style={styles.menuIcon} />
-              <Text style={[styles.menuLabel, item.danger && styles.menuLabelDanger]}>
-                {item.label}
-              </Text>
-              <Chevron direction="right" color={coreColors.textHint} />
-            </Pressable>
-          ))}
-        </Card>
+        <View style={styles.sheet}>
+          <View style={styles.table}>
+            {rows.map((item, index) => (
+              <Pressable
+                key={item.key}
+                accessibilityRole="button"
+                accessibilityLabel={item.label}
+                onPress={item.onPress}
+                style={({ pressed }) => [
+                  styles.row,
+                  index > 0 && styles.rowBorder,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <Ionicons
+                  name={item.icon}
+                  size={20}
+                  color={item.danger ? coreColors.error : userHomeColors.navy}
+                />
+                <Text style={[styles.rowLabel, item.danger && styles.rowLabelDanger]}>
+                  {item.label}
+                </Text>
+                <Chevron
+                  direction="right"
+                  color={item.danger ? coreColors.error : userHomeColors.textSecondary}
+                  size={8}
+                />
+              </Pressable>
+            ))}
+          </View>
 
-        <Text style={styles.version}>NEAST Owner 1.0.6</Text>
+          <Text style={styles.version}>NEAST Owner {Constants.expoConfig?.version}</Text>
+        </View>
       </ScrollView>
 
       <ConfirmDialog
@@ -167,76 +199,113 @@ export function AccountTab() {
           deleteMutation.mutate();
         }}
       />
-      </View>
-    </Screen>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: coreColors.white,
+    backgroundColor: userHomeColors.background,
   },
   scrollContent: {
-    paddingBottom: spacing.xl,
+    flexGrow: 1,
   },
-  header: {
+  backdrop: {
+    backgroundColor: userHomeColors.navy,
+    overflow: 'hidden',
+    paddingHorizontal: 20,
+    paddingBottom: 36,
+    gap: 16,
+  },
+  title: {
+    color: userHomeColors.surface,
+    fontSize: 18,
+    lineHeight: 24,
+    fontWeight: '700',
+    letterSpacing: -0.4,
+  },
+  identity: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingBottom: spacing.xl,
-    paddingHorizontal: spacing.lg,
+    gap: 14,
   },
   avatar: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: coreColors.white,
+    backgroundColor: userHomeColors.cream,
+    borderWidth: 2,
+    borderColor: userHomeColors.gold,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarText: {
-    ...textStyles.heading1,
-    color: coreColors.brandBlue,
+    color: userHomeColors.navy,
+    fontSize: 26,
+    lineHeight: 32,
+    fontWeight: '700',
+  },
+  identityCopy: {
+    flex: 1,
+    gap: 2,
   },
   name: {
-    ...textStyles.heading2,
-    color: coreColors.white,
-    marginTop: spacing.md,
+    color: userHomeColors.surface,
+    fontSize: 20,
+    lineHeight: 26,
+    fontWeight: '700',
   },
-  phone: {
-    ...textStyles.bodySmall,
-    color: coreColors.white,
-    opacity: 0.85,
-    marginTop: spacing.xs,
+  contact: {
+    color: userHomeColors.textOnNavyAlt,
+    fontSize: 13,
+    lineHeight: 18,
   },
-  menuCard: {
-    marginHorizontal: spacing.lg,
-    marginTop: spacing.lg,
+  sheet: {
+    flex: 1,
+    marginTop: -20,
+    paddingTop: 18,
+    paddingBottom: spacing.xl,
+    gap: 16,
+    backgroundColor: userHomeColors.background,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
   },
-  menuRow: {
+  table: {
+    backgroundColor: userHomeColors.surface,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: userHomeColors.border,
+  },
+  row: {
+    minHeight: 52,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+    gap: 12,
+    paddingHorizontal: 20,
+    backgroundColor: userHomeColors.surface,
   },
-  menuRowBorder: {
+  rowBorder: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: coreColors.divider,
+    borderTopColor: userHomeColors.border,
   },
-  menuIcon: {
-    width: 22,
-    height: 22,
-  },
-  menuLabel: {
-    ...textStyles.body,
+  rowLabel: {
     flex: 1,
+    color: userHomeColors.textPrimary,
+    fontSize: 15,
+    lineHeight: 20,
   },
-  menuLabelDanger: {
+  rowLabelDanger: {
     color: coreColors.error,
   },
   version: {
-    ...textStyles.caption,
+    color: userHomeColors.textSecondary,
+    fontSize: 12,
+    lineHeight: 16,
     textAlign: 'center',
-    marginTop: spacing.xl,
+    marginTop: spacing.sm,
+  },
+  pressed: {
+    opacity: 0.7,
   },
 });

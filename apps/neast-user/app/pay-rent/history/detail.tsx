@@ -2,12 +2,11 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 
 import { formatRinggit } from '@neast/types';
-import { Card, coreColors, spacing, textStyles } from '@neast/ui-mobile';
+import { Card, coreColors, spacing, textStyles, PageHeader } from '@neast/ui-mobile';
 
 import { payStatusLabel, rentHistoryStatusMeta } from '@/lib/format';
 import { useSelectionStore } from '@/stores/selection';
 import { ErrorState } from '@/components/StateViews';
-import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 import { PaymentSuccessHero } from '@/features/pay-rent/components';
 

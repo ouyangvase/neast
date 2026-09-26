@@ -3,14 +3,14 @@ import { router } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import {
-  BrandHeader,
   Button,
   Card,
   coreColors,
-  ownerAccentColors,
+  PageHeader,
   spacing,
   textStyles,
   Toast,
+  userHomeColors,
 } from '@neast/ui-mobile';
 
 import { apiErrorMessage } from '@/lib/api';
@@ -41,16 +41,17 @@ export default function AckDetailRoute() {
 
   if (!item) {
     return (
-      <Screen>
-        <BrandHeader title="Confirm Receipt" onBack={() => router.back()} />
+      <Screen edges={[]}>
+        <PageHeader title="Confirm Receipt" />
         <ErrorState message="Record unavailable." onRetry={() => router.back()} />
       </Screen>
     );
   }
 
   return (
-    <Screen>
-      <BrandHeader title="Confirm Receipt" onBack={() => router.back()} />
+    <Screen edges={[]}>
+      <PageHeader title="Confirm Receipt" />
+      <View style={styles.body}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <Card style={styles.card}>
           <View style={styles.titleRow}>
@@ -81,6 +82,7 @@ export default function AckDetailRoute() {
           loading={confirmMutation.isPending}
         />
       </ScrollView>
+      </View>
       {fileViewer.preview}
     </Screen>
   );
@@ -96,6 +98,10 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
+  body: {
+    flex: 1,
+    backgroundColor: userHomeColors.background,
+  },
   scroll: {
     padding: spacing.lg,
     gap: spacing.md,
@@ -113,14 +119,14 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: ownerAccentColors.surfaceBlue,
+    backgroundColor: userHomeColors.lightBlue,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarText: {
     ...textStyles.body,
     fontWeight: '700',
-    color: coreColors.brandBlue,
+    color: userHomeColors.navy,
   },
   titleTexts: {
     flex: 1,
@@ -135,7 +141,7 @@ const styles = StyleSheet.create({
   },
   amount: {
     ...textStyles.heading1,
-    color: coreColors.brandBlue,
+    color: userHomeColors.navy,
   },
   infoRows: {
     gap: spacing.xs,
@@ -148,7 +154,7 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     ...textStyles.bodySmall,
-    color: coreColors.textSecondary,
+    color: userHomeColors.textSecondary,
   },
   infoValue: {
     ...textStyles.bodySmall,
@@ -158,7 +164,7 @@ const styles = StyleSheet.create({
   },
   agreementLink: {
     ...textStyles.bodySmall,
-    color: coreColors.brandBlue,
+    color: userHomeColors.navy,
     fontWeight: '600',
     marginTop: spacing.xs,
   },

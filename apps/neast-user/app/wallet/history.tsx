@@ -13,12 +13,12 @@ import {
   textStyles,
   type MonthValue,
   userHomeColors,
+  PageHeader,
 } from '@neast/ui-mobile';
 
 import { getWalletTopups } from '@/lib/endpoints';
 import { topupStatusMeta } from '@/lib/format';
 import { usePaginatedList } from '@/hooks/use-paginated';
-import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 
 /** Top-up records, optionally filtered to one month. */

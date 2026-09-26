@@ -3,8 +3,8 @@ import { StyleSheet, Text, View, type StyleProp, type TextStyle, type ViewStyle 
 import {
   coreColors,
   merchantAccentColors,
-  ownerAccentColors,
   userAccentColors,
+  userHomeColors,
 } from '@ui/tokens/colors';
 import { radii, spacing } from '@ui/tokens/layout';
 import { textStyles } from '@ui/tokens/typography';
@@ -28,11 +28,11 @@ const STATUS_COLORS: Record<StatusTagStatus, { text: string; background: string 
   pending: { text: userAccentColors.pointsDeal, background: userAccentColors.tierBackground },
   overdue: { text: coreColors.error, background: merchantAccentColors.errorBackground },
   paid: { text: coreColors.darkGreen, background: coreColors.tintGreen },
-  settled: { text: coreColors.brandBlue, background: ownerAccentColors.gradientBlueStart },
+  settled: { text: userHomeColors.navy, background: userHomeColors.lightBlue },
   cancelled: { text: coreColors.textSecondary, background: coreColors.appBarBackground },
   success: { text: coreColors.darkGreen, background: coreColors.tintGreen },
   failed: { text: coreColors.error, background: merchantAccentColors.errorBackground },
-  info: { text: coreColors.brandBlueLight, background: coreColors.tintBlue },
+  info: { text: userHomeColors.navy, background: userHomeColors.lightBlue },
 };
 
 /** Small status pill (rent history rows, transaction rows, …). */

@@ -38,7 +38,7 @@ export function UploadIcon({ size = 24, color }: IconProps) {
 export function BellIcon({ size = 24 }: { size?: number }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24">
-      <Circle cx={12} cy={12} r={12} fill={coreColors.brandBlue} />
+      <Circle cx={12} cy={12} r={12} fill={userHomeColors.navy} />
       <Path
         d="M12 6.2a3.2 3.2 0 0 0-3.2 3.2v1.5c0 .5-.2 1-.5 1.4l-.7.8c-.4.4-.1 1.1.5 1.1h7.8c.6 0 .9-.7.5-1.1l-.7-.8c-.3-.4-.5-.9-.5-1.4V9.4A3.2 3.2 0 0 0 12 6.2Z"
         fill={userHomeColors.surface}
@@ -127,7 +127,7 @@ export function SuccessMark({ size = 112 }: { size?: number }) {
 export function ScanIcon({ size = 24 }: { size?: number }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24">
-      <Circle cx={12} cy={12} r={12} fill={coreColors.brandBlue} />
+      <Circle cx={12} cy={12} r={12} fill={userHomeColors.navy} />
       <Path
         d="M7.2 9.4V8.1c0-.5.4-.9.9-.9h1.3M14.6 7.2h1.3c.5 0 .9.4.9.9v1.3M16.8 14.6v1.3c0 .5-.4.9-.9.9h-1.3M9.4 16.8H8.1c-.5 0-.9-.4-.9-.9v-1.3"
         stroke={userHomeColors.surface}
