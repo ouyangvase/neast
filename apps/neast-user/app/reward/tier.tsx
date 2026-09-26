@@ -7,6 +7,7 @@ import {
   coreColors,
   spacing,
   textStyles,
+  userHomeColors,
 } from '@neast/ui-mobile';
 
 import { getRewardDashboard } from '@/lib/endpoints';
@@ -45,7 +46,7 @@ export default function RewardTierRoute() {
                     style={[
                       styles.progressFill,
                       {
-                        backgroundColor: coreColors.brandBlue,
+                        backgroundColor: userHomeColors.navy,
                         width: `${Math.min(
                           (data.tier.progressCurrent / Math.max(data.tier.progressTarget, 1)) * 100,
                           100,
@@ -138,7 +139,7 @@ const styles = StyleSheet.create({
   },
   tierRowActive: {
     borderWidth: 1,
-    borderColor: coreColors.brandBlue,
+    borderColor: userHomeColors.navy,
   },
   tierIcon: {
     width: 40,
@@ -157,7 +158,7 @@ const styles = StyleSheet.create({
   },
   activeBadge: {
     ...textStyles.caption,
-    color: coreColors.brandBlue,
+    color: userHomeColors.navy,
     fontWeight: '600',
   },
 });

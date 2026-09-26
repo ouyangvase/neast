@@ -144,9 +144,9 @@ export function TenancyForm({
         {__DEV__ ? null : (
           <Card style={styles.agreementCard} onPress={() => setAgreementPickerVisible(true)}>
             {agreementName ? (
-              <DocumentIcon size={24} color={coreColors.brandBlue} />
+              <DocumentIcon size={24} color={userHomeColors.navy} />
             ) : (
-              <UploadIcon size={24} color={coreColors.brandBlue} />
+              <UploadIcon size={24} color={userHomeColors.navy} />
             )}
             <View style={styles.agreementText}>
               <Text style={styles.agreementTitle}>Tenancy agreement</Text>

@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 
 import { SuccessMark } from './icons';
-import { coreColors } from '@ui/tokens/colors';
+import { coreColors, userHomeColors } from '@ui/tokens/colors';
 import { spacing } from '@ui/tokens/layout';
 import { textStyles } from '@ui/tokens/typography';
 
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 13,
     height: 2,
-    backgroundColor: coreColors.brandBlue,
+    backgroundColor: userHomeColors.navy,
   },
   nodes: {
     flexDirection: 'row',
@@ -107,11 +107,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   dotReached: {
-    borderColor: coreColors.brandBlue,
-    backgroundColor: coreColors.brandBlue,
+    borderColor: userHomeColors.navy,
+    backgroundColor: userHomeColors.navy,
   },
   dotCurrent: {
-    borderColor: coreColors.brandBlueLight,
+    borderColor: userHomeColors.navy,
   },
   dotText: {
     ...textStyles.caption,
@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
     ...textStyles.caption,
   },
   labelCurrent: {
-    color: coreColors.brandBlue,
+    color: userHomeColors.navy,
     fontWeight: '700',
   },
 });

@@ -88,8 +88,8 @@ const styles = StyleSheet.create({
     borderColor: userHomeColors.border,
   },
   chipActive: {
-    backgroundColor: userHomeColors.royalBlue,
-    borderColor: userHomeColors.royalBlue,
+    backgroundColor: userHomeColors.navy,
+    borderColor: userHomeColors.navy,
   },
   chipText: {
     color: userHomeColors.textSecondary,

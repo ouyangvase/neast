@@ -3,7 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 
 import type { CouponListItem } from '@neast/types';
-import { coreColors, radii, RefreshList, spacing, textStyles } from '@neast/ui-mobile';
+import { coreColors, radii, RefreshList, spacing, textStyles, userHomeColors } from '@neast/ui-mobile';
 
 import { getCouponCategories, getCouponList } from '@/lib/endpoints';
 import { usePaginatedList } from '@/hooks/use-paginated';
@@ -102,8 +102,8 @@ const styles = StyleSheet.create({
     borderColor: coreColors.border,
   },
   chipActive: {
-    backgroundColor: coreColors.brandBlue,
-    borderColor: coreColors.brandBlue,
+    backgroundColor: userHomeColors.navy,
+    borderColor: userHomeColors.navy,
   },
   chipText: {
     ...textStyles.bodySmall,

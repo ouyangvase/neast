@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
   cta: {
     minHeight: 46,
     borderRadius: 11,
-    backgroundColor: userHomeColors.royalBlue,
+    backgroundColor: userHomeColors.navy,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 16,

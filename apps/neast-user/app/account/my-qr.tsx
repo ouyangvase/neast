@@ -1,11 +1,9 @@
 import { useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { router } from 'expo-router';
 import { captureRef } from 'react-native-view-shot';
 import * as MediaLibrary from 'expo-media-library';
 
 import {
-  BrandHeader,
   Button,
   Card,
   coreColors,
@@ -17,6 +15,7 @@ import {
 
 import { useUserProfile } from '@/hooks/use-profile';
 import { ErrorState, LoadingState } from '@/components/StateViews';
+import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 
 /** My QR (my_qr_screen parity): account QR + save-to-gallery via view-shot. */
@@ -47,8 +46,8 @@ export default function MyQrRoute() {
   };
 
   return (
-    <Screen>
-      <BrandHeader title="My QR Code" onBack={() => router.back()} />
+    <Screen edges={[]}>
+      <PageHeader title="My QR Code" />
       {profile.isLoading ? (
         <LoadingState />
       ) : !user ? (

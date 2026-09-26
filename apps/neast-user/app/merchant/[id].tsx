@@ -3,7 +3,7 @@ import { Image, Linking, Pressable, ScrollView, Share, StyleSheet, Text, View } 
 import { router, useLocalSearchParams } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 
-import { BottomSheet, coreColors, spacing, textStyles, Toast } from '@neast/ui-mobile';
+import { BottomSheet, coreColors, spacing, textStyles, Toast, userHomeColors } from '@neast/ui-mobile';
 
 import { getMerchantCoupons, getMerchantDetail } from '@/lib/endpoints';
 import { merchantShareUrl } from '@/lib/deep-links';
@@ -188,14 +188,14 @@ const styles = StyleSheet.create({
   actionButton: {
     flex: 1,
     borderWidth: 1,
-    borderColor: coreColors.brandBlue,
+    borderColor: userHomeColors.navy,
     borderRadius: 8,
     paddingVertical: spacing.sm,
     alignItems: 'center',
   },
   actionText: {
     ...textStyles.bodySmall,
-    color: coreColors.brandBlue,
+    color: userHomeColors.navy,
     fontWeight: '600',
   },
   nearestSection: {

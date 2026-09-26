@@ -10,7 +10,7 @@ export const coreColors = {
   brandBlue: '#0851AA',
   /** Secondary brand accents, selected states. */
   brandBlueLight: '#234FA5',
-  /** Action green — primary button background (Flutter `AppTheme.primaryColor`). */
+  /** Light green accent. Action buttons use `userHomeColors.navy`. */
   actionGreen: '#4ADB77',
   /** Success / paid / positive money states. */
   darkGreen: '#3EBF7A',

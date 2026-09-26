@@ -10,6 +10,7 @@ import {
   Card,
   coreColors,
   MonthPicker,
+  userHomeColors,
   type MonthValue,
   formatMonthLabel,
   RefreshList,
@@ -204,7 +205,7 @@ const styles = StyleSheet.create({
     backgroundColor: coreColors.white,
   },
   presetChipActive: {
-    borderColor: coreColors.brandBlue,
+    borderColor: userHomeColors.navy,
     backgroundColor: coreColors.tintBlue,
   },
   presetText: {
@@ -212,7 +213,7 @@ const styles = StyleSheet.create({
     color: coreColors.textSecondary,
   },
   presetTextActive: {
-    color: coreColors.brandBlue,
+    color: userHomeColors.navy,
     fontWeight: '600',
   },
   topupButton: {
@@ -229,7 +230,7 @@ const styles = StyleSheet.create({
   },
   monthButtonText: {
     ...textStyles.bodySmall,
-    color: coreColors.brandBlue,
+    color: userHomeColors.navy,
     fontWeight: '600',
   },
   emptyText: {

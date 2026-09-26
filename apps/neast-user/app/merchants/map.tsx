@@ -6,7 +6,7 @@ import MapView, { Marker, UrlTile } from 'react-native-maps';
 
 import { FIVE_X_POINTS_CATEGORY } from '@neast/constant';
 import { type NearbyMerchantItem } from '@neast/types';
-import { Card, coreColors, radii, spacing, textStyles } from '@neast/ui-mobile';
+import { Card, coreColors, radii, spacing, textStyles, userHomeColors } from '@neast/ui-mobile';
 
 import { getMerchantCategories, getNearbyMerchants } from '@/lib/endpoints';
 import { useDeviceLocation } from '@/lib/location';
@@ -237,8 +237,8 @@ const styles = StyleSheet.create({
     borderColor: coreColors.border,
   },
   chipActive: {
-    backgroundColor: coreColors.brandBlue,
-    borderColor: coreColors.brandBlue,
+    backgroundColor: userHomeColors.navy,
+    borderColor: userHomeColors.navy,
   },
   chipText: {
     ...textStyles.bodySmall,

@@ -32,8 +32,8 @@ export const userTheme: AppTheme = {
   accents: userAccentColors,
   home: userHomeColors,
   gradients: {
-    // User app headers are solid brand blue; gradient kept for API symmetry.
-    header: [coreColors.brandBlue, coreColors.brandBlueLight],
+    // User screens use the solid navy bar.
+    header: [userHomeColors.navy, userHomeColors.navy],
     highlight: [userAccentColors.tierBackground, userAccentColors.gold],
   },
 };

@@ -131,29 +131,18 @@ export default function PayRentDetailRoute() {
     current.status === RENT_STATUS.pending ||
     current.status === RENT_STATUS.rejected ||
     current.status === RENT_STATUS.pendingBind;
+  const showAction = canEdit || canPay;
 
   return (
     <Screen edges={[]}>
       <PageHeader title="Tenancy" />
-      <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 78 }]}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.scroll,
+          { paddingBottom: insets.bottom + (showAction ? 78 : 12) },
+        ]}
+      >
         <TenancyCard rent={current} summary />
-        {canEdit ? (
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => {
-              setRent(current);
-              router.push({
-                pathname: current.property_id
-                  ? '/pay-rent/create/connect'
-                  : '/pay-rent/create/manual',
-                params: { rentId: String(current.id) },
-              });
-            }}
-            style={({ pressed }) => [styles.editButton, pressed && styles.pressed]}
-          >
-            <Text style={styles.payText}>Edit details</Text>
-          </Pressable>
-        ) : null}
 
         <View style={[styles.card, styles.payCard]}>
           <Text style={styles.label}>{year}</Text>
@@ -179,18 +168,6 @@ export default function PayRentDetailRoute() {
               <InfoLine title={dueStatusLabel(current.due_status)} value={current.date_label} />
             )}
           </View>
-          {canPay ? (
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => {
-                setRent(current);
-                router.push('/pay-rent/payment');
-              }}
-              style={({ pressed }) => [styles.payButton, pressed && styles.pressed]}
-            >
-              <Text style={styles.payText}>Pay Now</Text>
-            </Pressable>
-          ) : null}
         </View>
 
         <View style={[styles.card, styles.recentCard]}>
@@ -205,30 +182,38 @@ export default function PayRentDetailRoute() {
               <Chevron direction="right" color={userHomeColors.navy} size={8} />
             </Pressable>
           </View>
-          {recent.map((entry) => (
-            <RecentRow key={entry.id} entry={entry} />
-          ))}
+          {recent.length === 0 ? (
+            <Text style={styles.recentEmpty}>No recent payments yet.</Text>
+          ) : (
+            recent.map((entry) => <RecentRow key={entry.id} entry={entry} />)
+          )}
         </View>
       </ScrollView>
-      {rent.owner_linked ? (
-        <View
-          style={[styles.ownerButton, styles.ownerButtonLinked, { bottom: insets.bottom + 16 }]}
-        >
-          <Text style={styles.ownerButtonText}>Connected with owner</Text>
-        </View>
-      ) : (
+      {showAction ? (
         <Pressable
           accessibilityRole="button"
-          onPress={() => router.push('/pay-rent/invite-owner')}
+          onPress={() => {
+            setRent(current);
+            if (canEdit) {
+              router.push({
+                pathname: current.property_id
+                  ? '/pay-rent/create/connect'
+                  : '/pay-rent/create/manual',
+                params: { rentId: String(current.id) },
+              });
+              return;
+            }
+            router.push('/pay-rent/payment');
+          }}
           style={({ pressed }) => [
             styles.ownerButton,
             { bottom: insets.bottom + 16 },
             pressed && styles.pressed,
           ]}
         >
-          <Text style={styles.ownerButtonText}>Connect with owner</Text>
+          <Text style={styles.ownerButtonText}>{canEdit ? 'Edit details' : 'Pay Now'}</Text>
         </Pressable>
-      )}
+      ) : null}
     </Screen>
   );
 }
@@ -317,6 +302,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  recentEmpty: {
+    color: userHomeColors.textSecondary,
+    fontSize: 12,
+    lineHeight: 16,
+  },
   recentPeriod: {
     flex: 1,
     color: userHomeColors.textSecondary,
@@ -368,9 +358,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 16,
   },
-  ownerButtonLinked: {
-    backgroundColor: userHomeColors.emptyGrey,
-  },
   ownerButtonText: {
     color: userHomeColors.surface,
     fontSize: 14,
@@ -380,26 +367,6 @@ const styles = StyleSheet.create({
     color: userHomeColors.textSecondary,
     fontSize: 12,
     lineHeight: 16,
-    fontWeight: '600',
-  },
-  editButton: {
-    minHeight: 46,
-    borderRadius: 11,
-    backgroundColor: userHomeColors.navy,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 16,
-  },
-  payButton: {
-    minHeight: 36,
-    borderRadius: 8,
-    backgroundColor: userHomeColors.navy,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  payText: {
-    color: userHomeColors.surface,
-    fontSize: 14,
     fontWeight: '600',
   },
   grid: {

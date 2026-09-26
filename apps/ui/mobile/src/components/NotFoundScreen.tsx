@@ -8,7 +8,7 @@ import { textStyles } from '@ui/tokens/typography';
 import { Button } from './Button';
 
 const actionColor: Record<AppId, string> = {
-  user: userHomeColors.royalBlue,
+  user: userHomeColors.navy,
   owner: coreColors.brandBlue,
   merchant: merchantAccentColors.selected,
 };

@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 
 import { VOUCHER_STATUS_TABS } from '@neast/constant';
 import type { UserCouponItem, VoucherStatus } from '@neast/types';
-import { coreColors, RefreshList, spacing, textStyles } from '@neast/ui-mobile';
+import { coreColors, RefreshList, spacing, textStyles, userHomeColors } from '@neast/ui-mobile';
 
 import { getMyCoupons } from '@/lib/endpoints';
 import { usePaginatedList } from '@/hooks/use-paginated';
@@ -89,8 +89,8 @@ const styles = StyleSheet.create({
     borderColor: coreColors.border,
   },
   tabActive: {
-    backgroundColor: coreColors.brandBlue,
-    borderColor: coreColors.brandBlue,
+    backgroundColor: userHomeColors.navy,
+    borderColor: userHomeColors.navy,
   },
   tabText: {
     ...textStyles.bodySmall,

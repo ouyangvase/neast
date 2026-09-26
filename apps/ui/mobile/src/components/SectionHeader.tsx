@@ -8,7 +8,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 
-import { coreColors } from '@ui/tokens/colors';
+import { userHomeColors } from '@ui/tokens/colors';
 import { spacing } from '@ui/tokens/layout';
 import { textStyles } from '@ui/tokens/typography';
 
@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
   },
   action: {
     ...textStyles.bodySmall,
-    color: coreColors.brandBlue,
+    color: userHomeColors.navy,
     fontWeight: '500',
   },
 });

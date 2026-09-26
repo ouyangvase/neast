@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   rowSelected: {
-    borderColor: coreColors.brandBlueLight,
+    borderColor: coreColors.brandBlue,
     backgroundColor: coreColors.tintBlue,
   },
   rowDisabled: {
@@ -144,12 +144,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   radioSelected: {
-    borderColor: coreColors.brandBlueLight,
+    borderColor: coreColors.brandBlue,
   },
   radioDot: {
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: coreColors.brandBlueLight,
+    backgroundColor: coreColors.brandBlue,
   },
 });

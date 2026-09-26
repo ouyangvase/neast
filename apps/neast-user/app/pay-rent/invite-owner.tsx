@@ -159,6 +159,5 @@ const styles = StyleSheet.create({
   },
   action: {
     flex: 1,
-    backgroundColor: userHomeColors.navy,
   },
 });

@@ -5,19 +5,20 @@ import { useMutation } from '@tanstack/react-query';
 
 import { sessionStore } from '@neast/types';
 import {
-  BrandHeader,
   Button,
   coreColors,
   OtpInput,
   spacing,
   textStyles,
   Toast,
+  userHomeColors,
 } from '@neast/ui-mobile';
 
 import { apiErrorMessage } from '@/lib/api';
 import { navigateAfterAuth } from '@/lib/auth';
 import { login, sendCode } from '@/lib/endpoints';
 import { useCountdown } from '@/hooks/use-countdown';
+import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 
 /** OTP verification (verify_screen parity): pinput + 60s resend countdown. */
@@ -77,8 +78,8 @@ export default function VerifyRoute() {
   };
 
   return (
-    <Screen>
-      <BrandHeader title="Verification" onBack={() => router.back()} />
+    <Screen edges={[]}>
+      <PageHeader title="Verification" />
       <View style={styles.body}>
         <Text style={styles.title}>Enter verification code</Text>
         <Text style={styles.subtitle}>
@@ -155,7 +156,7 @@ const styles = StyleSheet.create({
   },
   resendLink: {
     ...textStyles.bodySmall,
-    color: coreColors.brandBlue,
+    color: userHomeColors.navy,
     fontWeight: '600',
   },
 });

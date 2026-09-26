@@ -1,7 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 
 import type { MerchantListItem } from '@neast/types';
-import { BrandHeader, RefreshList, spacing } from '@neast/ui-mobile';
+import { RefreshList, spacing } from '@neast/ui-mobile';
 
 import {
   getMerchantList,
@@ -11,6 +11,7 @@ import {
 import { useDeviceLocation } from '@/lib/location';
 import { usePaginatedList } from '@/hooks/use-paginated';
 import { MerchantCard } from '@/features/merchant/components';
+import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 
 type ListKind = 'all' | 'recommended' | 'nearby';
@@ -45,8 +46,8 @@ export default function MerchantsRoute() {
   );
 
   return (
-    <Screen>
-      <BrandHeader title={params.header ?? HEADERS[kind]} onBack={() => router.back()} />
+    <Screen edges={[]}>
+      <PageHeader title={params.header ?? HEADERS[kind]} />
       <RefreshList<MerchantListItem>
         data={list.items}
         keyExtractor={(item) => String(item.id)}

@@ -172,12 +172,7 @@ export function AccountTab() {
           style={[styles.backdrop, { paddingTop: insets.top + 8 }]}
         >
           <Text style={styles.title}>Account</Text>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={isLoggedIn ? 'Edit profile' : 'Sign in'}
-            onPress={() => open('/personal-data')}
-            style={({ pressed }) => [styles.identity, pressed && styles.pressed]}
-          >
+          <View style={styles.identity}>
             <View style={styles.avatar}>
               {profile.data ? (
                 <Text style={styles.avatarText}>
@@ -198,8 +193,7 @@ export function AccountTab() {
                 {isLoggedIn ? null : 'Sign in to manage your home.'}
               </Text>
             </View>
-            <Chevron direction="right" color={userHomeColors.textOnNavy} size={8} />
-          </Pressable>
+          </View>
           {isLoggedIn ? null : (
             <Pressable
               accessibilityRole="button"
@@ -245,7 +239,7 @@ export function AccountTab() {
                 <Ionicons
                   name={item.icon}
                   size={20}
-                  color={item.danger ? coreColors.error : userHomeColors.royalBlue}
+                  color={item.danger ? coreColors.error : userHomeColors.navy}
                 />
                 <Text style={[styles.rowLabel, item.danger && styles.rowLabelDanger]}>
                   {item.label}
@@ -350,7 +344,7 @@ const styles = StyleSheet.create({
   signIn: {
     minHeight: 46,
     borderRadius: 11,
-    backgroundColor: userHomeColors.royalBlue,
+    backgroundColor: userHomeColors.navy,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -441,7 +435,7 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   rowPrompt: {
-    color: userHomeColors.royalBlue,
+    color: userHomeColors.navy,
     fontWeight: '600',
   },
   version: {

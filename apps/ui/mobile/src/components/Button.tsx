@@ -9,7 +9,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 
-import { coreColors } from '@ui/tokens/colors';
+import { coreColors, userHomeColors } from '@ui/tokens/colors';
 import { radii } from '@ui/tokens/layout';
 import { textStyles } from '@ui/tokens/typography';
 
@@ -19,7 +19,7 @@ export type ButtonSize = 'small' | 'medium' | 'large';
 export interface ButtonProps {
   title: string;
   onPress?: () => void;
-  /** `primary` = action green (Flutter ElevatedButton default). Default: `primary`. */
+  /** `primary` = navy action. Default: `primary`. */
   variant?: ButtonVariant;
   size?: ButtonSize;
   loading?: boolean;
@@ -63,7 +63,7 @@ export function Button({
       {loading ? (
         <ActivityIndicator
           color={
-            variant === 'outline' || variant === 'ghost' ? coreColors.brandBlue : coreColors.white
+            variant === 'outline' || variant === 'ghost' ? userHomeColors.navy : coreColors.white
           }
         />
       ) : (
@@ -104,15 +104,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   variant_primary: {
-    backgroundColor: coreColors.actionGreen,
+    backgroundColor: userHomeColors.navy,
   },
   variant_secondary: {
-    backgroundColor: coreColors.brandBlue,
+    backgroundColor: userHomeColors.navy,
   },
   variant_outline: {
     backgroundColor: coreColors.white,
     borderWidth: 1,
-    borderColor: coreColors.brandBlue,
+    borderColor: userHomeColors.navy,
   },
   variant_danger: {
     backgroundColor: coreColors.error,
@@ -145,12 +145,12 @@ const styles = StyleSheet.create({
     color: coreColors.white,
   },
   label_outline: {
-    color: coreColors.brandBlue,
+    color: userHomeColors.navy,
   },
   label_danger: {
     color: coreColors.white,
   },
   label_ghost: {
-    color: coreColors.brandBlue,
+    color: userHomeColors.navy,
   },
 });

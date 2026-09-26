@@ -1,11 +1,9 @@
 import { Image, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
-import { router } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import * as Clipboard from 'expo-clipboard';
 
 import { formatThousands } from '@neast/types';
 import {
-  BrandHeader,
   Button,
   Card,
   coreColors,
@@ -18,6 +16,7 @@ import referBanner from '@assets/images/refer/refer-banner.png';
 
 import { getReferDashboard } from '@/lib/endpoints';
 import { ErrorState, LoadingState } from '@/components/StateViews';
+import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 
 /** Refer & earn (refer_screen parity): stats, invite code copy, share H5 link. */
@@ -43,8 +42,8 @@ export default function ReferRoute() {
   };
 
   return (
-    <Screen>
-      <BrandHeader title="Refer & Earn" onBack={() => router.back()} />
+    <Screen edges={[]}>
+      <PageHeader title="Refer & Earn" />
       {refer.isLoading ? (
         <LoadingState />
       ) : !data ? (

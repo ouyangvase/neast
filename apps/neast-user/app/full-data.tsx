@@ -6,7 +6,6 @@ import { ID_TYPE_LABELS } from '@neast/constant';
 import type { IdType } from '@neast/types';
 import {
   BottomSheet,
-  BrandHeader,
   Button,
   coreColors,
   spacing,
@@ -19,6 +18,7 @@ import { apiErrorMessage } from '@/lib/api';
 import { navigateAfterAuth } from '@/lib/auth';
 import { updateUserProfile } from '@/lib/endpoints';
 import { DatePickerField, toYmd } from '@/components/DatePickerField';
+import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 
 /**
@@ -60,8 +60,8 @@ export default function FullDataRoute() {
   };
 
   return (
-    <Screen>
-      <BrandHeader title="Complete Your Profile" />
+    <Screen edges={[]}>
+      <PageHeader title="Complete Your Profile" showBack={false} />
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scroll}>
         <Text style={styles.subtitle}>
           Tell us a bit about yourself to finish setting up your account.

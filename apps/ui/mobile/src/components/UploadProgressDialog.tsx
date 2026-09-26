@@ -1,6 +1,6 @@
 import { Modal, StyleSheet, Text, View } from 'react-native';
 
-import { coreColors } from '@ui/tokens/colors';
+import { coreColors, userHomeColors } from '@ui/tokens/colors';
 import { radii, spacing } from '@ui/tokens/layout';
 import { textStyles } from '@ui/tokens/typography';
 import { Button } from './Button';
@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
   fill: {
     height: '100%',
     borderRadius: radii.pill,
-    backgroundColor: coreColors.actionGreen,
+    backgroundColor: userHomeColors.navy,
   },
   percent: {
     ...textStyles.bodySmall,

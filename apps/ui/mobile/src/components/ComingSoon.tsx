@@ -20,7 +20,7 @@ export function ComingSoon({ title, message, onBack }: ComingSoonProps) {
         title={title}
         onBack={onBack}
         backgroundColor={userHomeColors.navy}
-        chevronColor={userHomeColors.textOnNavy}
+        chevronColor={userHomeColors.surface}
         titleStyle={styles.headerTitle}
       />
       <View style={styles.body}>

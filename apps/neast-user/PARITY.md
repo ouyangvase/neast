@@ -35,8 +35,8 @@ Spec source: `docs/users.md` (30 routes, 49 endpoints, 4 tabs).
 | 24  | `/scanner`                 | `app/scanner.tsx`                                                        | ✅ shared `QrScannerScreen`; result via `openScanner` callback                                                   |
 | 25  | `/refer`                   | `app/refer.tsx`                                                          | ✅ refer/dashboard stats, copy code, Share H5 link                                                               |
 | 26  | `/notification`            | `app/notification.tsx`                                                   | ✅ paginated; on focus: clear badge + read-all + invalidate                                                      |
-| 27  | `/personal-data`           | `app/personal-data/index.tsx`                                            | ✅ read-only field list → edit                                                                                   |
-| 28  | `/personal-data/edit`      | `app/personal-data/edit.tsx`                                             | ✅ `?field=` single-field edit incl. ID valid-until date wheel                                                   |
+| 27  | `/personal-data`           | `app/personal-data/index.tsx`                                            | ✅ read-only details; header pencil edits in place (passport expiry only when `idType` is passport)             |
+| 28  | `/personal-data/edit`      | —                                                                        | removed; single-field editor folded into `/personal-data`                                                       |
 | 29  | `/account/my-qr`           | `app/account/my-qr.tsx`                                                  | ✅ `qrCode` payload + view-shot → MediaLibrary save                                                              |
 | 30  | `/account/tent-score`      | `app/account/tent-score.tsx`                                             | ✅ Navy/gold gauge; score is `clamp(500 + onTime×10 − late×20, 0, 1000)`; current on-time month streak; `totalPaid` as-is |
 | —   | `/properties`              | `app/properties.tsx`                                                     | ✅ Shared `ComingSoon` (navy header, no photo); guest-allowed; entry from home property promo |
@@ -85,13 +85,14 @@ Removed from home: Today's Reward card, My Vouchers card, old `PromoCarousel`,
 `src/features/account/AccountTab.tsx`, top → bottom:
 
 1. **Identity** on the metallic navy header: cream avatar, name, and phone.
-   Guests see "Welcome to NEAST" and a Sign in button. The row opens
-   `/personal-data` (guests: `/login`).
+   Display only. Guests see "Welcome to NEAST" and a Sign in button.
 2. **My QR** is the only card → `/account/my-qr` (guests: `/login`).
 3. **Table** under that card, full width, one row per line: Wallet (`formatRinggit`),
    TENT score, Personal Information, Privacy & Security, Terms & Conditions. No points
-   row and no notifications row. Value rows open `/wallet` and `/account/tent-score`.
-   Guests read "Sign in" and go to `/login`. Privacy and Terms stay on `/rich-text`.
+   row and no notifications row. Personal Information is the only path to
+   `/personal-data` (guests: `/login`). Value rows open `/wallet` and
+   `/account/tent-score`. Guests read "Sign in" and go to `/login`. Privacy and Terms
+   stay on `/rich-text`.
 4. Logged in only, still in that table: Log Out (confirm alert) and Delete Account
    (10s countdown).
 
@@ -107,7 +108,7 @@ App-level wrappers live in `src/lib/endpoints.ts`; upload/push/refresh are insid
 | 3   | `POST /app/auth/login`            | `login`                                             | `app/verify.tsx`                                               |
 | 4   | `POST /app/auth/refresh-token`    | `@neast/types` client (single-flight, business-400) | automatic                                                      |
 | 5   | `GET /app/user/profile`           | `getUserProfile`                                    | `useUserProfile` (Account, Home, personal-data, my-qr)         |
-| 6   | `POST /app/user/profile`          | `updateUserProfile`                                 | `app/full-data.tsx`, `app/personal-data/edit.tsx`              |
+| 6   | `POST /app/user/profile`          | `updateUserProfile`                                 | `app/full-data.tsx`, `app/personal-data/index.tsx`             |
 | 7   | `POST /app/user/delete-account`   | `deleteAccount`                                     | `AccountTab` (10s CountdownConfirmDialog)                      |
 | 8   | `GET /app/user/tent-score`        | `getTentScore`                                      | `AccountTab` snapshot, `app/account/tent-score.tsx`            |
 | 9   | `GET /app/config`                 | `getAppConfig`                                      | `useAppConfig` (fee fallback, alpha notice)                    |
